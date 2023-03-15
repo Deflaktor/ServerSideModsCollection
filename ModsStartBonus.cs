@@ -52,28 +52,65 @@ namespace ServerSideModsCollection
                     );
                 c.Index += 4;
                 c.Remove();
-                c.EmitDelegate<Action<Inventory, ItemDef, Int32>>((inventory, itemDef, count) =>
-                {
-                    inventory.GiveItem(itemDef, count);
-                    var itemEnum = BepConfig.StartingItemWhite.Value;
-                    if (itemEnum != ItemWhiteEnum.None)
-                    {
-                        inventory.GiveItem(itemDef, count);
-                    }
-                    
-                });
+                c.EmitDelegate(GiveStartingItems);
+                c.GotoNext(
+                    x => x.MatchLdloc(0),
+                    x => x.MatchCallvirt<CharacterMaster>("get_inventory"),
+                    x => x.MatchLdsfld("RoR2.RoR2Content/Items", "MonsoonPlayerHelper"),
+                    x => x.MatchLdcI4(1),
+                    x => x.MatchCallvirt<Inventory>("GiveItem")
+                    );
+                c.Index += 4;
+                c.Remove();
+                c.EmitDelegate(GiveStartingItems);
             };
         }
 
-        private static bool ShouldGiveStartingItems()
+        private static void GiveStartingItems(Inventory inventory, ItemDef itemDef, Int32 count)
         {
-            return BepConfig.StartingItemWhite.Value != ItemWhiteEnum.None ||
-                   BepConfig.StartingItemGreen.Value != ItemGreenEnum.None ||
-                   BepConfig.StartingItemRed.Value   != ItemRedEnum.None   ||
-                   BepConfig.StartingItemBoss.Value  != ItemBossEnum.None  ||
-                   BepConfig.StartingItemLunar.Value != ItemLunarEnum.None ||
-                   BepConfig.StartingItemVoid.Value  != ItemVoidEnum.None  ||
-                   BepConfig.StartingItemEquip.Value != ItemEquipEnum.None;
+            inventory.GiveItem(itemDef, count);
+
+            itemDef = ToItemDef(BepConfig.StartingItemWhite.Value);
+            count = BepConfig.StartingItemWhiteCount.Value;
+            if (itemDef && count > 0)
+            {
+                inventory.GiveItem(itemDef, count);
+            }
+            itemDef = ToItemDef(BepConfig.StartingItemGreen.Value);
+            count = BepConfig.StartingItemGreenCount.Value;
+            if (itemDef && count > 0)
+            {
+                inventory.GiveItem(itemDef, count);
+            }
+            itemDef = ToItemDef(BepConfig.StartingItemRed.Value);
+            count = BepConfig.StartingItemRedCount.Value;
+            if (itemDef && count > 0)
+            {
+                inventory.GiveItem(itemDef, count);
+            }
+            itemDef = ToItemDef(BepConfig.StartingItemBoss.Value);
+            count = BepConfig.StartingItemBossCount.Value;
+            if (itemDef && count > 0)
+            {
+                inventory.GiveItem(itemDef, count);
+            }
+            itemDef = ToItemDef(BepConfig.StartingItemLunar.Value);
+            count = BepConfig.StartingItemLunarCount.Value;
+            if (itemDef && count > 0)
+            {
+                inventory.GiveItem(itemDef, count);
+            }
+            itemDef = ToItemDef(BepConfig.StartingItemVoid.Value);
+            count = BepConfig.StartingItemVoidCount.Value;
+            if (itemDef && count > 0)
+            {
+                inventory.GiveItem(itemDef, count);
+            }
+            var equipIndex = ToEquipIndex(BepConfig.StartingItemEquip.Value);
+            if (equipIndex != EquipmentIndex.None)
+            {
+                inventory.SetEquipmentIndex(equipIndex);
+            }
         }
 
         private void GiveEveryone(PickupIndex pickupIndex)

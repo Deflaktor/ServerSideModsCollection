@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ServerSideModsCollection
 {
@@ -310,7 +311,40 @@ namespace ServerSideModsCollection
             { StageEnum.SulfurPools, new List<string>(){ "sulfurpools" } },
         };
 
-        public static string getItemWhiteName(ItemWhiteEnum item)
+        public static bool IsSimulacrumStage(String name)
+        {
+            if (GetStageName(StageEnum.SimulacrumAbandonedAquaduct) == name) return true;
+            if (GetStageName(StageEnum.SimulacrumAbyssalDepths) == name) return true;
+            if (GetStageName(StageEnum.SimulacrumAphelianSanctuary) == name) return true;
+            if (GetStageName(StageEnum.SimulacrumCommencement) == name) return true;
+            if (GetStageName(StageEnum.SimulacrumRallypointDelta) == name) return true;
+            if (GetStageName(StageEnum.SimulacrumSkyMeadow) == name) return true;
+            if (GetStageName(StageEnum.SimulacrumTitanicPlains) == name) return true;
+            return false;
+        }
+
+        private static ItemDef ToItemDef(String itemName)
+        {
+            if (itemName == null)
+                return null;
+            var index = ItemCatalog.FindItemIndex(itemName);
+            if (index == ItemIndex.None)
+                return null;
+            return ItemCatalog.GetItemDef(index);
+        }
+        public static ItemDef ToItemDef(ItemWhiteEnum value) { return ToItemDef(getItemName(value)); }
+        public static ItemDef ToItemDef(ItemGreenEnum value) { return ToItemDef(getItemName(value)); }
+        public static ItemDef ToItemDef(ItemRedEnum value)   { return ToItemDef(getItemName(value)); }
+        public static ItemDef ToItemDef(ItemBossEnum value)  { return ToItemDef(getItemName(value)); }
+        public static ItemDef ToItemDef(ItemVoidEnum value)  { return ToItemDef(getItemName(value)); }
+        public static ItemDef ToItemDef(ItemLunarEnum value) { return ToItemDef(getItemName(value)); }
+        public static EquipmentIndex ToEquipIndex(ItemEquipEnum value) {
+            var equipName = getItemName(value);
+            if (equipName == null)
+                return EquipmentIndex.None;
+            return EquipmentCatalog.FindEquipmentIndex(equipName);
+        }
+        private static string getItemName(ItemWhiteEnum item)
         {
             switch (item)
             {
@@ -348,7 +382,7 @@ namespace ServerSideModsCollection
             return null;
         }
 
-        public static string getItemGreenName(ItemGreenEnum item)
+        private static string getItemName(ItemGreenEnum item)
         {
             switch (item)
             {
@@ -387,7 +421,7 @@ namespace ServerSideModsCollection
             return null;
         }
 
-        public static string getItemRedName(ItemRedEnum item)
+        private static string getItemName(ItemRedEnum item)
         {
             switch (item)
             {
@@ -423,7 +457,7 @@ namespace ServerSideModsCollection
             return null;
         }
 
-        public static string getItemBossName(ItemBossEnum item)
+        private static string getItemName(ItemBossEnum item)
         {
             switch (item)
             {
@@ -446,7 +480,7 @@ namespace ServerSideModsCollection
             return null;
         }
 
-        public static string getItemVoidName(ItemVoidEnum item)
+        private static string getItemName(ItemVoidEnum item)
         {
             switch (item)
             {
@@ -468,7 +502,7 @@ namespace ServerSideModsCollection
             return null;
         }
 
-        public static string getItemLunarName(ItemLunarEnum item)
+        private static string getItemName(ItemLunarEnum item)
         {
             switch (item)
             {
@@ -494,7 +528,7 @@ namespace ServerSideModsCollection
             return null;
         }
 
-        public static string getItemEquipName(ItemEquipEnum item)
+        private static string getItemName(ItemEquipEnum item)
         {
             switch (item)
             {
@@ -545,31 +579,31 @@ namespace ServerSideModsCollection
             return null;
         }
 
-        public static string getStageName(StageEnum stageEnum)
+        public static string GetStageName(StageEnum stageEnum)
         {
             return SceneNames[stageEnum].First();
         }
 
-        public static string getArtifactName(ArtifactEnum Artifacts)
+        public static ArtifactDef GetArtifactDef(ArtifactEnum artifacts)
         {
-            switch (Artifacts)
+            switch (artifacts)
             {
-                case ArtifactEnum.Chaos: return "ARTIFACT_FRIENDLYFIRE_NAME";
-                case ArtifactEnum.Command: return "ARTIFACT_COMMAND_NAME";
-                case ArtifactEnum.Death: return "ARTIFACT_TEAMDEATH_NAME";
-                case ArtifactEnum.Dissonance: return "ARTIFACT_MIXENEMY_NAME";
-                case ArtifactEnum.Enigma: return "ARTIFACT_ENIGMA_NAME";
-                case ArtifactEnum.Evolution: return "ARTIFACT_MONSTERTEAMGAINSITEMS_NAME";
-                case ArtifactEnum.Frailty: return "ARTIFACT_WEAKASSKNEES_NAME";
-                case ArtifactEnum.Glass: return "ARTIFACT_GLASS_NAME";
-                case ArtifactEnum.Honor: return "ARTIFACT_ELITEONLY_NAME";
-                case ArtifactEnum.Kin: return "ARTIFACT_SINGLEMONSTERTYPE_NAME";
-                case ArtifactEnum.Metamorphosis: return "ARTIFACT_RANDOMSURVIVORONRESPAWN_NAME";
-                case ArtifactEnum.Sacrifice: return "ARTIFACT_SACRIFICE_NAME";
-                case ArtifactEnum.Soul: return "ARTIFACT_WISPONDEATH_NAME";
-                case ArtifactEnum.Spite: return "ARTIFACT_BOMB_NAME";
-                case ArtifactEnum.Swarms: return "ARTIFACT_SWARMS_NAME";
-                case ArtifactEnum.Vengeance: return "ARTIFACT_SHADOWCLONE_NAME";
+                case ArtifactEnum.Chaos: return RoR2Content.Artifacts.FriendlyFire;
+                case ArtifactEnum.Command: return RoR2Content.Artifacts.Command;
+                case ArtifactEnum.Death: return RoR2Content.Artifacts.TeamDeath;
+                case ArtifactEnum.Dissonance: return RoR2Content.Artifacts.MixEnemy;
+                case ArtifactEnum.Enigma: return RoR2Content.Artifacts.Enigma;
+                case ArtifactEnum.Evolution: return RoR2Content.Artifacts.MonsterTeamGainsItems;
+                case ArtifactEnum.Frailty: return RoR2Content.Artifacts.WeakAssKnees;
+                case ArtifactEnum.Glass: return RoR2Content.Artifacts.Glass;
+                case ArtifactEnum.Honor: return RoR2Content.Artifacts.EliteOnly;
+                case ArtifactEnum.Kin: return RoR2Content.Artifacts.SingleMonsterType;
+                case ArtifactEnum.Metamorphosis: return RoR2Content.Artifacts.RandomSurvivorOnRespawn;
+                case ArtifactEnum.Sacrifice: return RoR2Content.Artifacts.Sacrifice;
+                case ArtifactEnum.Soul: return RoR2Content.Artifacts.WispOnDeath;
+                case ArtifactEnum.Spite: return RoR2Content.Artifacts.Bomb;
+                case ArtifactEnum.Swarms: return RoR2Content.Artifacts.Swarms;
+                case ArtifactEnum.Vengeance: return RoR2Content.Artifacts.ShadowClone;
             }
             return null;
         }
