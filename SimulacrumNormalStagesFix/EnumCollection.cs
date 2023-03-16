@@ -4,32 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using static RoR2.SceneCollection;
 
-namespace SimulacrumBossStageMod
+namespace SimulacrumNormalStagesFix
 {
     public class EnumCollection
     {
-        public enum ArtifactEnum
-        {
-            None,
-            Chaos,
-            Command,
-            Death,
-            Dissonance,
-            Enigma,
-            Evolution,
-            Frailty,
-            Glass,
-            Honor,
-            Kin,
-            Metamorphosis,
-            Sacrifice,
-            Soul,
-            Spite,
-            Swarms,
-            Vengeance
-        }
-
         public enum StageEnum
         {
             None,
@@ -64,7 +44,7 @@ namespace SimulacrumBossStageMod
             SulfurPools
         }
 
-        public static Dictionary<StageEnum, List<string>> SceneNames = new Dictionary<StageEnum, List<string>>()  
+        public static Dictionary<StageEnum, List<string>> SceneNames = new Dictionary<StageEnum, List<string>>()
         {
             { StageEnum.TitanicPlains, new List<string>(){ "golemplains", "golemplains2", "golemplains trailer" } },
             { StageEnum.DistantRoost, new List<string>(){ "blackbeach", "blackbeach2", "blackbeachTest" } },
@@ -97,6 +77,50 @@ namespace SimulacrumBossStageMod
             { StageEnum.SulfurPools, new List<string>(){ "sulfurpools" } },
         };
 
+        private static SceneEntry createSceneEntry(StageEnum stageEnum, float weight = 1.0f)
+        {
+            var sceneDef = SceneCatalog.allStageSceneDefs.Where(s => s.cachedName == GetStageName(stageEnum)).First();
+            return createSceneEntry(sceneDef, weight);
+        }
+
+        private static SceneEntry createSceneEntry(string stageName, float weight = 1.0f)
+        {
+            var sceneDef = SceneCatalog.allStageSceneDefs.Where(s => s.cachedName == stageName).First();
+            return createSceneEntry(sceneDef, weight);
+        }
+
+        private static SceneEntry createSceneEntry(SceneDef sceneDef, float weight = 1.0f)
+        {
+            var sceneEntry = new SceneEntry();
+            sceneEntry.sceneDef = sceneDef;
+            sceneEntry.weight = weight;
+            return sceneEntry;
+        }
+
+        public static List<SceneEntry> GetNormalStagesList()
+        {
+            var list = new List<SceneEntry>
+            {
+                createSceneEntry("golemplains", 0.5f),
+                createSceneEntry("golemplains2", 0.5f),
+                createSceneEntry("blackbeach", 0.5f),
+                createSceneEntry("blackbeach2", 0.5f),
+                createSceneEntry(StageEnum.WetlandAspect),
+                createSceneEntry(StageEnum.AbandonedAqueduct),
+                createSceneEntry(StageEnum.RallypointDelta),
+                createSceneEntry(StageEnum.ScorchedAcres),
+                createSceneEntry(StageEnum.AbyssalDepths),
+                createSceneEntry(StageEnum.SirensCall),
+                createSceneEntry(StageEnum.SkyMeadow),
+                createSceneEntry(StageEnum.SunderedGrove),
+                createSceneEntry(StageEnum.AphelianSanctuary),
+                createSceneEntry(StageEnum.SiphonedForest),
+                createSceneEntry(StageEnum.SulfurPools),
+                createSceneEntry("moon2")
+            };
+            return list;
+        }
+
         public static bool IsSimulacrumStage(String name)
         {
             if (GetStageName(StageEnum.SimulacrumAbandonedAquaduct) == name) return true;
@@ -112,30 +136,6 @@ namespace SimulacrumBossStageMod
         public static string GetStageName(StageEnum stageEnum)
         {
             return SceneNames[stageEnum].First();
-        }
-
-        public static ArtifactDef GetArtifactDef(ArtifactEnum artifacts)
-        {
-            switch (artifacts)
-            {
-                case ArtifactEnum.Chaos: return RoR2Content.Artifacts.FriendlyFire;
-                case ArtifactEnum.Command: return RoR2Content.Artifacts.Command;
-                case ArtifactEnum.Death: return RoR2Content.Artifacts.TeamDeath;
-                case ArtifactEnum.Dissonance: return RoR2Content.Artifacts.MixEnemy;
-                case ArtifactEnum.Enigma: return RoR2Content.Artifacts.Enigma;
-                case ArtifactEnum.Evolution: return RoR2Content.Artifacts.MonsterTeamGainsItems;
-                case ArtifactEnum.Frailty: return RoR2Content.Artifacts.WeakAssKnees;
-                case ArtifactEnum.Glass: return RoR2Content.Artifacts.Glass;
-                case ArtifactEnum.Honor: return RoR2Content.Artifacts.EliteOnly;
-                case ArtifactEnum.Kin: return RoR2Content.Artifacts.SingleMonsterType;
-                case ArtifactEnum.Metamorphosis: return RoR2Content.Artifacts.RandomSurvivorOnRespawn;
-                case ArtifactEnum.Sacrifice: return RoR2Content.Artifacts.Sacrifice;
-                case ArtifactEnum.Soul: return RoR2Content.Artifacts.WispOnDeath;
-                case ArtifactEnum.Spite: return RoR2Content.Artifacts.Bomb;
-                case ArtifactEnum.Swarms: return RoR2Content.Artifacts.Swarms;
-                case ArtifactEnum.Vengeance: return RoR2Content.Artifacts.ShadowClone;
-            }
-            return null;
         }
     }
 }

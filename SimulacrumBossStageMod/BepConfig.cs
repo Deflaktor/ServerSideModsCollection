@@ -75,7 +75,7 @@ namespace SimulacrumBossStageMod
                 {
                     ModSettingsManager.AddOption(new ChoiceOption(BossStage, new ChoiceConfig()));
                     ModSettingsManager.AddOption(new IntSliderOption(BossStageStartWave, new IntSliderConfig() { min = 0, max = 100, restartRequired = false, checkIfDisabled = () => BossStage.Value == StageEnum.None }));
-                    ModSettingsManager.AddOption(new IntSliderOption(BossStageLunarCoinsReward, new IntSliderConfig() { min = 0, max = 100, restartRequired = false, checkIfDisabled = () => BossStage.Value == StageEnum.None }));
+                    ModSettingsManager.AddOption(new IntSliderOption(BossStageLunarCoinsReward, new IntSliderConfig() { min = 0, max = 200, restartRequired = false, checkIfDisabled = () => BossStage.Value == StageEnum.None }));
                     ModSettingsManager.AddOption(new CheckBoxOption(BossStageCompleteEndRun, new CheckBoxConfig()));
                 }
             }
@@ -149,7 +149,7 @@ namespace SimulacrumBossStageMod
             }
             if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.KingEnderBrine.InLobbyConfig"))
             {
-                var configEntry = InLobbyConfig.Fields.ConfigFieldUtilities.CreateFromBepInExConfigFile(config, "Server-side Mods Collection");
+                var configEntry = InLobbyConfig.Fields.ConfigFieldUtilities.CreateFromBepInExConfigFile(config, "Simulacrum Boss Stage Mod");
                 InLobbyConfig.ModConfigCatalog.Add(configEntry);
             }
         }

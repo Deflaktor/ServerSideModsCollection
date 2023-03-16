@@ -5,7 +5,7 @@ VisualStudioVersion = 17.5.33424.131
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimulacrumBossStageMod", "SimulacrumBossStageMod\SimulacrumBossStageMod.csproj", "{72130566-2537-48E7-A5A7-3D8A586F3B56}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimulacrumStagePoolMod", "SimulacrumStagePoolMod\SimulacrumStagePoolMod.csproj", "{C1339ACF-CE72-453E-93AC-D846C0356F25}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimulacrumNormalStagesFix", "SimulacrumNormalStagesFix\SimulacrumNormalStagesFix.csproj", "{C1339ACF-CE72-453E-93AC-D846C0356F25}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StartBonusMod", "StartBonusMod\StartBonusMod.csproj", "{021941A7-2AF1-442A-8059-0AECEF8EEB49}"
 EndProject

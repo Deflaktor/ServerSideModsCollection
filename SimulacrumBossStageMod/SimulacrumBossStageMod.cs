@@ -16,9 +16,8 @@ namespace SimulacrumBossStageMod
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency("com.rune580.riskofoptions", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("Deflaktor.SimulacrumStagePoolMod", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("Deflaktor.SimulacrumNormalStagesFix", BepInDependency.DependencyFlags.HardDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-    [R2APISubmoduleDependency()]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class SimulacrumBossStageMod : BaseUnityPlugin
     {
@@ -233,6 +232,7 @@ namespace SimulacrumBossStageMod
 
         private void InfiniteTowerRun_OnPrePopulateSceneServer(On.RoR2.InfiniteTowerRun.orig_OnPrePopulateSceneServer orig, InfiniteTowerRun self, SceneDirector sceneDirector)
         {
+            orig(self, sceneDirector);
             if (BepConfig.BossStage.Value != StageEnum.None && self.nextStageScene.cachedName == GetStageName(BepConfig.BossStage.Value))
             {
                 iscVoidPortal = LegacyResourcesAPI.Load<SpawnCard>("SpawnCards/InteractableSpawnCard/iscVoidPortal");

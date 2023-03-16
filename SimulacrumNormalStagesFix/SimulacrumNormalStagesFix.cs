@@ -8,25 +8,25 @@ using MonoMod.Cil;
 using System;
 using System.Reflection;
 using UnityEngine.Networking;
-using static SimulacrumStagePoolMod.EnumCollection;
+using static SimulacrumNormalStagesFix.EnumCollection;
+using System.Security.Cryptography;
+using System.Collections.Generic;
+using static RoR2.SceneCollection;
 
-
-namespace SimulacrumStagePoolMod
+namespace SimulacrumNormalStagesFix
 {
     [BepInDependency(R2API.R2API.PluginGUID)]
-    [BepInDependency("com.rune580.riskofoptions", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-    [R2APISubmoduleDependency()]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    public class SimulacrumStagePoolMod : BaseUnityPlugin
+    public class SimulacrumNormalStagesFix : BaseUnityPlugin
     {
         public static PluginInfo PInfo { get; private set; }
-        public static SimulacrumStagePoolMod instance;
+        public static SimulacrumNormalStagesFix instance;
+        public static List<SceneEntry> normalStagesCollection = null;
 
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Deflaktor";
-        public const string PluginName = "SimulacrumStagePoolMod";
+        public const string PluginName = "SimulacrumNormalStagesFix";
         public const string PluginVersion = "1.0.0";
 
         public void Awake()
@@ -35,14 +35,44 @@ namespace SimulacrumStagePoolMod
             instance = this;
 
             Log.Init(Logger);
-            BepConfig.Init();
 
             On.RoR2.ArenaMissionController.OnStartServer += ArenaMissionController_OnStartServer;
             On.RoR2.VoidStageMissionController.OnEnable += VoidStageMissionController_OnEnable;
             On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer += InfiniteTowerRun_OnPrePopulateSceneServer;
 
-            Logger.LogDebug("Setting up '"+PluginName+"' finished.");
+            Log.LogDebug("Setting up '"+PluginName+"' finished.");
         }
+    /*
+#if DEBUG
+        private void Run_FixedUpdate(On.RoR2.Run.orig_FixedUpdate orig, Run self)
+        {
+            orig(self);
+            if (Input.GetKeyDown(KeyCode.F2))
+            {
+                self.PickNextStageSceneFromCurrentSceneDestinations();
+            }
+        }
+#endif
+
+        private void Run_PickNextStageSceneFromCurrentSceneDestinations(On.RoR2.Run.orig_PickNextStageSceneFromCurrentSceneDestinations orig, Run self)
+        {
+            if (Run.instance.GetType() == typeof(InfiniteTowerRun) && BepConfig.UseNormalStages.Value)
+            {
+                WeightedSelection<SceneDef> weightedStagesCollection = new WeightedSelection<SceneDef>();
+
+                if (normalStagesCollection == null) normalStagesCollection = GetNormalStagesList();
+                foreach (var stageEntry in normalStagesCollection) weightedStagesCollection.AddChoice(stageEntry.sceneDef, stageEntry.weight);
+
+                self.nextStageScene = weightedStagesCollection.Evaluate(self.nextStageRng.nextNormalizedFloat);
+#if DEBUG
+                Log.LogDebug("Next Stage up: '" + self.nextStageScene.cachedName + "'");
+#endif
+            }
+            else
+            {
+                orig(self);
+            }
+        }*/
 
         private void VoidStageMissionController_OnEnable(On.RoR2.VoidStageMissionController.orig_OnEnable orig, VoidStageMissionController self)
         {

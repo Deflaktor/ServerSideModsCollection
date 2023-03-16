@@ -77,7 +77,7 @@ namespace StartBonusMod
             }
             if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.KingEnderBrine.InLobbyConfig"))
             {
-                var configEntry = InLobbyConfig.Fields.ConfigFieldUtilities.CreateFromBepInExConfigFile(config, "Server-side Mods Collection");
+                var configEntry = InLobbyConfig.Fields.ConfigFieldUtilities.CreateFromBepInExConfigFile(config, "Start Bonus Mod");
                 InLobbyConfig.ModConfigCatalog.Add(configEntry);
             }
         }
