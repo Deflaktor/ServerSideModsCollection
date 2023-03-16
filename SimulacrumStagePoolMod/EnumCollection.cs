@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace ServerSideModsCollection
+namespace SimulacrumStagePoolMod
 {
     public class EnumCollection
     {

@@ -1,0 +1,10 @@
+﻿{
+	"name": "Server-Side Mods Collection",
+	"version_number": "1.0.0",
+	"website_url": "",
+	"description": "StartBonusMod",
+	"dependencies": [
+		"bbepis-BepInExPack-5.4.9",
+		"RiskofThunder-HookGenPatcher-1.2.1"
+	]
+}

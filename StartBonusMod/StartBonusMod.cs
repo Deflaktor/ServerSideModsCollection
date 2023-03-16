@@ -1,26 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using BepInEx;
-using BepInEx.Bootstrap;
-using BepInEx.Configuration;
+using R2API;
 using R2API.Utils;
 using RoR2;
-using RoR2.Networking;
-using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Networking;
-using UnityEngine.SceneManagement;
+using UnityEngine.AddressableAssets;
 using MonoMod.Cil;
-using static ServerSideModsCollection.EnumCollection;
+using System;
+using System.Reflection;
+using UnityEngine.Networking;
+using static StartBonusMod.EnumCollection;
 
-namespace ServerSideModsCollection
+namespace StartBonusMod
 {
-    public class ModsStartBonus
+    [BepInDependency(R2API.R2API.PluginGUID)]
+    [BepInDependency("com.rune580.riskofoptions", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
+    [R2APISubmoduleDependency()]
+    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
+    public class StartBonusMod : BaseUnityPlugin
     {
-        public static void Init()
+        public static PluginInfo PInfo { get; private set; }
+        public static StartBonusMod instance;
+
+        public const string PluginGUID = PluginAuthor + "." + PluginName;
+        public const string PluginAuthor = "Deflaktor";
+        public const string PluginName = "StartBonusMod";
+        public const string PluginVersion = "1.0.0";
+
+        public void Awake()
         {
+            PInfo = Info;
+            instance = this;
+
+            Log.Init(Logger);
+            BepConfig.Init();
             IL.RoR2.Run.SetupUserCharacterMaster += il =>
             {
                 ILCursor c = new ILCursor(il);
@@ -34,10 +48,10 @@ namespace ServerSideModsCollection
                 c.Remove();
                 c.EmitDelegate<Func<RuleBook, uint>>((ruleBook) =>
                 {
-                    if(BepConfig.StartingCash.Value >=0) 
+                    if (BepConfig.StartingCash.Value >= 0)
                     {
-                        return (uint)BepConfig.StartingCash.Value;
-                    } 
+                        return (uint)BepConfig.StartingCash.Value + ruleBook.startingMoney;
+                    }
                     else
                     {
                         return ruleBook.startingMoney;
@@ -64,9 +78,11 @@ namespace ServerSideModsCollection
                 c.Remove();
                 c.EmitDelegate(GiveStartingItems);
             };
+            Logger.LogDebug("Setting up '"+PluginName+ "' finished.");
         }
 
-        private static void GiveStartingItems(Inventory inventory, ItemDef itemDef, Int32 count)
+
+        private void GiveStartingItems(Inventory inventory, ItemDef itemDef, Int32 count)
         {
             inventory.GiveItem(itemDef, count);
 
@@ -110,34 +126,6 @@ namespace ServerSideModsCollection
             if (equipIndex != EquipmentIndex.None)
             {
                 inventory.SetEquipmentIndex(equipIndex);
-            }
-        }
-
-        private void GiveEveryone(PickupIndex pickupIndex)
-        {
-            for (int i = 0; i < PlayerCharacterMasterController.instances.Count; i++)
-            {
-                try
-                {
-                    NetworkUser networkUser = PlayerCharacterMasterController.instances[i].networkUser;
-                    if (networkUser && networkUser.isActiveAndEnabled)
-                    {
-                        PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
-                        CharacterBody body = networkUser.master.GetBody();
-                        CharacterMaster master = networkUser.master;
-                        //ItemDef itemDef = ItemCatalog.GetItemDef(pickupDef.itemIndex);
-
-                        body.inventory.GiveItem(pickupDef.itemIndex);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError(ex);
-                }
-                finally
-                {
-
-                }
             }
         }
     }

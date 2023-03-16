@@ -1,0 +1,10 @@
+﻿{
+	"name": "SimulacrumStagePoolMod",
+	"version_number": "1.0.0",
+	"website_url": "",
+	"description": "Fixes non-simulacrum stages to be used in Simulacrum mode.",
+	"dependencies": [
+		"bbepis-BepInExPack-5.4.9",
+		"RiskofThunder-HookGenPatcher-1.2.1"
+	]
+}

@@ -1,6 +1,6 @@
 ﻿using BepInEx.Logging;
 
-namespace ServerSideModsCollection
+namespace SimulacrumStagePoolMod
 {
     internal static class Log
     {
