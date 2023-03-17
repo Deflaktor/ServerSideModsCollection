@@ -27,10 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="RiskOfOptions">
-      <HintPath>..\libs\RiskOfOptions.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
     <Reference Include="InLobbyConfig">
       <HintPath>..\libs\InLobbyConfig.dll</HintPath>
       <Private>false</Private>

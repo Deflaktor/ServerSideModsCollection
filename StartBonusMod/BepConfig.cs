@@ -2,13 +2,11 @@
 using RoR2;
 using UnityEngine;
 using R2API;
-using RiskOfOptions.Options;
-using RiskOfOptions.OptionConfigs;
-using RiskOfOptions;
 using System.Collections.Generic;
 using static StartBonusMod.BepConfig;
 using System.Linq;
 using static StartBonusMod.EnumCollection;
+using SimulacrumBossStageMod;
 
 namespace StartBonusMod
 {
@@ -33,13 +31,6 @@ namespace StartBonusMod
         public static void Init()
         {
             var config = StartBonusMod.instance.Config;
-
-            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.rune580.riskofoptions"))
-            {
-                ModSettingsManager.SetModDescription(@"
-<size=200%><uppercase><align=center><color=#adf2fa>Start Bonus Mod</color></align></uppercase></size>
-");
-            }
             // --- Start Bonus ---
             {
                 StartingCash = config.Bind("Start Bonus", "Cash", 500, new ConfigDescription("How much starting cash each player receives."));
@@ -56,29 +47,10 @@ namespace StartBonusMod
                 StartingItemVoid = config.Bind("Start Bonus", "Void Item", ItemVoidEnum.None, new ConfigDescription("Which void item each player shall receive at the start."));
                 StartingItemVoidCount = config.Bind("Start Bonus", "Void Item Count", 1, new ConfigDescription("How many of the void item each player shall receive."));
                 StartingItemEquip = config.Bind("Start Bonus", "Equipment", ItemEquipEnum.None, new ConfigDescription("Which equipment each player shall receive at the start."));
-
-                if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.rune580.riskofoptions"))
-                {
-                    ModSettingsManager.AddOption(new IntSliderOption(StartingCash, new IntSliderConfig() { min = -1, max = 1000, restartRequired = false } ));
-                    ModSettingsManager.AddOption(new ChoiceOption(StartingItemWhite, new ChoiceConfig()));
-                    ModSettingsManager.AddOption(new IntSliderOption(StartingItemWhiteCount, new IntSliderConfig() { min = 0, max = 10, restartRequired = false, checkIfDisabled = () => StartingItemWhite.Value == ItemWhiteEnum.None }));
-                    ModSettingsManager.AddOption(new ChoiceOption(StartingItemGreen, new ChoiceConfig()));
-                    ModSettingsManager.AddOption(new IntSliderOption(StartingItemGreenCount, new IntSliderConfig() { min = 0, max = 10, restartRequired = false, checkIfDisabled = () => StartingItemGreen.Value == ItemGreenEnum.None }));
-                    ModSettingsManager.AddOption(new ChoiceOption(StartingItemRed, new ChoiceConfig()));
-                    ModSettingsManager.AddOption(new IntSliderOption(StartingItemRedCount, new IntSliderConfig() { min = 0, max = 10, restartRequired = false, checkIfDisabled = () => StartingItemRed.Value == ItemRedEnum.None }));
-                    ModSettingsManager.AddOption(new ChoiceOption(StartingItemBoss, new ChoiceConfig()));
-                    ModSettingsManager.AddOption(new IntSliderOption(StartingItemBossCount, new IntSliderConfig() { min = 0, max = 10, restartRequired = false, checkIfDisabled = () => StartingItemBoss.Value == ItemBossEnum.None }));
-                    ModSettingsManager.AddOption(new ChoiceOption(StartingItemLunar, new ChoiceConfig()));
-                    ModSettingsManager.AddOption(new IntSliderOption(StartingItemLunarCount, new IntSliderConfig() { min = 0, max = 10, restartRequired = false, checkIfDisabled = () => StartingItemLunar.Value == ItemLunarEnum.None }));
-                    ModSettingsManager.AddOption(new ChoiceOption(StartingItemVoid, new ChoiceConfig()));
-                    ModSettingsManager.AddOption(new IntSliderOption(StartingItemVoidCount, new IntSliderConfig() { min = 0, max = 10, restartRequired = false, checkIfDisabled = () => StartingItemVoid.Value == ItemVoidEnum.None }));
-                    ModSettingsManager.AddOption(new ChoiceOption(StartingItemEquip, new ChoiceConfig()));
-                }
             }
-            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.KingEnderBrine.InLobbyConfig"))
+            if (ModCompatibilityInLobbyConfig.enabled)
             {
-                var configEntry = InLobbyConfig.Fields.ConfigFieldUtilities.CreateFromBepInExConfigFile(config, "Start Bonus Mod");
-                InLobbyConfig.ModConfigCatalog.Add(configEntry);
+                ModCompatibilityInLobbyConfig.CreateFromBepInExConfigFile(config, "Simulacrum Boss Stage Mod");
             }
         }
     }

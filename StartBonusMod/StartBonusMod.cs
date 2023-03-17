@@ -13,7 +13,6 @@ using static StartBonusMod.EnumCollection;
 namespace StartBonusMod
 {
     [BepInDependency(R2API.R2API.PluginGUID)]
-    [BepInDependency("com.rune580.riskofoptions", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]

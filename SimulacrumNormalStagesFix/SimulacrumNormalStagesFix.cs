@@ -22,7 +22,6 @@ namespace SimulacrumNormalStagesFix
     {
         public static PluginInfo PInfo { get; private set; }
         public static SimulacrumNormalStagesFix instance;
-        public static List<SceneEntry> normalStagesCollection = null;
 
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Deflaktor";
