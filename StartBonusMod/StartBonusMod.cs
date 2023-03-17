@@ -44,55 +44,34 @@ namespace StartBonusMod
         }
         private void Run_SetupUserCharacterMaster(ILContext il)
         {
-            // TODO: Fix Normal Difficulty
             ILCursor c = new ILCursor(il);
             c.GotoNext(
+                x => x.MatchLdloc(0),
                 x => x.MatchLdarg(0),
                 x => x.MatchCall<Run>("get_ruleBook"),
                 x => x.MatchCallvirt<RuleBook>("get_startingMoney"),
                 x => x.MatchCallvirt<CharacterMaster>("GiveMoney")
                 );
-            c.Index += 2;
+            c.Index += 4;
             c.Remove();
-            c.EmitDelegate<Func<RuleBook, uint>>((ruleBook) =>
+            c.EmitDelegate((CharacterMaster characterMaster, uint startingMoney) =>
             {
-                if (BepConfig.StartingCash.Value >= 0)
+                if (BepConfig.StartingCash.Value > 0)
                 {
-                    return (uint)BepConfig.StartingCash.Value + ruleBook.startingMoney;
+                    characterMaster.GiveMoney((uint)BepConfig.StartingCash.Value + startingMoney);
                 }
                 else
                 {
-                    return ruleBook.startingMoney;
+                    characterMaster.GiveMoney(startingMoney);
                 }
+                GiveStartingItems(characterMaster.inventory);
             });
-            c.GotoNext(
-                x => x.MatchLdloc(0),
-                x => x.MatchCallvirt<CharacterMaster>("get_inventory"),
-                x => x.MatchLdsfld("RoR2.RoR2Content/Items", "DrizzlePlayerHelper"),
-                x => x.MatchLdcI4(1),
-                x => x.MatchCallvirt<Inventory>("GiveItem")
-                );
-            c.Index += 4;
-            c.Remove();
-            c.EmitDelegate(GiveStartingItems);
-            c.GotoNext(
-                x => x.MatchLdloc(0),
-                x => x.MatchCallvirt<CharacterMaster>("get_inventory"),
-                x => x.MatchLdsfld("RoR2.RoR2Content/Items", "MonsoonPlayerHelper"),
-                x => x.MatchLdcI4(1),
-                x => x.MatchCallvirt<Inventory>("GiveItem")
-                );
-            c.Index += 4;
-            c.Remove();
-            c.EmitDelegate(GiveStartingItems);
         }
 
-        private void GiveStartingItems(Inventory inventory, ItemDef itemDef, Int32 count)
+        private void GiveStartingItems(Inventory inventory)
         {
-            inventory.GiveItem(itemDef, count);
-
-            itemDef = ToItemDef(BepConfig.StartingItemWhite.Value);
-            count = BepConfig.StartingItemWhiteCount.Value;
+            ItemDef itemDef = ToItemDef(BepConfig.StartingItemWhite.Value);
+            int count = BepConfig.StartingItemWhiteCount.Value;
             if (itemDef && count > 0)
             {
                 inventory.GiveItem(itemDef, count);
