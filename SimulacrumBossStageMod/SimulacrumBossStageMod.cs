@@ -34,6 +34,33 @@ namespace SimulacrumBossStageMod
         public bool bossStageCompleted;
         public SceneDef nextStageBeforeBoss;
 
+        public void Awake()
+        {
+            PInfo = Info;
+            instance = this;
+            Log.Init(Logger);
+            BepConfig.Init();
+        }
+        private void OnEnable()
+        {
+            On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer                += InfiniteTowerRun_OnPrePopulateSceneServer;
+            On.RoR2.InfiniteTowerRun.Start                                   += InfiniteTowerRun_Start;
+            On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer          += InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
+            On.RoR2.InfiniteTowerRun.AdvanceWave                             += InfiniteTowerRun_AdvanceWave;
+            On.RoR2.InfiniteTowerRun.FixedUpdate                             += InfiniteTowerRun_FixedUpdate;
+            On.RoR2.InfiniteTowerRun.RecalculateDifficultyCoefficentInternal += InfiniteTowerRun_RecalculateDifficultyCoefficentInternal;
+            IL.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer          += InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer1;
+        }
+        private void OnDisable()
+        {
+            On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer                -= InfiniteTowerRun_OnPrePopulateSceneServer;
+            On.RoR2.InfiniteTowerRun.Start                                   -= InfiniteTowerRun_Start;
+            On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer          -= InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
+            On.RoR2.InfiniteTowerRun.AdvanceWave                             -= InfiniteTowerRun_AdvanceWave;
+            On.RoR2.InfiniteTowerRun.FixedUpdate                             -= InfiniteTowerRun_FixedUpdate;
+            On.RoR2.InfiniteTowerRun.RecalculateDifficultyCoefficentInternal -= InfiniteTowerRun_RecalculateDifficultyCoefficentInternal;
+            IL.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer          -= InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer1;
+        }
         private void InfiniteTowerRun_Start(On.RoR2.InfiniteTowerRun.orig_Start orig, InfiniteTowerRun self)
         {
             orig(self);
@@ -42,59 +69,45 @@ namespace SimulacrumBossStageMod
             bossStageCompleted = false;
             nextStageBeforeBoss = null;
         }
-        public void Awake()
+        private void InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer1(ILContext il)
         {
-            PInfo = Info;
-            instance = this;
-
-            Log.Init(Logger);
-            BepConfig.Init();
-
-            On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer += InfiniteTowerRun_OnPrePopulateSceneServer;
-            On.RoR2.InfiniteTowerRun.Start += InfiniteTowerRun_Start;
-            On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer += InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
-            On.RoR2.InfiniteTowerRun.AdvanceWave += InfiniteTowerRun_AdvanceWave;
-            On.RoR2.InfiniteTowerRun.FixedUpdate += InfiniteTowerRun_FixedUpdate;
-            On.RoR2.InfiniteTowerRun.RecalculateDifficultyCoefficentInternal += InfiniteTowerRun_RecalculateDifficultyCoefficentInternal;
-            IL.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer += il =>
+            // TODO fix normal difficulty
+            ILCursor c = new ILCursor(il);
+            c.GotoNext(
+                x => x.MatchLdarg(0),
+                x => x.MatchCall<InfiniteTowerRun>("IsStageTransitionWave")
+                );
+            c.Index += 1;
+            c.Remove();
+            c.EmitDelegate<Func<InfiniteTowerRun, bool>>((self) =>
             {
-                ILCursor c = new ILCursor(il);
-                c.GotoNext(
-                    x => x.MatchLdarg(0),
-                    x => x.MatchCall<InfiniteTowerRun>("IsStageTransitionWave")
-                    );
-                c.Index += 1;
-                c.Remove();
-                c.EmitDelegate<Func<InfiniteTowerRun, bool>>((self) =>
-                {
-                    if (IsBossStageStarted(self.waveIndex))
-                        return false;
-                    return self.IsStageTransitionWave();
-                });
+                if (IsBossStageStarted(self.waveIndex))
+                    return false;
+                return self.IsStageTransitionWave();
+            });
 
-                c.GotoNext(
-                    x => x.MatchCall<DirectorCore>("get_instance"),
-                    x => x.MatchLdarg(0),
-                    x => x.MatchLdfld<InfiniteTowerRun>("stageTransitionPortalCard"),
-                    x => x.MatchNewobj<DirectorPlacementRule>()
-                    );
-                c.Index += 2;
-                c.Remove();
-                c.EmitDelegate<Func<InfiniteTowerRun, SpawnCard>>((self) =>
-                {
-                    if(!BepConfig.Enabled.Value)
-                        return self.stageTransitionPortalCard;
-                    if(BepConfig.BossStage.Value == StageEnum.None)
-                        return self.stageTransitionPortalCard;
-                    if(bossStageCompleted)
-                        return self.stageTransitionPortalCard;
-                    if(self.waveIndex < BepConfig.BossStageStartWave.Value)
-                        return self.stageTransitionPortalCard;
-                    return iscVoidPortal;
-                });
-            };
-            Logger.LogDebug("Setting up '"+ PluginName + "' finished.");
+            c.GotoNext(
+                x => x.MatchCall<DirectorCore>("get_instance"),
+                x => x.MatchLdarg(0),
+                x => x.MatchLdfld<InfiniteTowerRun>("stageTransitionPortalCard"),
+                x => x.MatchNewobj<DirectorPlacementRule>()
+                );
+            c.Index += 2;
+            c.Remove();
+            c.EmitDelegate<Func<InfiniteTowerRun, SpawnCard>>((self) =>
+            {
+                if (!BepConfig.Enabled.Value)
+                    return self.stageTransitionPortalCard;
+                if (BepConfig.BossStage.Value == StageEnum.None)
+                    return self.stageTransitionPortalCard;
+                if (bossStageCompleted)
+                    return self.stageTransitionPortalCard;
+                if (self.waveIndex < BepConfig.BossStageStartWave.Value)
+                    return self.stageTransitionPortalCard;
+                return iscVoidPortal;
+            });
         }
+
         private bool IsBossStageStarted(int waveIndex)
         {
             return waveIndex > BepConfig.BossStageStartWave.Value && !bossStageCompleted && BepConfig.Enabled.Value;

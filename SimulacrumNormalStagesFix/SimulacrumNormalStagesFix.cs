@@ -32,46 +32,51 @@ namespace SimulacrumNormalStagesFix
         {
             PInfo = Info;
             instance = this;
-
             Log.Init(Logger);
-
-            On.RoR2.ArenaMissionController.OnStartServer += ArenaMissionController_OnStartServer;
-            On.RoR2.VoidStageMissionController.OnEnable += VoidStageMissionController_OnEnable;
+        }
+        private void OnEnable()
+        {
+            On.RoR2.ArenaMissionController.OnStartServer      += ArenaMissionController_OnStartServer;
+            On.RoR2.VoidStageMissionController.OnEnable       += VoidStageMissionController_OnEnable;
             On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer += InfiniteTowerRun_OnPrePopulateSceneServer;
-
-            Log.LogDebug("Setting up '"+PluginName+"' finished.");
         }
-    /*
-#if DEBUG
-        private void Run_FixedUpdate(On.RoR2.Run.orig_FixedUpdate orig, Run self)
+        private void OnDisable()
         {
-            orig(self);
-            if (Input.GetKeyDown(KeyCode.F2))
-            {
-                self.PickNextStageSceneFromCurrentSceneDestinations();
-            }
+            On.RoR2.ArenaMissionController.OnStartServer      -= ArenaMissionController_OnStartServer;
+            On.RoR2.VoidStageMissionController.OnEnable       -= VoidStageMissionController_OnEnable;
+            On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer -= InfiniteTowerRun_OnPrePopulateSceneServer;
         }
-#endif
-
-        private void Run_PickNextStageSceneFromCurrentSceneDestinations(On.RoR2.Run.orig_PickNextStageSceneFromCurrentSceneDestinations orig, Run self)
-        {
-            if (Run.instance.GetType() == typeof(InfiniteTowerRun) && BepConfig.UseNormalStages.Value)
-            {
-                WeightedSelection<SceneDef> weightedStagesCollection = new WeightedSelection<SceneDef>();
-
-                if (normalStagesCollection == null) normalStagesCollection = GetNormalStagesList();
-                foreach (var stageEntry in normalStagesCollection) weightedStagesCollection.AddChoice(stageEntry.sceneDef, stageEntry.weight);
-
-                self.nextStageScene = weightedStagesCollection.Evaluate(self.nextStageRng.nextNormalizedFloat);
-#if DEBUG
-                Log.LogDebug("Next Stage up: '" + self.nextStageScene.cachedName + "'");
-#endif
-            }
-            else
+        /*
+    #if DEBUG
+            private void Run_FixedUpdate(On.RoR2.Run.orig_FixedUpdate orig, Run self)
             {
                 orig(self);
+                if (Input.GetKeyDown(KeyCode.F2))
+                {
+                    self.PickNextStageSceneFromCurrentSceneDestinations();
+                }
             }
-        }*/
+    #endif
+
+            private void Run_PickNextStageSceneFromCurrentSceneDestinations(On.RoR2.Run.orig_PickNextStageSceneFromCurrentSceneDestinations orig, Run self)
+            {
+                if (Run.instance.GetType() == typeof(InfiniteTowerRun) && BepConfig.UseNormalStages.Value)
+                {
+                    WeightedSelection<SceneDef> weightedStagesCollection = new WeightedSelection<SceneDef>();
+
+                    if (normalStagesCollection == null) normalStagesCollection = GetNormalStagesList();
+                    foreach (var stageEntry in normalStagesCollection) weightedStagesCollection.AddChoice(stageEntry.sceneDef, stageEntry.weight);
+
+                    self.nextStageScene = weightedStagesCollection.Evaluate(self.nextStageRng.nextNormalizedFloat);
+    #if DEBUG
+                    Log.LogDebug("Next Stage up: '" + self.nextStageScene.cachedName + "'");
+    #endif
+                }
+                else
+                {
+                    orig(self);
+                }
+            }*/
 
         private void VoidStageMissionController_OnEnable(On.RoR2.VoidStageMissionController.orig_OnEnable orig, VoidStageMissionController self)
         {
