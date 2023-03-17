@@ -44,6 +44,7 @@ namespace StartBonusMod
         }
         private void Run_SetupUserCharacterMaster(ILContext il)
         {
+            // TODO: Fix Normal Difficulty
             ILCursor c = new ILCursor(il);
             c.GotoNext(
                 x => x.MatchLdarg(0),

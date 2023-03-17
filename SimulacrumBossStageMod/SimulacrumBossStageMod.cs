@@ -40,10 +40,10 @@ namespace SimulacrumBossStageMod
             instance = this;
             Log.Init(Logger);
             BepConfig.Init();
+            iscVoidPortal = LegacyResourcesAPI.Load<SpawnCard>("SpawnCards/InteractableSpawnCard/iscVoidPortal");
         }
         private void OnEnable()
         {
-            On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer                += InfiniteTowerRun_OnPrePopulateSceneServer;
             On.RoR2.InfiniteTowerRun.Start                                   += InfiniteTowerRun_Start;
             On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer          += InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
             On.RoR2.InfiniteTowerRun.AdvanceWave                             += InfiniteTowerRun_AdvanceWave;
@@ -53,7 +53,6 @@ namespace SimulacrumBossStageMod
         }
         private void OnDisable()
         {
-            On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer                -= InfiniteTowerRun_OnPrePopulateSceneServer;
             On.RoR2.InfiniteTowerRun.Start                                   -= InfiniteTowerRun_Start;
             On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer          -= InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
             On.RoR2.InfiniteTowerRun.AdvanceWave                             -= InfiniteTowerRun_AdvanceWave;
@@ -71,7 +70,6 @@ namespace SimulacrumBossStageMod
         }
         private void InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer1(ILContext il)
         {
-            // TODO fix normal difficulty
             ILCursor c = new ILCursor(il);
             c.GotoNext(
                 x => x.MatchLdarg(0),
@@ -183,7 +181,7 @@ namespace SimulacrumBossStageMod
                 }
                 if (bonusCounter >= BepConfig.BossStageLunarCoinsReward.Value)
                 {
-                    nextBonusTime = Run.instance.GetRunStopwatch() + 50f;
+                    nextBonusTime = Run.instance.GetRunStopwatch() + 30f;
                 }
                 else
                 {
@@ -203,7 +201,7 @@ namespace SimulacrumBossStageMod
             if (!self.IsStageTransitionWave())
                 return;
 
-            if (BepConfig.BossStage.Value != StageEnum.None && SceneCatalog.currentSceneDef.cachedName != GetStageName(BepConfig.BossStage.Value))
+            if (BepConfig.BossStage.Value != StageEnum.None && SceneCatalog.currentSceneDef.cachedName != GetStageName(BepConfig.BossStage.Value) && !bossStageCompleted)
             {
                 if (nextStageBeforeBoss == null)
                     nextStageBeforeBoss = self.nextStageScene;
@@ -218,14 +216,6 @@ namespace SimulacrumBossStageMod
                 {
                     self.safeWardController.WaitForPortal();
                 }
-            }
-        }
-        private void InfiniteTowerRun_OnPrePopulateSceneServer(On.RoR2.InfiniteTowerRun.orig_OnPrePopulateSceneServer orig, InfiniteTowerRun self, SceneDirector sceneDirector)
-        {
-            orig(self, sceneDirector);
-            if (BepConfig.Enabled.Value && BepConfig.BossStage.Value != StageEnum.None && self.nextStageScene.cachedName == GetStageName(BepConfig.BossStage.Value))
-            {
-                iscVoidPortal = LegacyResourcesAPI.Load<SpawnCard>("SpawnCards/InteractableSpawnCard/iscVoidPortal");
             }
         }
         private void InfiniteTowerRun_RecalculateDifficultyCoefficentInternal(On.RoR2.InfiniteTowerRun.orig_RecalculateDifficultyCoefficentInternal orig, InfiniteTowerRun self)
