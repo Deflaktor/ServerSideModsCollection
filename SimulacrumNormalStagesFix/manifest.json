@@ -1,8 +1,8 @@
 ﻿{
 	"name": "Simulacrum Normal Stages Fix",
 	"version_number": "1.0.0",
-	"website_url": "",
-	"description": "Fixes non-simulacrum stages so they can be used in Simulacrum mode. By its own, it does nothing.",
+	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
+	"description": "Fixes non-Simulacrum stages so they can be used in Simulacrum mode. By its own, it does nothing.",
 	"dependencies": [
 		"bbepis-BepInExPack-5.4.9",
 		"RiskofThunder-HookGenPatcher-1.2.1"
