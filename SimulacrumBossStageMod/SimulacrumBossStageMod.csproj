@@ -34,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="SimulacrumBossStageMod.json">
+    <None Update="manifest.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

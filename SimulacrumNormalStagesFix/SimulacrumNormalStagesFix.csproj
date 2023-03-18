@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="SimulacrumNormalStagesFix.json">
+    <None Update="manifest.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
