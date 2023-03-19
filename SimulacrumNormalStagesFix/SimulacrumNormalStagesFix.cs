@@ -27,7 +27,7 @@ namespace SimulacrumNormalStagesFix
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "SimulacrumNormalStagesFix";
-        public const string PluginVersion = "1.0.0";
+        public const string PluginVersion = "1.0.3";
 
         public void Awake()
         {

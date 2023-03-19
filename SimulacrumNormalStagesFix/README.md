@@ -13,4 +13,4 @@ With these fixes applied, this mod can be used in combination with:
 
 - [StageTweaker](https://thunderstore.io/package/pseudopulse/StageTweaker/)
 - [StartInBazaar](https://thunderstore.io/package/MagnusMagnuson/StartInBazaar/)
-- [SimulacrumBossStageMod](https://thunderstore.io/package/Deflaktor/SimulacrumBossStageMod/)
+- [SimulacrumBossStageMod](https://thunderstore.io/package/Def/SimulacrumBossStageMod/)
