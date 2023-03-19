@@ -102,7 +102,7 @@ namespace SimulacrumBossStageMod
             }
             if (ModCompatibilityInLobbyConfig.enabled)
             {
-                ModCompatibilityInLobbyConfig.CreateFromBepInExConfigFile(config, "Simulacrum Boss Stage Mod");
+                ModCompatibilityInLobbyConfig.CreateFromBepInExConfigFile(config, "Simulacrum Boss Stage");
             }
         }
     }

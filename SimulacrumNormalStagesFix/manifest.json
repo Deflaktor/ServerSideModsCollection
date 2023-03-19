@@ -1,6 +1,6 @@
 ﻿{
-	"name": "Simulacrum Normal Stages Fix",
-	"version_number": "1.0.0",
+	"name": "SimulacrumNormalStagesFix",
+	"version_number": "1.0.1",
 	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
 	"description": "Fixes non-Simulacrum stages so they can be used in Simulacrum mode. By its own, it does nothing.",
 	"dependencies": [

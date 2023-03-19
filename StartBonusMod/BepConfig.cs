@@ -50,7 +50,7 @@ namespace StartBonusMod
             }
             if (ModCompatibilityInLobbyConfig.enabled)
             {
-                ModCompatibilityInLobbyConfig.CreateFromBepInExConfigFile(config, "Simulacrum Boss Stage Mod");
+                ModCompatibilityInLobbyConfig.CreateFromBepInExConfigFile(config, "Start Bonus");
             }
         }
     }
