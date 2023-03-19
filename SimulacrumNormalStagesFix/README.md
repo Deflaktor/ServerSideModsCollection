@@ -1,6 +1,6 @@
 # SimulacrumNormalStagesFix
 
-This mod fixes some non-Simulacrum stages when they are used in Simulacrum mode. Normally non-Simulacrum stages are not accessable in Simulcarum mode, as such, by its own, this mod does nothing. What this mod does though is the following:
+This mod fixes some non-Simulacrum stages when they are used in Simulacrum mode. Normally non-Simulacrum stages are not accessable in Simulacrum mode, as such, by its own, this mod does nothing. What this mod does though is the following:
 
 - Removes the void fog entirely in the Bazaar
 - Removes the overlapping void fog from the Void Fields stage
