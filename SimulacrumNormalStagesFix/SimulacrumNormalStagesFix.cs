@@ -25,7 +25,7 @@ namespace SimulacrumNormalStagesFix
         public static SimulacrumNormalStagesFix instance;
 
         public const string PluginGUID = PluginAuthor + "." + PluginName;
-        public const string PluginAuthor = "Deflaktor";
+        public const string PluginAuthor = "Def";
         public const string PluginName = "SimulacrumNormalStagesFix";
         public const string PluginVersion = "1.0.0";
 

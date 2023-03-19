@@ -15,7 +15,6 @@ namespace SimulacrumBossStageMod
 {
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("Deflaktor.SimulacrumNormalStagesFix", BepInDependency.DependencyFlags.HardDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class SimulacrumBossStageMod : BaseUnityPlugin
@@ -24,7 +23,7 @@ namespace SimulacrumBossStageMod
         public static SimulacrumBossStageMod instance;
 
         public const string PluginGUID = PluginAuthor + "." + PluginName;
-        public const string PluginAuthor = "Deflaktor";
+        public const string PluginAuthor = "Def";
         public const string PluginName = "SimulacrumBossStageMod";
         public const string PluginVersion = "1.0.0";
 

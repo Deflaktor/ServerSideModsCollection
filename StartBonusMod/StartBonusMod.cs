@@ -22,7 +22,7 @@ namespace StartBonusMod
         public static StartBonusMod instance;
 
         public const string PluginGUID = PluginAuthor + "." + PluginName;
-        public const string PluginAuthor = "Deflaktor";
+        public const string PluginAuthor = "Def";
         public const string PluginName = "StartBonusMod";
         public const string PluginVersion = "1.0.0";
 
