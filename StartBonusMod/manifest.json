@@ -2,7 +2,7 @@
 	"name": "StartBonusMod",
 	"version_number": "1.0.0",
 	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
-	"description": "StartBonusMod",
+	"description": "Gives each player a configurable set of items and starting gold at the beginning of a run.",
 	"dependencies": [
 		"bbepis-BepInExPack-5.4.9",
 		"RiskofThunder-HookGenPatcher-1.2.1"
