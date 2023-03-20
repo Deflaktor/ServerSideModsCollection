@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using static StartBonusMod.BepConfig;
 using System.Linq;
 using static StartBonusMod.EnumCollection;
-using SimulacrumBossStageMod;
 
 namespace StartBonusMod
 {

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SimulacrumBossStageMod
+namespace StartBonusMod
 {
     public static class ModCompatibilityInLobbyConfig
     {
