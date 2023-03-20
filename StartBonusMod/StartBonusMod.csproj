@@ -46,7 +46,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /e /v /y &quot;$(TargetDir)&quot; &quot;E:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\Deflaktor-StartBonusMod\1.0.0\&quot;&#xD;&#xA;" />
+    <Exec Command="xcopy /e /v /y &quot;$(TargetDir)&quot; &quot;E:\Risk of Rain 2 - Dev\BepInEx\plugins\Deflaktor-StartBonusMod\&quot;&#xD;&#xA;" />
   </Target>
 
 </Project>

@@ -9,6 +9,7 @@ using System;
 using System.Reflection;
 using UnityEngine.Networking;
 using static StartBonusMod.EnumCollection;
+using UnityEngine.UIElements;
 
 namespace StartBonusMod
 {
@@ -24,7 +25,7 @@ namespace StartBonusMod
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "StartBonusMod";
-        public const string PluginVersion = "1.0.0";
+        public const string PluginVersion = "1.0.1";
 
         public void Awake()
         {
@@ -37,11 +38,11 @@ namespace StartBonusMod
         {
             IL.RoR2.Run.SetupUserCharacterMaster += Run_SetupUserCharacterMaster;
         }
-
         private void OnDisable()
         {
             IL.RoR2.Run.SetupUserCharacterMaster -= Run_SetupUserCharacterMaster;
         }
+
         private void Run_SetupUserCharacterMaster(ILContext il)
         {
             ILCursor c = new ILCursor(il);
@@ -58,7 +59,14 @@ namespace StartBonusMod
             {
                 if (BepConfig.StartingCash.Value > 0)
                 {
-                    characterMaster.GiveMoney((uint)BepConfig.StartingCash.Value + startingMoney);
+                    if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.MagnusMagnuson.StartInBazaar"))
+                    {
+                        characterMaster.GiveMoney((uint)Run.instance.GetDifficultyScaledCost(BepConfig.StartingCash.Value) + startingMoney);
+                    }
+                    else
+                    {
+                        characterMaster.GiveMoney((uint)Run.instance.GetDifficultyScaledCost(BepConfig.StartingCash.Value));
+                    }
                 }
                 else
                 {
@@ -67,7 +75,6 @@ namespace StartBonusMod
                 GiveStartingItems(characterMaster.inventory);
             });
         }
-
         private void GiveStartingItems(Inventory inventory)
         {
             ItemDef itemDef = ToItemDef(BepConfig.StartingItemWhite.Value);
