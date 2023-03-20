@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimulacrumNormalStagesFix",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StartBonusMod", "StartBonusMod\StartBonusMod.csproj", "{021941A7-2AF1-442A-8059-0AECEF8EEB49}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoR2-ArtifactEvolutionPlusPlus", "RoR2-ArtifactEvolutionPlusPlus\RoR2-ArtifactEvolutionPlusPlus.csproj", "{3FC85E3D-5C8C-4F75-B808-8C984E19DB70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{021941A7-2AF1-442A-8059-0AECEF8EEB49}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{021941A7-2AF1-442A-8059-0AECEF8EEB49}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{021941A7-2AF1-442A-8059-0AECEF8EEB49}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FC85E3D-5C8C-4F75-B808-8C984E19DB70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FC85E3D-5C8C-4F75-B808-8C984E19DB70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FC85E3D-5C8C-4F75-B808-8C984E19DB70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FC85E3D-5C8C-4F75-B808-8C984E19DB70}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
