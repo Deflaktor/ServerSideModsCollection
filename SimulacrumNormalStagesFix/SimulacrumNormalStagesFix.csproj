@@ -27,6 +27,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="CHANGELOG.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="manifest.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -36,7 +39,8 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /e /v /y &quot;$(TargetDir)&quot; &quot;E:\Risk of Rain 2 - Dev\BepInEx\plugins\Deflaktor-SimulacrumNormalStagesFix\&quot;&#xD;&#xA;" />
+    <Exec Command="powershell.exe -Command &quot;Compress-Archive -Path '$(TargetDir)*' -DestinationPath '$(TargetDir)$(TargetName).zip' -Force&quot;" />
+    <Exec Command="xcopy /e /v /y &quot;$(TargetDir)&quot; &quot;E:\Risk of Rain 2 - Dev\BepInEx\plugins\Deflaktor-SimulacrumNormalStagesFix\&quot;" />
   </Target>
 
 </Project>

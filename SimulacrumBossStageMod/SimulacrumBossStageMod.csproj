@@ -40,6 +40,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="powershell.exe -Command &quot;Compress-Archive -Path '$(TargetDir)*' -DestinationPath '$(TargetDir)$(TargetName).zip' -Force&quot;" />
     <Exec Command="xcopy /e /v /y &quot;$(TargetDir)&quot; &quot;E:\Risk of Rain 2 - Dev\BepInEx\plugins\Deflaktor-SimulacrumBossStageMod\&quot;&#xD;&#xA;" />
   </Target>
 
