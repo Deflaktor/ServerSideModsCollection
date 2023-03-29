@@ -42,7 +42,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="if &quot;$(ConfigurationName)&quot; == &quot;Release&quot; (&#xD;&#xA;    del /Q &quot;$(TargetDir)*.deps.json&quot;&#xD;&#xA;    del /Q &quot;$(TargetDir)*.pdb&quot;&#xD;&#xA;) else (&#xD;&#xA;    xcopy /e /v /y &quot;$(TargetDir)&quot; &quot;E:\Risk of Rain 2 - Dev\BepInEx\plugins\Def-$(ProjectName)\&quot;&#xD;&#xA;)&#xD;&#xA;powershell.exe -Command &quot;Compress-Archive -Path '$(TargetDir)*' -DestinationPath '$(TargetDir)$(TargetName).zip' -Force&quot;" />
+    <Exec Command="if &quot;$(ConfigurationName)&quot; == &quot;Release&quot; (&#xD;&#xA;    del /Q &quot;$(TargetDir)*.deps.json&quot;&#xD;&#xA;    del /Q &quot;$(TargetDir)*.pdb&quot;&#xD;&#xA;) else (&#xD;&#xA;    xcopy /e /v /y &quot;$(TargetDir)&quot; &quot;E:\Risk of Rain 2 - Dev\BepInEx\plugins\Def-$(ProjectName)\&quot;&#xD;&#xA;)&#xD;&#xA;powershell.exe -Command &quot;Compress-Archive -Path '$(TargetDir)*' -DestinationPath '$(TargetDir)$(TargetName).zip' -Force&quot;&#xD;&#xA;if &quot;$(ConfigurationName)&quot; == &quot;Release&quot; (&#xD;&#xA;    mkdir &quot;$(SolutionDir)releases&quot; /p&#xD;&#xA;    xcopy /Y /Q &quot;$(TargetDir)$(TargetName).zip&quot; &quot;$(SolutionDir)releases&quot;&#xD;&#xA;)" />
   </Target>
 
 </Project>
