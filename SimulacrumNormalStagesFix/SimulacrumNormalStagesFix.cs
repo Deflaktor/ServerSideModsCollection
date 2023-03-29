@@ -39,6 +39,7 @@ namespace SimulacrumNormalStagesFix
         {
             IL.RoR2.ArenaMissionController.OnStartServer      += ArenaMissionController_OnStartServer;
             IL.RoR2.VoidStageMissionController.OnEnable       += VoidStageMissionController_OnEnable;
+            IL.RoR2.VoidStageMissionController.Start          += VoidStageMissionController_Start;
             IL.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer += InfiniteTowerRun_OnPrePopulateSceneServer;
             On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer += InfiniteTowerRun_OnPrePopulateSceneServer;
         }
@@ -47,6 +48,7 @@ namespace SimulacrumNormalStagesFix
         {
             IL.RoR2.ArenaMissionController.OnStartServer      -= ArenaMissionController_OnStartServer;
             IL.RoR2.VoidStageMissionController.OnEnable       -= VoidStageMissionController_OnEnable;
+            IL.RoR2.VoidStageMissionController.Start          -= VoidStageMissionController_Start;
             IL.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer -= InfiniteTowerRun_OnPrePopulateSceneServer;
             On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer -= InfiniteTowerRun_OnPrePopulateSceneServer;
         }
@@ -66,6 +68,18 @@ namespace SimulacrumNormalStagesFix
             {
                 if (Run.instance.GetType() == typeof(InfiniteTowerRun))
                 {
+                    // remove the portal in void locus
+                    GameObject obj = GameObject.Find("PortalArena");
+                    if (obj != null)
+                    {
+                        Destroy(obj);
+                    }
+                    // remove the null wards in void locus
+                    foreach (GameObject obj2 in self.nullWards)
+                    {
+                        Destroy(obj2);
+                    }
+                    self.nullWards = new GameObject[0];
                     self.enabled = false;
                     return true;
                 }
@@ -79,6 +93,24 @@ namespace SimulacrumNormalStagesFix
                 if (Run.instance.GetType() == typeof(InfiniteTowerRun))
                 {
                     self.enabled = false;
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        private void VoidStageMissionController_Start(ILContext il)
+        {
+            ReturnImmediately(il, (VoidStageMissionController self) =>
+            {
+                if (Run.instance.GetType() == typeof(InfiniteTowerRun))
+                {
+                    if ((bool)self.deepVoidPortalObjectiveProvider)
+                    {
+                        // disable objective
+                        self.deepVoidPortalObjectiveProvider.enabled = false;
+                    }
+                    // return immediately to avoid spawning batteries
                     return true;
                 }
                 return false;
