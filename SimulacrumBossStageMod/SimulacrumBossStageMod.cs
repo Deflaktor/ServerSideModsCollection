@@ -10,6 +10,7 @@ using System.Reflection;
 using UnityEngine.Networking;
 using static SimulacrumBossStageMod.EnumCollection;
 using System.Linq;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace SimulacrumBossStageMod
 {
@@ -27,7 +28,7 @@ namespace SimulacrumBossStageMod
         public const string PluginName = "SimulacrumBossStageMod";
         public const string PluginVersion = "1.0.0";
 
-        public SpawnCard iscVoidPortal;
+        public AsyncOperationHandle<SpawnCard> iscVoidPortal;
         public float nextBonusTime;
         public int bonusCounter;
         public bool bossStageCompleted;
@@ -39,7 +40,7 @@ namespace SimulacrumBossStageMod
             instance = this;
             Log.Init(Logger);
             BepConfig.Init();
-            iscVoidPortal = LegacyResourcesAPI.Load<SpawnCard>("SpawnCards/InteractableSpawnCard/iscVoidPortal");
+            iscVoidPortal = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC1/PortalVoid/iscVoidPortal.asset");
         }
         private void OnEnable()
         {
@@ -101,7 +102,9 @@ namespace SimulacrumBossStageMod
                     return self.stageTransitionPortalCard;
                 if (self.waveIndex < BepConfig.BossStageStartWave.Value)
                     return self.stageTransitionPortalCard;
-                return iscVoidPortal;
+                // increase the max spawn distance from 30f to 45f to attempt to fix issues with the portal not spawning
+                self.stageTransitionPortalMaxDistance = 45f;
+                return iscVoidPortal.WaitForCompletion();
             });
         }
 
@@ -112,6 +115,8 @@ namespace SimulacrumBossStageMod
         private void InfiniteTowerRun_FixedUpdate(On.RoR2.InfiniteTowerRun.orig_FixedUpdate orig, InfiniteTowerRun self)
         {
             orig(self);
+            if (!NetworkServer.active)
+                return;
 #if DEBUG
             if (Input.GetKeyDown(KeyCode.F2))
             {
@@ -191,7 +196,7 @@ namespace SimulacrumBossStageMod
         private void InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer(On.RoR2.InfiniteTowerRun.orig_OnWaveAllEnemiesDefeatedServer orig, InfiniteTowerRun self, InfiniteTowerWaveController wc)
         {
             orig(self, wc);
-            if (self.isGameOverServer)
+            if (!NetworkServer.active)
                 return;
             if (!BepConfig.Enabled.Value)
                 return;
@@ -241,6 +246,8 @@ namespace SimulacrumBossStageMod
         private void InfiniteTowerRun_AdvanceWave(On.RoR2.InfiniteTowerRun.orig_AdvanceWave orig, InfiniteTowerRun self)
         {
             orig(self);
+            if (!NetworkServer.active)
+                return;
             if (BepConfig.Artifact1.Value != ArtifactEnum.None)
             {
                 if (BepConfig.Artifact1StartWave.Value <= self.waveIndex && self.waveIndex <= BepConfig.Artifact1EndWave.Value)
