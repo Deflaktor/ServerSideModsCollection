@@ -1,3 +1,6 @@
 [submodule "RoR2-ArtifactEvolutionPlusPlus"]
 	path = RoR2-ArtifactEvolutionPlusPlus
 	url = https://github.com/Deflaktor/RoR2-ArtifactEvolutionPlusPlus.git
+[submodule "ShareSuite"]
+	path = ShareSuite
+	url = https://github.com/Deflaktor/ShareSuite.git
