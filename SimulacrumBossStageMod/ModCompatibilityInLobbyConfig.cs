@@ -1,6 +1,7 @@
 ﻿using BepInEx.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace SimulacrumBossStageMod
@@ -20,6 +21,7 @@ namespace SimulacrumBossStageMod
                 return (bool)_enabled;
             }
         }
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static void CreateFromBepInExConfigFile(ConfigFile config, string displayName)
         {
             var configEntry = InLobbyConfig.Fields.ConfigFieldUtilities.CreateFromBepInExConfigFile(config, displayName);

@@ -60,21 +60,21 @@ namespace SimulacrumBossStageMod
             // --- Boss Stage ---
             {
                 BossStage = config.Bind("Boss Stage", "Boss Stage", StageEnum.VoidLocus, new ConfigDescription("To which stage to warp."));
-                BossStageStartWave = config.Bind("Boss Stage", "Boss Stage Warp Wave", 50, new ConfigDescription("At which wave to warp to this stage. Must be multiple of 10."));
+                BossStageStartWave = config.Bind("Boss Stage", "Boss Stage Warp Wave", 40, new ConfigDescription("At which wave to warp to this stage. Must be multiple of 10."));
                 BossStageLunarCoinsReward = config.Bind("Boss Stage", "Boss Stage Lunar Coins Reward", 100, new ConfigDescription("How many Lunar Coins to drop once the final stage has been completed."));
                 BossStageCompleteEndRun = config.Bind("Boss Stage", "Completing Boss Stage ends Run", true, new ConfigDescription("If the boss stage is completed, the run will end."));
             }
             // --- Artifacts ---
             {
-                Artifact1 = config.Bind("Artifacts", "Artifact A", ArtifactEnum.Honor, new ConfigDescription("Which artifact to add."));
-                Artifact1StartWave = config.Bind("Artifacts", "Artifact A Start Wave", 56, new ConfigDescription("At which wave to add this artifact."));
-                Artifact1EndWave = config.Bind("Artifacts", "Artifact A End Wave", 60, new ConfigDescription("After which wave to remove this artifact."));
+                Artifact1 = config.Bind("Artifacts", "Artifact A", ArtifactEnum.Dissonance, new ConfigDescription("Which artifact to add."));
+                Artifact1StartWave = config.Bind("Artifacts", "Artifact A Start Wave", 41, new ConfigDescription("At which wave to add this artifact."));
+                Artifact1EndWave = config.Bind("Artifacts", "Artifact A End Wave", 45, new ConfigDescription("After which wave to remove this artifact."));
 
-                Artifact2 = config.Bind("Artifacts", "Artifact B", ArtifactEnum.Dissonance, new ConfigDescription("Which artifact to add."));
-                Artifact2StartWave = config.Bind("Artifacts", "Artifact B Start Wave", 56, new ConfigDescription("At which wave to add this artifact."));
-                Artifact2EndWave = config.Bind("Artifacts", "Artifact B End Wave", 60, new ConfigDescription("After which wave to remove this artifact."));
+                Artifact2 = config.Bind("Artifacts", "Artifact B", ArtifactEnum.Honor, new ConfigDescription("Which artifact to add."));
+                Artifact2StartWave = config.Bind("Artifacts", "Artifact B Start Wave", 45, new ConfigDescription("At which wave to add this artifact."));
+                Artifact2EndWave = config.Bind("Artifacts", "Artifact B End Wave", 45, new ConfigDescription("After which wave to remove this artifact."));
 
-                Artifact3 = config.Bind("Artifacts", "Artifact C", ArtifactEnum.None, new ConfigDescription("Which artifact to add."));
+                Artifact3 = config.Bind("Artifacts", "Artifact C", ArtifactEnum.Honor, new ConfigDescription("Which artifact to add."));
                 Artifact3StartWave = config.Bind("Artifacts", "Artifact C Start Wave", 50, new ConfigDescription("At which wave to add this artifact."));
                 Artifact3EndWave = config.Bind("Artifacts", "Artifact C End Wave", 50, new ConfigDescription("After which wave to remove this artifact."));
 
@@ -84,13 +84,13 @@ namespace SimulacrumBossStageMod
             }
             // --- Difficulty Mods ---
             {
-                DifficultyMultiplier1 = config.Bind("Difficulty", "DifficultyMultiplier A", 1.5f, new ConfigDescription("Which DifficultyMultiplier to add."));
-                DifficultyMultiplier1StartWave = config.Bind("Difficulty", "DifficultyMultiplier A Start Wave", 51, new ConfigDescription("At which wave to add this DifficultyMultiplier."));
-                DifficultyMultiplier1EndWave = config.Bind("Difficulty", "DifficultyMultiplier A End Wave", 59, new ConfigDescription("After which wave to remove this DifficultyMultiplier."));
+                DifficultyMultiplier1 = config.Bind("Difficulty", "DifficultyMultiplier A", 1.25f, new ConfigDescription("Which DifficultyMultiplier to add."));
+                DifficultyMultiplier1StartWave = config.Bind("Difficulty", "DifficultyMultiplier A Start Wave", 41, new ConfigDescription("At which wave to add this DifficultyMultiplier."));
+                DifficultyMultiplier1EndWave = config.Bind("Difficulty", "DifficultyMultiplier A End Wave", 49, new ConfigDescription("After which wave to remove this DifficultyMultiplier."));
 
-                DifficultyMultiplier2 = config.Bind("Difficulty", "DifficultyMultiplier B", 2f, new ConfigDescription("Which DifficultyMultiplier to add."));
-                DifficultyMultiplier2StartWave = config.Bind("Difficulty", "DifficultyMultiplier B Start Wave", 60, new ConfigDescription("At which wave to add this DifficultyMultiplier."));
-                DifficultyMultiplier2EndWave = config.Bind("Difficulty", "DifficultyMultiplier B End Wave", 100, new ConfigDescription("After which wave to remove this DifficultyMultiplier."));
+                DifficultyMultiplier2 = config.Bind("Difficulty", "DifficultyMultiplier B", 1.5f, new ConfigDescription("Which DifficultyMultiplier to add."));
+                DifficultyMultiplier2StartWave = config.Bind("Difficulty", "DifficultyMultiplier B Start Wave", 50, new ConfigDescription("At which wave to add this DifficultyMultiplier."));
+                DifficultyMultiplier2EndWave = config.Bind("Difficulty", "DifficultyMultiplier B End Wave", 50, new ConfigDescription("After which wave to remove this DifficultyMultiplier."));
 
                 DifficultyMultiplier3 = config.Bind("Difficulty", "DifficultyMultiplier C", 1f, new ConfigDescription("Which DifficultyMultiplier to add."));
                 DifficultyMultiplier3StartWave = config.Bind("Difficulty", "DifficultyMultiplier C Start Wave", 50, new ConfigDescription("At which wave to add this DifficultyMultiplier."));
