@@ -35,7 +35,7 @@ namespace SimulacrumTweaks
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "SimulacrumTweaks";
-        public const string PluginVersion = "1.0.0";
+        public const string PluginVersion = "1.0.1";
 
         public void Awake()
         {
@@ -67,19 +67,13 @@ namespace SimulacrumTweaks
             On.RoR2.GenericPickupController.AttemptGrant                     += GenericPickupController_AttemptGrant;
             On.RoR2.GenericPickupController.OnInteractionBegin               += GenericPickupController_OnInteractionBegin;
             IL.RoR2.GenericPickupController.CreatePickup                     += GenericPickupController_CreatePickup;
-            IL.RoR2.PickupDropletController.OnCollisionEnter                 += PickupDropletController_OnCollisionEnter;
-            // On.RoR2.PickupPickerController.HandleClientMessage               += PickupPickerController_HandleClientMessage;
+            On.RoR2.PickupDropletController.OnCollisionEnter                 += PickupDropletController_OnCollisionEnter;
             On.RoR2.PickupPickerController.OnInteractionBegin                += PickupPickerController_OnInteractionBegin;
-            IL.RoR2.PickupPickerController.CreatePickup_PickupIndex          += PickupPickerController_CreatePickup_PickupIndex;
+            On.RoR2.PickupPickerController.CreatePickup_PickupIndex          += PickupPickerController_CreatePickup_PickupIndex;
             if (ModCompatibilityShareSuite.enabled)
             {
                 ModCompatibilityShareSuite.AddPickupEventHandler(NonShareableItemCheck);
             }
-        }
-
-        private void PickupPickerController_HandleClientMessage(On.RoR2.PickupPickerController.orig_HandleClientMessage orig, PickupPickerController self, NetworkReader reader)
-        {
-            throw new NotImplementedException();
         }
 
         private void OnDisable()
@@ -94,9 +88,9 @@ namespace SimulacrumTweaks
             On.RoR2.GenericPickupController.AttemptGrant                     -= GenericPickupController_AttemptGrant;
             On.RoR2.GenericPickupController.OnInteractionBegin               -= GenericPickupController_OnInteractionBegin;
             IL.RoR2.GenericPickupController.CreatePickup                     -= GenericPickupController_CreatePickup;
-            IL.RoR2.PickupDropletController.OnCollisionEnter                 -= PickupDropletController_OnCollisionEnter;
+            On.RoR2.PickupDropletController.OnCollisionEnter                 -= PickupDropletController_OnCollisionEnter;
             On.RoR2.PickupPickerController.OnInteractionBegin                -= PickupPickerController_OnInteractionBegin;
-            IL.RoR2.PickupPickerController.CreatePickup_PickupIndex          -= PickupPickerController_CreatePickup_PickupIndex;
+            On.RoR2.PickupPickerController.CreatePickup_PickupIndex          -= PickupPickerController_CreatePickup_PickupIndex;
             if (ModCompatibilityShareSuite.enabled)
             {
                 ModCompatibilityShareSuite.RemovePickupEventHandler(NonShareableItemCheck);
@@ -104,7 +98,10 @@ namespace SimulacrumTweaks
         }
         private bool NonShareableItemCheck(GenericPickupController pickup, CharacterBody picker)
         {
-            return !pickup.TryGetComponent<NonShareableItem>(out _);
+            if(BepConfig.SimulacrumNonSharedLoot.Value)
+                return !pickup.TryGetComponent<NonShareableItem>(out _);
+            // item shareable
+            return true;
         }
         private void InfiniteTowerRun_Start(On.RoR2.InfiniteTowerRun.orig_Start orig, InfiniteTowerRun self)
         {
@@ -192,8 +189,13 @@ namespace SimulacrumTweaks
                 {
                     float credit;
                     usersItemCredit.TryGetValue(user.id, out credit);
-                    if (credit > -BepConfig.SimulacrumLootMaxItemDebt.Value)
+                    if (credit >= -BepConfig.SimulacrumLootMaxItemDebt.Value)
                     {
+                        return true;
+                    }
+                    else
+                    {
+                        ChatHelper.PlayerHasTooManyItems(user.userName);
                         return false;
                     }
                 }
@@ -207,7 +209,7 @@ namespace SimulacrumTweaks
             {
                 return;
             }
-            if (BepConfig.Enabled.Value && self.gameObject.TryGetComponent<NonShareableItem>(out _))
+            if (BepConfig.Enabled.Value && self.TryGetComponent<NonShareableItem>(out _))
             {
                 if (self.consumed)
                 {
@@ -256,88 +258,14 @@ namespace SimulacrumTweaks
                     obj.AddComponent<NonShareableItem>();
                     NetworkServer.Spawn(obj);
                     totalItemRewardCount++;
-                } else
+                }
+                else
                 {
                     PickupDropletController.CreatePickupDroplet(pickupInfo, position, velocity);
                 }
             });
         }
-        private void PickupDropletController_OnCollisionEnter(ILContext il)
-        {
-            ILCursor c = new ILCursor(il);
-            var label = c.DefineLabel();
-            // IL_0049: ldarg.0
-            // IL_004a: ldflda valuetype RoR2.GenericPickupController / CreatePickupInfo RoR2.PickupDropletController::createPickupInfo
-            // IL_004f: call class RoR2.GenericPickupController RoR2.GenericPickupController::CreatePickup(valuetype RoR2.GenericPickupController/CreatePickupInfo&)
-            // IL_0054: pop
-            c.GotoNext(
-            x => x.MatchLdarg(0),
-            x => x.MatchLdflda<PickupDropletController>("createPickupInfo"),
-            x => x.MatchCall<GenericPickupController>("CreatePickup"),
-            x => x.MatchPop()
-            );
-            c.Index += 3;
-            c.Remove();
-            c.Emit(OpCodes.Ldarg_0);
-            c.EmitDelegate<Action<GenericPickupController, PickupDropletController>> ((pickupController, self) =>
-            {
-                if (BepConfig.Enabled.Value)
-                {
-                    NonShareableItem component = self.GetComponent<NonShareableItem>();
-                    if ((bool)component)
-                    {
-                        pickupController.gameObject.AddComponent<NonShareableItem>();
-                    }
-                }
-            });
-        }
-        private void PickupPickerController_CreatePickup_PickupIndex(ILContext il)
-        {
-            ILCursor c = new ILCursor(il);
-            var label = c.DefineLabel();
-            // IL_0045: ldloca.s 0
-            // IL_0047: call class RoR2.GenericPickupController RoR2.GenericPickupController::CreatePickup(valuetype RoR2.GenericPickupController/CreatePickupInfo&)
-            // IL_004c: pop
-            c.GotoNext(
-            x => x.MatchLdloca(0),
-            x => x.MatchCall<GenericPickupController>("CreatePickup"),
-            x => x.MatchPop()
-            );
-            c.Index += 2;
-            c.Remove();
-            c.Emit(OpCodes.Ldarg_0);
-            c.EmitDelegate<Action<GenericPickupController, PickupDropletController>>((pickupController, self) =>
-            {
-                if (BepConfig.Enabled.Value)
-                {
-                    NonShareableItem component = self.GetComponent<NonShareableItem>();
-                    if ((bool)component)
-                    {
-                        pickupController.gameObject.AddComponent<NonShareableItem>();
-                    }
-                }
-            });
-        }
 
-        private void GenericPickupController_CreatePickup(ILContext il)
-        {
-            ILCursor c = new ILCursor(il);
-            var label = c.DefineLabel();
-            // IL_0089: call void ['com.unity.multiplayer-hlapi.Runtime']UnityEngine.Networking.NetworkServer::Spawn(class [UnityEngine.CoreModule]UnityEngine.GameObject)
-            // IL_008e: ldloc.0
-            // IL_008f: ret
-            c.GotoNext(
-            x => x.MatchCall<NetworkServer>("Spawn"),
-            x => x.MatchLdloc(0),
-            x => x.MatchRet()
-            );
-            c.Index += 0;
-            c.EmitDelegate<Func<GameObject, GameObject>>((obj) =>
-            {
-                mostRecentlyCreatedPickup = obj;
-                return obj;
-            });
-        }
         private void InfiniteTowerWaveController_DropRewards1(On.RoR2.InfiniteTowerWaveController.orig_DropRewards orig, InfiniteTowerWaveController self)
         {
             orig(self);
@@ -357,16 +285,69 @@ namespace SimulacrumTweaks
                         usersItemCredit.TryGetValue(pc.networkUser.id, out credit);
                         if (usersItemCredit.ContainsKey(pc.networkUser.id))
                         {
-                            usersItemCredit[pc.networkUser.id] += (float)totalItemRewardCount / connectedCount;
+                            usersItemCredit[pc.networkUser.id] += (float)totalItemRewardCount / (float)connectedCount;
                         }
                         else
                         {
-                            usersItemCredit.Add(pc.networkUser.id, (float)totalItemRewardCount / connectedCount);
+                            usersItemCredit.Add(pc.networkUser.id, (float)totalItemRewardCount / (float)connectedCount);
                         }
+                        Log.LogDebug(pc.networkUser.userName + " itemCredit: " + usersItemCredit[pc.networkUser.id]);
                     }
                 }
                 totalItemRewardCount = 0;
             }
+        }
+        private void PickupDropletController_OnCollisionEnter(On.RoR2.PickupDropletController.orig_OnCollisionEnter orig, PickupDropletController self, Collision collision)
+        {
+            mostRecentlyCreatedPickup = null;
+            orig(self, collision);
+            if (BepConfig.Enabled.Value && mostRecentlyCreatedPickup != null)
+            {
+                NonShareableItem component = self.GetComponent<NonShareableItem>();
+                if ((bool)component)
+                {
+                    mostRecentlyCreatedPickup.AddComponent<NonShareableItem>();
+                }
+            }
+        }
+        private void PickupPickerController_CreatePickup_PickupIndex(On.RoR2.PickupPickerController.orig_CreatePickup_PickupIndex orig, PickupPickerController self, PickupIndex pickupIndex)
+        {
+            mostRecentlyCreatedPickup = null;
+            orig(self, pickupIndex);
+            if (BepConfig.Enabled.Value && mostRecentlyCreatedPickup != null)
+            {
+                NonShareableItem component = self.GetComponent<NonShareableItem>();
+                if ((bool)component)
+                {
+                    mostRecentlyCreatedPickup.AddComponent<NonShareableItem>();
+                }
+            }
+        }
+        private void GenericPickupController_CreatePickup(ILContext il)
+        {
+            ILCursor c = new ILCursor(il);
+            var label = c.DefineLabel();
+            // IL_000f: ldarg.0
+            // IL_0010: ldfld valuetype [UnityEngine.CoreModule]UnityEngine.Vector3 RoR2.GenericPickupController/CreatePickupInfo::position
+            // IL_0015: ldarg.0
+            // IL_0016: ldfld valuetype [UnityEngine.CoreModule]UnityEngine.Quaternion RoR2.GenericPickupController/CreatePickupInfo::rotation
+            // IL_001b: call !!0 [UnityEngine.CoreModule]UnityEngine.Object::Instantiate<class [UnityEngine.CoreModule]UnityEngine.GameObject>(!!0, valuetype [UnityEngine.CoreModule]UnityEngine.Vector3, valuetype [UnityEngine.CoreModule]UnityEngine.Quaternion)
+            // IL_0020: dup
+            c.GotoNext(
+            x => x.MatchLdarg(0),
+            x => x.MatchLdfld<CreatePickupInfo>("position"),
+            x => x.MatchLdarg(0),
+            x => x.MatchLdfld<CreatePickupInfo>("rotation"),
+            x => x.MatchCall<UnityEngine.Object>("Instantiate"),
+            x => x.MatchDup()
+            );
+            c.Index += 5;
+            c.EmitDelegate<Func<GameObject, GameObject>>((obj) =>
+            {
+                mostRecentlyCreatedPickup = obj;
+                return obj;
+            });
+            Log.LogDebug(il);
         }
         #region PowerBias
         private void CombatDirector_AttemptSpawnOnTarget(ILContext il)
@@ -424,7 +405,6 @@ namespace SimulacrumTweaks
                 x => x.MatchStloc(4)
             );
             c.MarkLabel(label);
-            Log.LogDebug(il);
         }
         #endregion
         #region ArtifactOfHonor

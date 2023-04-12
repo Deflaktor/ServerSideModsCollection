@@ -17,7 +17,6 @@ namespace SimulacrumTweaks
         public static ConfigEntry<int> SimulacrumLootMaxItemDebt;
         public static ConfigEntry<float> SimulacrumCommencementArtifactDissonanceChance;
         public static ConfigEntry<float> SimulacrumDirectorEnemyPowerBias;
-        public static ConfigEntry<float> SimulacrumDirectorCreditsScalingByPlayerCount;
 
         public static void Init()
         {
@@ -27,10 +26,9 @@ namespace SimulacrumTweaks
             // --- Simulacrum ---
             {
                 SimulacrumNonSharedLoot = config.Bind("Simulacrum", "Non-shared loot", false, new ConfigDescription("(ShareSuite only) Forces the loot dropped at the end of each wave to be non-shared."));
-                SimulacrumLootMaxItemDebt = config.Bind("Simulacrum", "Loot max item debt", 3, new ConfigDescription("Prevents greedy players from looting too much of the loot dropped at the end of each wave."));
+                SimulacrumLootMaxItemDebt = config.Bind("Simulacrum", "Max loot debt", 2, new ConfigDescription("Prevents greedy players from taking too much of the loot dropped at the end of each wave."));
                 SimulacrumCommencementArtifactDissonanceChance = config.Bind("Simulacrum", "Commencement Artifact of Dissonance Chance", 0.5f, new ConfigDescription("The chance for Artifact of Dissonance to be activated each wave when in the commencement stage to increase enemy variety."));
-                SimulacrumDirectorEnemyPowerBias = config.Bind("Simulacrum", "Director: Enemy power bias", 0.5f, new ConfigDescription("Bias towards stronger enemies or weaker enemies (value between 0 and 1, 0.5 = default)."));
-                //SimulacrumDirectorCreditsScalingByPlayerCount = config.Bind("Simulacrum", "Director: Enemy power bias", 0.5f, new ConfigDescription("Prevents greedy players from looting too much of the loot dropped at the end of each wave."));
+                SimulacrumDirectorEnemyPowerBias = config.Bind("Simulacrum", "Director: Enemy Power Bias", 0.5f, new ConfigDescription("Bias towards many,weak enemies (=0) or few,strong enemies (=1). Value between 0 and 1, 0.5 = default."));
             }
             if (ModCompatibilityInLobbyConfig.enabled)
             {
