@@ -1,6 +1,6 @@
 ﻿using BepInEx.Logging;
 
-namespace SimulacrumTweaks
+namespace ServerSideTweaks
 {
     internal static class Log
     {

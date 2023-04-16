@@ -1,4 +1,4 @@
-# SimulacrumTweaks
+# ServerSideTweaks
 
 A small list of server-side configurable tweaks which only apply to the Simulacrum Mode:
 

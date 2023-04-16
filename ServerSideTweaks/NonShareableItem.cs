@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace SimulacrumTweaks
+namespace ServerSideTweaks
 {
     public class NonShareableItem : MonoBehaviour
     {

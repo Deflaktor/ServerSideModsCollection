@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoR2-ArtifactEvolutionPlusP
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareSuite", "ShareSuite\ShareSuite.csproj", "{ABC6FFFC-1521-467F-AB27-E8C5F5E1FCAB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimulacrumTweaks", "SimulacrumTweaks\SimulacrumTweaks.csproj", "{C917D024-F8E5-4C85-89DF-279F104EBFB8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerSideTweaks", "ServerSideTweaks\ServerSideTweaks.csproj", "{C917D024-F8E5-4C85-89DF-279F104EBFB8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

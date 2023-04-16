@@ -8,7 +8,7 @@ using MonoMod.Cil;
 using System;
 using System.Reflection;
 using UnityEngine.Networking;
-using static SimulacrumTweaks.EnumCollection;
+using static ServerSideTweaks.EnumCollection;
 using System.Linq;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UIElements.UIR;
@@ -17,24 +17,24 @@ using static RoR2.GenericPickupController;
 using UnityEngine.UIElements;
 using System.Collections.Generic;
 
-namespace SimulacrumTweaks
+namespace ServerSideTweaks
 {
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.funkfrog_sipondo.sharesuite", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    public class SimulacrumTweaks : BaseUnityPlugin
+    public class ServerSideTweaks : BaseUnityPlugin
     {
         public static PluginInfo PInfo { get; private set; }
-        public static SimulacrumTweaks instance;
+        public static ServerSideTweaks instance;
         public static int totalItemRewardCount = 0;
         public static GameObject mostRecentlyCreatedPickup = null;
         public static Dictionary<NetworkUserId, float> usersItemCredit = new Dictionary<NetworkUserId, float>();
 
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
-        public const string PluginName = "SimulacrumTweaks";
+        public const string PluginName = "ServerSideTweaks";
         public const string PluginVersion = "1.0.1";
 
         public void Awake()
