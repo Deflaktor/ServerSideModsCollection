@@ -1,4 +1,5 @@
-﻿using RoR2;
+﻿using R2API;
+using RoR2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,200 @@ namespace SimulacrumBossStageMod
 {
     public class EnumCollection
     {
+        public static T DecrementEnumValue<T>(T value) where T : struct, IConvertible
+        {
+            if (!typeof(T).IsEnum)
+            {
+                throw new ArgumentException("T must be an enumerated type");
+            }
+            // Get the total number of enum values
+            int enumCount = Enum.GetValues(typeof(T)).Length;
+
+            // Calculate the previous enum value and wrap around if necessary
+            int previousValue = ((int)(object)value - 1 + enumCount) % enumCount;
+
+            // Cast the integer back to enum type and return
+            return (T)(object)previousValue;
+        }
+
+        public static T IncrementEnumValue<T>(T value) where T : struct, IConvertible
+        {
+            if (!typeof(T).IsEnum)
+            {
+                throw new ArgumentException("T must be an enumerated type");
+            }
+
+            // Get the total number of enum values
+            int enumCount = Enum.GetValues(typeof(T)).Length;
+
+            // Calculate the next enum value and wrap around if necessary
+            int nextValue = ((int)(object)value + 1) % enumCount;
+
+            // Cast the integer back to enum type and return
+            return (T)(object)nextValue;
+        }
+
+
+        public enum BossEnum
+        {
+            None,
+            AlloyVulture,
+            AlloyWorshipUnit,
+            AlphaConstruct,
+            Aurelionite,
+            Beetle,
+            BeetleGuard,
+            BeetleQueen,
+            BighornBison,
+            BlindPest,
+            BlindVermin,
+            BrassContraption,
+            ClayApothecary,
+            ClayDunestrider,
+            ClayTemplar,
+            ElderLemurian,
+            Geep,
+            Gip,
+            Grandparent,
+            GreaterWisp,
+            Grovetender,
+            Gup,
+            HermitCrab,
+            Imp,
+            ImpOverlord,
+            Jellyfish,
+            Larva,
+            Lemurian,
+            LesserWisp,
+            LunarChimeraExploder,
+            LunarChimeraGolem,
+            LunarChimeraWisp,
+            MagmaWorm,
+            MiniMushrum,
+            MithrixPhase1,
+    //        MithrixPhase3,
+            MithrixPhase4,
+            MithrixSimulacrum,
+            OverloadingWorm,
+            Parent,
+            Scavenger,
+            SolusControlUnit,
+            SolusProbe,
+            StoneGolem,
+            StoneTitan,
+            TwistedScavenger,
+            VoidBarnacle,
+            VoidDevastator,
+            VoidJailer,
+            VoidReaver,
+           // Voidling,
+            VoidlingPhase1,
+            VoidlingPhase2,
+            VoidlingPhase3,
+            WanderingVagrant,
+            XiConstruct,
+            //MajorConstruct,
+        }
+
+        public static Dictionary<BossEnum, string> BossNames = new Dictionary<BossEnum, string>()
+        {
+            { BossEnum.AlloyVulture, "RoR2/Base/Vulture/cscVulture.asset" },
+            { BossEnum.AlloyWorshipUnit, "RoR2/Base/RoboBallBoss/cscSuperRoboBallBoss.asset" },
+            { BossEnum.AlphaConstruct, "RoR2/DLC1/MajorAndMinorConstruct/cscMinorConstruct.asset" },
+            { BossEnum.Aurelionite, "RoR2/Base/Titan/cscTitanGold.asset" },
+            { BossEnum.Beetle, "RoR2/Base/Beetle/cscBeetle.asset" },
+            { BossEnum.BeetleGuard, "RoR2/Base/Beetle/cscBeetleGuard.asset" },
+            { BossEnum.BeetleQueen, "RoR2/Base/Beetle/cscBeetleQueen.asset" },
+            { BossEnum.BighornBison, "RoR2/Base/Bison/cscBison.asset" },
+            { BossEnum.BlindPest, "RoR2/DLC1/FlyingVermin/cscFlyingVermin.asset" },
+            { BossEnum.BlindVermin, "RoR2/DLC1/Vermin/cscVermin.asset" },
+            { BossEnum.BrassContraption, "RoR2/Base/Bell/cscBell.asset" },
+            { BossEnum.ClayApothecary, "RoR2/DLC1/ClayGrenadier/cscClayGrenadier.asset" },
+            { BossEnum.ClayDunestrider, "RoR2/Base/ClayBoss/cscClayBoss.asset" },
+            { BossEnum.ClayTemplar, "RoR2/Base/ClayBruiser/cscClayBruiser.asset" },
+            { BossEnum.ElderLemurian, "RoR2/Base/LemurianBruiser/cscLemurianBruiser.asset" },
+            { BossEnum.Geep, "RoR2/DLC1/Gup/cscGeepBody.asset" },
+            { BossEnum.Gip, "RoR2/DLC1/Gup/cscGipBody.asset" },
+            { BossEnum.Grandparent, "RoR2/Base/Grandparent/cscGrandparent.asset" },
+            { BossEnum.GreaterWisp, "RoR2/Base/GreaterWisp/cscGreaterWisp.asset" },
+            { BossEnum.Grovetender, "RoR2/Base/Gravekeeper/cscGravekeeper.asset" },
+            { BossEnum.Gup, "RoR2/DLC1/Gup/cscGupBody.asset" },
+            { BossEnum.HermitCrab, "RoR2/Base/HermitCrab/cscHermitCrab.asset" },
+            { BossEnum.Imp, "RoR2/Base/Imp/cscImp.asset" },
+            { BossEnum.ImpOverlord, "RoR2/Base/ImpBoss/cscImpBoss.asset" },
+            { BossEnum.Jellyfish, "RoR2/Base/Jellyfish/cscJellyfish.asset" },
+            { BossEnum.Larva, "RoR2/DLC1/AcidLarva/cscAcidLarva.asset" },
+            { BossEnum.Lemurian, "RoR2/Base/Lemurian/cscLemurian.asset" },
+            { BossEnum.LesserWisp, "RoR2/Base/Wisp/cscLesserWisp.asset" },
+            { BossEnum.LunarChimeraExploder, "RoR2/Base/LunarExploder/cscLunarExploder.asset" },
+            { BossEnum.LunarChimeraGolem, "RoR2/Base/LunarGolem/cscLunarGolem.asset" },
+            { BossEnum.LunarChimeraWisp, "RoR2/Base/LunarWisp/cscLunarWisp.asset" },
+            { BossEnum.MagmaWorm, "RoR2/Base/MagmaWorm/cscMagmaWorm.asset" },
+            { BossEnum.MiniMushrum, "RoR2/Base/MiniMushroom/cscMiniMushroom.asset" },
+            { BossEnum.MithrixPhase1, "RoR2/Base/Brother/cscBrother.asset" },
+//            { BossEnum.MithrixPhase3, "RoR2/Base/Brother/cscBrotherGlass.asset" }, // doesnt work
+            { BossEnum.MithrixPhase4, "RoR2/Base/Brother/cscBrotherHurt.asset" },
+            { BossEnum.MithrixSimulacrum, "RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/cscBrotherIT.asset" },
+            { BossEnum.OverloadingWorm, "RoR2/Base/ElectricWorm/cscElectricWorm.asset" },
+            { BossEnum.Parent, "RoR2/Base/Parent/cscParent.asset" },
+            { BossEnum.Scavenger, "RoR2/Base/Scav/cscScav.asset" },
+            { BossEnum.SolusControlUnit, "RoR2/Base/RoboBallBoss/cscRoboBallBoss.asset" },
+            { BossEnum.SolusProbe, "RoR2/Base/RoboBallBoss/cscRoboBallMini.asset" },
+            { BossEnum.StoneGolem, "RoR2/Base/Golem/cscGolem.asset" },
+            { BossEnum.StoneTitan, "RoR2/Base/Titan/cscTitanGolemPlains.asset" },
+            { BossEnum.TwistedScavenger, "RoR2/Base/Scav/cscScavBoss.asset" },
+            { BossEnum.VoidBarnacle, "RoR2/DLC1/VoidBarnacle/cscVoidBarnacle.asset" },
+            { BossEnum.VoidDevastator, "RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset" },
+            { BossEnum.VoidJailer, "RoR2/DLC1/VoidJailer/cscVoidJailer.asset" },
+            { BossEnum.VoidReaver, "RoR2/Base/Nullifier/cscNullifier.asset" },
+          //  { BossEnum.Voidling, "RoR2/DLC1/VoidRaidCrab/cscVoidRaidCrab.asset" },
+            { BossEnum.VoidlingPhase1, "RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase1.asset" },
+            { BossEnum.VoidlingPhase2, "RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase2.asset" },
+            { BossEnum.VoidlingPhase3, "RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase3.asset" },
+            { BossEnum.WanderingVagrant, "RoR2/Base/Vagrant/cscVagrant.asset" },
+            { BossEnum.XiConstruct, "RoR2/DLC1/MajorAndMinorConstruct/cscMegaConstruct.asset" },
+            //{ BossEnum.MajorConstruct, "RoR2/DLC1/MajorAndMinorConstruct/cscMajorConstruct.asset" }, some kind of tower enemy
+        };
+
+        public enum EliteEnum
+        {
+            None,
+            Blazing,
+            Overloading,
+            Glacial,
+            Mending,
+            Malachite,
+            Celestine,
+            Perfected,
+            Voidtouched
+        }
+
+        public static Dictionary<EliteEnum, EliteDef> EliteDefs = new Dictionary<EliteEnum, EliteDef>()
+        {
+            { EliteEnum.Blazing, EliteCatalog.eliteDefs.FirstOrDefault(obj => obj.name == "edFire") },
+            { EliteEnum.Overloading, EliteCatalog.eliteDefs.FirstOrDefault(obj => obj.name == "edLightning") },
+            { EliteEnum.Glacial, EliteCatalog.eliteDefs.FirstOrDefault(obj => obj.name == "edIce") },
+            { EliteEnum.Mending, EliteCatalog.eliteDefs.FirstOrDefault(obj => obj.name == "edEarth") },
+            { EliteEnum.Malachite, EliteCatalog.eliteDefs.FirstOrDefault(obj => obj.name == "edPoison") },
+            { EliteEnum.Celestine, EliteCatalog.eliteDefs.FirstOrDefault(obj => obj.name == "edHaunted") },
+            { EliteEnum.Perfected, EliteCatalog.eliteDefs.FirstOrDefault(obj => obj.name == "edLunar") },
+            { EliteEnum.Voidtouched, EliteCatalog.eliteDefs.FirstOrDefault(obj => obj.name == "edVoid") }
+            // edFire
+            // edFireHonor
+            // edHaunted
+            // edIce
+            // edIceHonor
+            // edLightning
+            // edLightningHonor
+            // edLunar
+            // edPoison
+            // edGold
+            // edEarth
+            // edEarthHonor
+            // edSecretSpeed
+            // edVoid
+        };
+
         public enum ArtifactEnum
         {
             None,

@@ -16,12 +16,16 @@ using Mono.Cecil.Cil;
 using static RoR2.GenericPickupController;
 using UnityEngine.UIElements;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Collections;
 
 namespace ServerSideTweaks
 {
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.funkfrog_sipondo.sharesuite", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.MagnusMagnuson.BiggerBazaar", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.Lunzir.BazaarIsMyHome", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class ServerSideTweaks : BaseUnityPlugin
@@ -29,13 +33,18 @@ namespace ServerSideTweaks
         public static PluginInfo PInfo { get; private set; }
         public static ServerSideTweaks instance;
         public static int totalItemRewardCount = 0;
+        public static float directorEnemyPowerBiasOverride = -1;
         public static GameObject mostRecentlyCreatedPickup = null;
         public static Dictionary<NetworkUserId, float> usersItemCredit = new Dictionary<NetworkUserId, float>();
+        public static List<EquipmentIndex> disableEquipments = new List<EquipmentIndex>();
+        public static List<PickupIndex> availableEquipmentDropList_Saved = new List<PickupIndex>();
+        public static List<PickupIndex> availableLunarItemDropList_Saved = new List<PickupIndex>();
+        public static List<PickupIndex> availableLunarEquipmentDropList_Saved = new List<PickupIndex>();
 
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "ServerSideTweaks";
-        public const string PluginVersion = "1.0.1";
+        public const string PluginVersion = "1.1.0";
 
         public void Awake()
         {
@@ -57,19 +66,22 @@ namespace ServerSideTweaks
         }
         private void OnEnable()
         {
-            On.RoR2.InfiniteTowerRun.Start                                   += InfiniteTowerRun_Start;
-            On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer          += InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
-            On.RoR2.InfiniteTowerRun.AdvanceWave                             += InfiniteTowerRun_AdvanceWave;
-            IL.RoR2.CombatDirector.AttemptSpawnOnTarget                      += CombatDirector_AttemptSpawnOnTarget;
-            On.RoR2.InfiniteTowerRun.FixedUpdate                             += InfiniteTowerRun_FixedUpdate;
-            IL.RoR2.InfiniteTowerWaveController.DropRewards                  += InfiniteTowerWaveController_DropRewards;
-            On.RoR2.InfiniteTowerWaveController.DropRewards                  += InfiniteTowerWaveController_DropRewards1;
-            On.RoR2.GenericPickupController.AttemptGrant                     += GenericPickupController_AttemptGrant;
-            On.RoR2.GenericPickupController.OnInteractionBegin               += GenericPickupController_OnInteractionBegin;
-            IL.RoR2.GenericPickupController.CreatePickup                     += GenericPickupController_CreatePickup;
-            On.RoR2.PickupDropletController.OnCollisionEnter                 += PickupDropletController_OnCollisionEnter;
-            On.RoR2.PickupPickerController.OnInteractionBegin                += PickupPickerController_OnInteractionBegin;
-            On.RoR2.PickupPickerController.CreatePickup_PickupIndex          += PickupPickerController_CreatePickup_PickupIndex;
+            On.RoR2.Run.Start                                                 += Run_Start;
+            On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer           += InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
+            On.RoR2.InfiniteTowerRun.AdvanceWave                              += InfiniteTowerRun_AdvanceWave;
+            IL.RoR2.CombatDirector.AttemptSpawnOnTarget                       += CombatDirector_AttemptSpawnOnTarget;
+            On.RoR2.Run.FixedUpdate                                           += Run_FixedUpdate;
+            IL.RoR2.InfiniteTowerWaveController.DropRewards                   += InfiniteTowerWaveController_DropRewards;
+            On.RoR2.InfiniteTowerWaveController.DropRewards                   += InfiniteTowerWaveController_DropRewards1;
+            On.RoR2.GenericPickupController.AttemptGrant                      += GenericPickupController_AttemptGrant;
+            On.RoR2.GenericPickupController.OnInteractionBegin                += GenericPickupController_OnInteractionBegin;
+            IL.RoR2.GenericPickupController.CreatePickup                      += GenericPickupController_CreatePickup;
+            On.RoR2.PickupDropletController.OnCollisionEnter                  += PickupDropletController_OnCollisionEnter;
+            On.RoR2.PickupPickerController.OnInteractionBegin                 += PickupPickerController_OnInteractionBegin;
+            On.RoR2.PickupPickerController.CreatePickup_PickupIndex           += PickupPickerController_CreatePickup_PickupIndex;
+            IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer += CommandArtifactManager_OnDropletHitGroundServer;
+            On.RoR2.SceneDirector.Start                                       += SceneDirector_Start;
+            
             if (ModCompatibilityShareSuite.enabled)
             {
                 ModCompatibilityShareSuite.AddPickupEventHandler(NonShareableItemCheck);
@@ -78,24 +90,114 @@ namespace ServerSideTweaks
 
         private void OnDisable()
         {
-            On.RoR2.InfiniteTowerRun.Start                                   -= InfiniteTowerRun_Start;
-            On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer          -= InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
-            On.RoR2.InfiniteTowerRun.AdvanceWave                             -= InfiniteTowerRun_AdvanceWave;
-            IL.RoR2.CombatDirector.AttemptSpawnOnTarget                      -= CombatDirector_AttemptSpawnOnTarget;
-            On.RoR2.InfiniteTowerRun.FixedUpdate                             -= InfiniteTowerRun_FixedUpdate;
-            IL.RoR2.InfiniteTowerWaveController.DropRewards                  -= InfiniteTowerWaveController_DropRewards;
-            On.RoR2.InfiniteTowerWaveController.DropRewards                  -= InfiniteTowerWaveController_DropRewards1;
-            On.RoR2.GenericPickupController.AttemptGrant                     -= GenericPickupController_AttemptGrant;
-            On.RoR2.GenericPickupController.OnInteractionBegin               -= GenericPickupController_OnInteractionBegin;
-            IL.RoR2.GenericPickupController.CreatePickup                     -= GenericPickupController_CreatePickup;
-            On.RoR2.PickupDropletController.OnCollisionEnter                 -= PickupDropletController_OnCollisionEnter;
-            On.RoR2.PickupPickerController.OnInteractionBegin                -= PickupPickerController_OnInteractionBegin;
-            On.RoR2.PickupPickerController.CreatePickup_PickupIndex          -= PickupPickerController_CreatePickup_PickupIndex;
+            On.RoR2.Run.Start                                                 -= Run_Start;
+            On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer           -= InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
+            On.RoR2.InfiniteTowerRun.AdvanceWave                              -= InfiniteTowerRun_AdvanceWave;
+            IL.RoR2.CombatDirector.AttemptSpawnOnTarget                       -= CombatDirector_AttemptSpawnOnTarget;
+            On.RoR2.Run.FixedUpdate                                           -= Run_FixedUpdate;
+            IL.RoR2.InfiniteTowerWaveController.DropRewards                   -= InfiniteTowerWaveController_DropRewards;
+            On.RoR2.InfiniteTowerWaveController.DropRewards                   -= InfiniteTowerWaveController_DropRewards1;
+            On.RoR2.GenericPickupController.AttemptGrant                      -= GenericPickupController_AttemptGrant;
+            On.RoR2.GenericPickupController.OnInteractionBegin                -= GenericPickupController_OnInteractionBegin;
+            IL.RoR2.GenericPickupController.CreatePickup                      -= GenericPickupController_CreatePickup;
+            On.RoR2.PickupDropletController.OnCollisionEnter                  -= PickupDropletController_OnCollisionEnter;
+            On.RoR2.PickupPickerController.OnInteractionBegin                 -= PickupPickerController_OnInteractionBegin;
+            On.RoR2.PickupPickerController.CreatePickup_PickupIndex           -= PickupPickerController_CreatePickup_PickupIndex;
+            IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer -= CommandArtifactManager_OnDropletHitGroundServer;
+            On.RoR2.SceneDirector.Start                                       -= SceneDirector_Start;
             if (ModCompatibilityShareSuite.enabled)
             {
                 ModCompatibilityShareSuite.RemovePickupEventHandler(NonShareableItemCheck);
             }
+            
         }
+
+        private static ItemDef ToItemDef(String itemName)
+        {
+            if (itemName == null)
+                return null;
+            var index = ItemCatalog.FindItemIndex(itemName);
+            if (index == ItemIndex.None)
+                return null;
+            return ItemCatalog.GetItemDef(index);
+        }
+
+
+        private void SceneDirector_Start(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
+        {
+            if (NetworkServer.active && BepConfig.Enabled.Value && BepConfig.EliteEquipmentsInBazaar.Value)
+            {
+                if (SceneCatalog.mostRecentSceneDef == SceneCatalog.GetSceneDefFromSceneName("bazaar"))
+                {
+                    //availableEquipmentDropList_Saved.AddRange(Run.instance.availableEquipmentDropList);
+
+                    //Run.instance.availableEquipmentDropList.Clear(); // TODO: Remove
+
+                    EquipmentIndex[] equipments = new EquipmentIndex[]
+                    {
+                        EquipmentCatalog.FindEquipmentIndex("EliteEarthEquipment"),
+                        EquipmentCatalog.FindEquipmentIndex("EliteFireEquipment"),
+                        EquipmentCatalog.FindEquipmentIndex("EliteHauntedEquipment"),
+                        EquipmentCatalog.FindEquipmentIndex("EliteIceEquipment"),
+                        EquipmentCatalog.FindEquipmentIndex("EliteLightningEquipment"),
+                        EquipmentCatalog.FindEquipmentIndex("EliteLunarEquipment"),
+                        EquipmentCatalog.FindEquipmentIndex("ElitePoisonEquipment"),
+                        EquipmentCatalog.FindEquipmentIndex("EliteYellowEquipment"),
+                    };
+                    foreach (var equipment in equipments)
+                    {
+                        if (Run.instance.IsEquipmentAvailable(equipment))
+                        {
+                            Run.instance.EnableEquipmentDrop(equipment);
+                            disableEquipments.Add(equipment);
+                        }
+                    }
+
+                    //Run.instance.EnableEquipmentDrop(EquipmentCatalog.FindEquipmentIndex("EliteSecretSpeedEquipment"));
+
+                    /*Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteEarthEquipment"));
+                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteFireEquipment"));
+                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteHauntedEquipment"));
+                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteIceEquipment"));
+                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteLightningEquipment"));
+                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteLunarEquipment"));
+                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("ElitePoisonEquipment"));
+                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteSecretSpeedEquipment"));
+
+                    availableLunarItemDropList_Saved.AddRange(Run.instance.availableLunarItemDropList);
+                    Run.instance.availableLunarItemDropList.Clear();
+                    Run.instance.availableLunarItemDropList.Add(PickupCatalog.FindPickupIndex("Pearl"));
+
+                    availableLunarEquipmentDropList_Saved.AddRange(Run.instance.availableLunarEquipmentDropList);
+                    Run.instance.availableLunarEquipmentDropList.Clear();
+                    Run.instance.availableLunarEquipmentDropList.Add(PickupCatalog.FindPickupIndex("ShinyPearl"));*/
+                }
+            }
+            orig(self);
+            if (NetworkServer.active && BepConfig.Enabled.Value && BepConfig.EliteEquipmentsInBazaar.Value)
+            {
+                if (SceneCatalog.mostRecentSceneDef == SceneCatalog.GetSceneDefFromSceneName("bazaar"))
+                {
+                    StartCoroutine(DelayRestore());
+                }
+            }
+        }
+
+        public IEnumerator DelayRestore()
+        {
+            yield return new WaitForSeconds(2f);
+            /*Run.instance.availableLunarItemDropList.Clear();
+            Run.instance.availableLunarItemDropList.AddRange(availableLunarItemDropList_Saved);
+            Run.instance.availableLunarEquipmentDropList.Clear();
+            Run.instance.availableLunarEquipmentDropList.AddRange(availableLunarEquipmentDropList_Saved);
+            Run.instance.availableEquipmentDropList.Clear();
+            Run.instance.availableEquipmentDropList.AddRange(availableEquipmentDropList_Saved);*/
+            foreach (var equipment in disableEquipments)
+            {
+                Run.instance.DisableEquipmentDrop(equipment);
+            }
+        }
+
         private bool NonShareableItemCheck(GenericPickupController pickup, CharacterBody picker)
         {
             if(BepConfig.SimulacrumNonSharedLoot.Value)
@@ -103,14 +205,42 @@ namespace ServerSideTweaks
             // item shareable
             return true;
         }
-        private void InfiniteTowerRun_Start(On.RoR2.InfiniteTowerRun.orig_Start orig, InfiniteTowerRun self)
+        private void Run_Start(On.RoR2.Run.orig_Start orig, Run self)
         {
             totalItemRewardCount = 0;
             mostRecentlyCreatedPickup = null;
             usersItemCredit.Clear();
+            ResetOverridePowerBias();
             orig(self);
+
         }
-        private void InfiniteTowerRun_FixedUpdate(On.RoR2.InfiniteTowerRun.orig_FixedUpdate orig, InfiniteTowerRun self)
+
+        public static void SetOverridePowerBias(float powerBias)
+        {
+            directorEnemyPowerBiasOverride = powerBias;
+        }
+
+        public static float GetCurrentPowerBias()
+        {
+            if (Run.instance.GetType() == typeof(InfiniteTowerRun) && BepConfig.Enabled.Value)
+            {
+                return BepConfig.SimulacrumDirectorEnemyPowerBias.Value;
+            }
+            else if (BepConfig.Enabled.Value)
+            {
+                return BepConfig.ClassicDirectorEnemyPowerBias.Value;
+            } else
+            {
+                return 0.5f;
+            }
+        }
+
+        public static void ResetOverridePowerBias()
+        {
+            directorEnemyPowerBiasOverride = -1;
+        }
+
+        private void Run_FixedUpdate(On.RoR2.Run.orig_FixedUpdate orig, Run self)
         {
             orig(self);
             if (!NetworkServer.active)
@@ -119,12 +249,16 @@ namespace ServerSideTweaks
             if (Input.GetKeyDown(KeyCode.F3))
             {
                 BepConfig.SimulacrumDirectorEnemyPowerBias.Value -= 0.1f;
+                BepConfig.ClassicDirectorEnemyPowerBias.Value -= 0.1f;
                 Log.LogDebug($"Player pressed F3. SimulacrumDirectorEnemyPowerBias: " + BepConfig.SimulacrumDirectorEnemyPowerBias.Value);
+                Log.LogDebug($"Player pressed F3. ClassicDirectorEnemyPowerBias: " + BepConfig.ClassicDirectorEnemyPowerBias.Value);
             }
             if (Input.GetKeyDown(KeyCode.F4))
             {
                 BepConfig.SimulacrumDirectorEnemyPowerBias.Value += 0.1f;
+                BepConfig.ClassicDirectorEnemyPowerBias.Value += 0.1f;
                 Log.LogDebug($"Player pressed F4. SimulacrumDirectorEnemyPowerBias: " + BepConfig.SimulacrumDirectorEnemyPowerBias.Value);
+                Log.LogDebug($"Player pressed F4. ClassicDirectorEnemyPowerBias: " + BepConfig.ClassicDirectorEnemyPowerBias.Value);
             }
             if (Input.GetKeyDown(KeyCode.F5))
             {
@@ -163,11 +297,11 @@ namespace ServerSideTweaks
 
         private void PickupPickerController_OnInteractionBegin(On.RoR2.PickupPickerController.orig_OnInteractionBegin orig, PickupPickerController self, Interactor activator)
         {
-            if (CanInteract(self.gameObject, activator))
+            if (CanInteract(self.gameObject, activator)) 
             {
                 orig(self, activator);
             }
-        }
+        } 
         private void GenericPickupController_OnInteractionBegin(On.RoR2.GenericPickupController.orig_OnInteractionBegin orig, GenericPickupController self, Interactor activator)
         {
             if (CanInteract(self.gameObject, activator))
@@ -323,6 +457,31 @@ namespace ServerSideTweaks
                 }
             }
         }
+        private void CommandArtifactManager_OnDropletHitGroundServer(ILContext il)
+        {
+            ILCursor c = new ILCursor(il);
+            var label = c.DefineLabel();
+            // IL_0032: ldarg.0
+            // IL_0033: ldfld valuetype [UnityEngine.CoreModule]UnityEngine.Vector3 RoR2.GenericPickupController/CreatePickupInfo::position
+            // IL_0038: ldarg.0
+            // IL_0039: ldfld valuetype [UnityEngine.CoreModule]UnityEngine.Quaternion RoR2.GenericPickupController/CreatePickupInfo::rotation
+            // IL_003e: call !!0 [UnityEngine.CoreModule]UnityEngine.Object::Instantiate<class [UnityEngine.CoreModule]UnityEngine.GameObject>(!!0, valuetype [UnityEngine.CoreModule]UnityEngine.Vector3, valuetype [UnityEngine.CoreModule]UnityEngine.Quaternion)
+            // IL_0043: dup
+            c.GotoNext(
+            x => x.MatchLdarg(0),
+            x => x.MatchLdfld<CreatePickupInfo>("position"),
+            x => x.MatchLdarg(0),
+            x => x.MatchLdfld<CreatePickupInfo>("rotation"),
+            x => x.MatchCall<UnityEngine.Object>("Instantiate"),
+            x => x.MatchDup()
+            );
+            c.Index += 5;
+            c.EmitDelegate<Func<GameObject, GameObject>>((obj) =>
+            {
+                mostRecentlyCreatedPickup = obj;
+                return obj;
+            });
+        }
         private void GenericPickupController_CreatePickup(ILContext il)
         {
             ILCursor c = new ILCursor(il);
@@ -347,9 +506,23 @@ namespace ServerSideTweaks
                 mostRecentlyCreatedPickup = obj;
                 return obj;
             });
-            Log.LogDebug(il);
         }
         #region PowerBias
+        private bool SkipWithPowerBias(float costMultipliedByMaximumNumberToSpawnBeforeSkipping, CombatDirector combatDirector, float powerBias)
+        {
+            float cost = costMultipliedByMaximumNumberToSpawnBeforeSkipping / combatDirector.maximumNumberToSpawnBeforeSkipping;
+            // bias < 0.5f: we want to skip when enemies are too expensive
+            if (cost > combatDirector.mostExpensiveMonsterCostInDeck * (0.5f + powerBias) * (0.5f + powerBias) * (0.5f + powerBias))
+            {
+                // but only sometimes
+                float safetyMargin = Math.Max(0f, 0.1f - powerBias);
+                if (2f * (0.5f - powerBias) - safetyMargin > RoR2Application.rng.nextNormalizedFloat)
+                    return true;
+            }
+            // bias > 0.5f: we want to skip more often when enemies are cheap
+            // bias < 0.5f: we want to skip less often when enemies are cheap
+            return costMultipliedByMaximumNumberToSpawnBeforeSkipping * (1.5f - powerBias) * (1.5f - powerBias) < combatDirector.monsterCredit;
+        }
         private void CombatDirector_AttemptSpawnOnTarget(ILContext il)
         {
             ILCursor c = new ILCursor(il);
@@ -375,20 +548,16 @@ namespace ServerSideTweaks
             c.Remove();
             c.EmitDelegate<Func<float, CombatDirector, bool>>((costMultipliedByMaximumNumberToSpawnBeforeSkipping, combatDirector) =>
             {
-                if (Run.instance.GetType() == typeof(InfiniteTowerRun) && BepConfig.Enabled.Value)
+                if(directorEnemyPowerBiasOverride >= 0)
                 {
-                    float cost = costMultipliedByMaximumNumberToSpawnBeforeSkipping / combatDirector.maximumNumberToSpawnBeforeSkipping;
-                    // bias < 0.5f: we want to skip when enemies are too expensive
-                    if (cost > combatDirector.mostExpensiveMonsterCostInDeck * (0.5f + BepConfig.SimulacrumDirectorEnemyPowerBias.Value) * (0.5f + BepConfig.SimulacrumDirectorEnemyPowerBias.Value) * (0.5f + BepConfig.SimulacrumDirectorEnemyPowerBias.Value))
-                    {
-                        // but only sometimes
-                        float safetyMargin = Math.Max(0f, 0.1f - BepConfig.SimulacrumDirectorEnemyPowerBias.Value);
-                        if (2f* (0.5f - BepConfig.SimulacrumDirectorEnemyPowerBias.Value) - safetyMargin > RoR2Application.rng.nextNormalizedFloat)
-                            return true;
-                    }
-                    // bias > 0.5f: we want to skip more often when enemies are cheap
-                    // bias < 0.5f: we want to skip less often when enemies are cheap
-                    return costMultipliedByMaximumNumberToSpawnBeforeSkipping * (1.5f - BepConfig.SimulacrumDirectorEnemyPowerBias.Value) * (1.5f - BepConfig.SimulacrumDirectorEnemyPowerBias.Value) < combatDirector.monsterCredit;
+                    return SkipWithPowerBias(costMultipliedByMaximumNumberToSpawnBeforeSkipping, combatDirector, directorEnemyPowerBiasOverride);
+                }
+                else if (Run.instance.GetType() == typeof(InfiniteTowerRun) && BepConfig.Enabled.Value)
+                {
+                    return SkipWithPowerBias(costMultipliedByMaximumNumberToSpawnBeforeSkipping, combatDirector, BepConfig.SimulacrumDirectorEnemyPowerBias.Value);
+                } else if(BepConfig.Enabled.Value)
+                {
+                    return SkipWithPowerBias(costMultipliedByMaximumNumberToSpawnBeforeSkipping, combatDirector, BepConfig.ClassicDirectorEnemyPowerBias.Value);
                 }
                 // vanilla
                 return costMultipliedByMaximumNumberToSpawnBeforeSkipping < combatDirector.monsterCredit;

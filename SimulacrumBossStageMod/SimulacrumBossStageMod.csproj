@@ -27,6 +27,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServerSideTweaks\ServerSideTweaks.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="InLobbyConfig">
       <HintPath>..\libs\InLobbyConfig.dll</HintPath>
       <Private>false</Private>

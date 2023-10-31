@@ -12,6 +12,8 @@ namespace ServerSideTweaks
     public class BepConfig
     {
         public static ConfigEntry<bool> Enabled { get; set; }
+        // general tweaks
+        public static ConfigEntry<bool> EliteEquipmentsInBazaar;
         // simulacrum tweaks
         public static ConfigEntry<bool> SimulacrumNonSharedLoot;
         public static ConfigEntry<int> SimulacrumLootMaxItemDebt;
@@ -25,6 +27,10 @@ namespace ServerSideTweaks
             var config = ServerSideTweaks.instance.Config;
 
             Enabled = config.Bind("Main", "Enabled", true, "Enable Mod");
+            // --- General ---
+            {
+                EliteEquipmentsInBazaar = config.Bind("Main", "Add elite items to equipment pool during bazaar stage", true, new ConfigDescription("Adds the elite aspects equipments to the item pool during the bazaar stage. Only useful in combination with BiggerBazaar or BazaarIsMyHome."));
+            }
             // --- Simulacrum ---
             {
                 SimulacrumNonSharedLoot = config.Bind("Simulacrum", "Non-shared loot", false, new ConfigDescription("(ShareSuite only) Forces the loot dropped at the end of each wave to be non-shared."));
@@ -35,7 +41,6 @@ namespace ServerSideTweaks
             // --- Classic Run ---
             {
                 ClassicDirectorEnemyPowerBias = config.Bind("Classic", "Director: Enemy Power Bias", 0.5f, new ConfigDescription("Bias towards many,weak enemies (=0) or few,strong enemies (=1). Value between 0 and 1, 0.5 = default."));
-
             }
             if (ModCompatibilityInLobbyConfig.enabled)
             {
