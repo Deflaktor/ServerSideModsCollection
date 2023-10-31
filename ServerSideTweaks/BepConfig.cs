@@ -13,7 +13,7 @@ namespace ServerSideTweaks
     {
         public static ConfigEntry<bool> Enabled { get; set; }
         // general tweaks
-        public static ConfigEntry<bool> EliteEquipmentsInBazaar;
+        // public static ConfigEntry<bool> EliteEquipmentsInBazaar;
         // simulacrum tweaks
         public static ConfigEntry<bool> SimulacrumNonSharedLoot;
         public static ConfigEntry<int> SimulacrumLootMaxItemDebt;
@@ -29,7 +29,7 @@ namespace ServerSideTweaks
             Enabled = config.Bind("Main", "Enabled", true, "Enable Mod");
             // --- General ---
             {
-                EliteEquipmentsInBazaar = config.Bind("Main", "Add elite items to equipment pool during bazaar stage", true, new ConfigDescription("Adds the elite aspects equipments to the item pool during the bazaar stage. Only useful in combination with BiggerBazaar or BazaarIsMyHome."));
+                // EliteEquipmentsInBazaar = config.Bind("Main", "Add elite items to equipment pool during bazaar stage", true, new ConfigDescription("Adds the elite aspects equipments to the item pool during the bazaar stage. Only useful in combination with BiggerBazaar or BazaarIsMyHome."));
             }
             // --- Simulacrum ---
             {

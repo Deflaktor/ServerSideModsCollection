@@ -44,7 +44,7 @@ namespace ServerSideTweaks
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "ServerSideTweaks";
-        public const string PluginVersion = "1.1.0";
+        public const string PluginVersion = "1.0.0";
 
         public void Awake()
         {
@@ -125,6 +125,7 @@ namespace ServerSideTweaks
 
         private void SceneDirector_Start(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
         {
+            /*
             if (NetworkServer.active && BepConfig.Enabled.Value && BepConfig.EliteEquipmentsInBazaar.Value)
             {
                 if (SceneCatalog.mostRecentSceneDef == SceneCatalog.GetSceneDefFromSceneName("bazaar"))
@@ -155,7 +156,7 @@ namespace ServerSideTweaks
 
                     //Run.instance.EnableEquipmentDrop(EquipmentCatalog.FindEquipmentIndex("EliteSecretSpeedEquipment"));
 
-                    /*Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteEarthEquipment"));
+                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteEarthEquipment"));
                     Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteFireEquipment"));
                     Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteHauntedEquipment"));
                     Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteIceEquipment"));
@@ -170,17 +171,18 @@ namespace ServerSideTweaks
 
                     availableLunarEquipmentDropList_Saved.AddRange(Run.instance.availableLunarEquipmentDropList);
                     Run.instance.availableLunarEquipmentDropList.Clear();
-                    Run.instance.availableLunarEquipmentDropList.Add(PickupCatalog.FindPickupIndex("ShinyPearl"));*/
+                    Run.instance.availableLunarEquipmentDropList.Add(PickupCatalog.FindPickupIndex("ShinyPearl"));
                 }
-            }
+            }*/
             orig(self);
+            /*
             if (NetworkServer.active && BepConfig.Enabled.Value && BepConfig.EliteEquipmentsInBazaar.Value)
             {
                 if (SceneCatalog.mostRecentSceneDef == SceneCatalog.GetSceneDefFromSceneName("bazaar"))
                 {
                     StartCoroutine(DelayRestore());
                 }
-            }
+            }*/
         }
 
         public IEnumerator DelayRestore()
