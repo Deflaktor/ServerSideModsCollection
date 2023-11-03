@@ -29,15 +29,18 @@ namespace SimulacrumBossStageMod
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "SimulacrumBossStageMod";
-        public const string PluginVersion = "1.1.0";
+        public const string PluginVersion = "1.2.0";
 
         public AsyncOperationHandle<SpawnCard> iscVoidPortal;
+        public AsyncOperationHandle<SpawnCard> iscVoidOutroPortal;
         public AsyncOperationHandle<CharacterSpawnCard> bossSpawnCard;
         public float nextBonusTime;
         public int bonusCounter;
         public bool bossStageCompleted;
         public bool bossSpawned;
         public SceneDef nextStageBeforeBoss;
+        public float zoneRadiusBoss = 1.0f;
+        public static CombatDirector.EliteTierDef poisonEliteTier;
 
         public BossEnum debug_enemyTypeToSpawn = BossEnum.None;
         public EliteEnum debug_eliteTypeToSpawn = EliteEnum.None;
@@ -48,15 +51,16 @@ namespace SimulacrumBossStageMod
             instance = this;
             Log.Init(Logger);
             BepConfig.Init();
+
             iscVoidPortal = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC1/PortalVoid/iscVoidPortal.asset");
+            iscVoidOutroPortal = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC1/VoidOutroPortal/iscVoidOutroPortal.asset");
             // bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset");
             // bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabBase.asset");
             // bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase1.asset");
             // bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase2.asset");
 
             // bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidRaidCrab/cscVoidRaidCrab.asset");
-            //bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidRaidCrab/cscVoidRaidCrabJoint.asset");
-
+            // bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidRaidCrab/cscVoidRaidCrabJoint.asset");
         }
         private void OnEnable()
         {
@@ -87,11 +91,24 @@ namespace SimulacrumBossStageMod
             bossSpawned = false;
             bossStageCompleted = false;
             nextStageBeforeBoss = null;
+            zoneRadiusBoss = 1.0f;
 
-            foreach (EliteDef obj in EliteCatalog.eliteDefs)
+            // Add poison elite tier
+            if (poisonEliteTier == null)
             {
-                Log.LogDebug(obj.name);
+                poisonEliteTier = new CombatDirector.EliteTierDef
+                {
+                    costMultiplier = CombatDirector.baseEliteCostMultiplier * 5f,
+                    eliteTypes = new EliteDef[1] { RoR2Content.Elites.Poison },
+                    isAvailable = (SpawnCard.EliteRules rules) => checkEliteAvailable(rules),
+                    canSelectWithoutAvailableEliteDef = false
+                };
             }
+            if (!CombatDirector.eliteTiers.Contains(poisonEliteTier)) {
+                Array.Resize(ref CombatDirector.eliteTiers, CombatDirector.eliteTiers.Length + 1);
+                CombatDirector.eliteTiers[CombatDirector.eliteTiers.Length - 1] = poisonEliteTier;
+            }
+
             if (ModCompatibilityServerSideTweaks.enabled)
             {
                 ModCompatibilityServerSideTweaks.ResetOverridePowerBias();
@@ -137,20 +154,21 @@ namespace SimulacrumBossStageMod
                     return self.stageTransitionPortalCard;
                 // increase the max spawn distance from 30f to 45f to attempt to fix issues with the portal not spawning
                 self.stageTransitionPortalMaxDistance = 45f;
-
-                // Add poison elite tier
-                CombatDirector.EliteTierDef poisonEliteTier = new CombatDirector.EliteTierDef
-                {
-                    costMultiplier = CombatDirector.baseEliteCostMultiplier * 6f,
-                    eliteTypes = new EliteDef[1] { RoR2Content.Elites.Poison },
-                    isAvailable = (SpawnCard.EliteRules rules) => true,
-                    canSelectWithoutAvailableEliteDef = false
-                };
-                Array.Resize(ref CombatDirector.eliteTiers, CombatDirector.eliteTiers.Length + 1);
-                CombatDirector.eliteTiers[CombatDirector.eliteTiers.Length - 1] = poisonEliteTier;
-
                 return iscVoidPortal.WaitForCompletion();
             });
+        }
+
+        private static bool checkEliteAvailable(SpawnCard.EliteRules rules)
+        {
+            if (Run.instance.GetType() == typeof(InfiniteTowerRun))
+            {
+                var enabled = BepConfig.Enabled.Value && BepConfig.BossStageTier2Elite.Value && ((InfiniteTowerRun)Run.instance).waveIndex > BepConfig.BossStageStartWave.Value;
+                return enabled;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         private void InfiniteTowerBossWaveController_Initialize(On.RoR2.InfiniteTowerBossWaveController.orig_Initialize orig, InfiniteTowerBossWaveController self, int waveIndex, Inventory enemyInventory, GameObject spawnTarget)
@@ -191,8 +209,6 @@ namespace SimulacrumBossStageMod
                 Log.LogDebug($"Player pressed F2. Advancing to next wave");
                 self.AdvanceWave();
             }
-#endif
-#if DEBUG
             if (Input.GetKeyDown(KeyCode.F7))
             {
                 debug_enemyTypeToSpawn = DecrementEnumValue(debug_enemyTypeToSpawn);
@@ -229,18 +245,35 @@ namespace SimulacrumBossStageMod
             if (!BepConfig.Enabled.Value)
                 return;
 
-            if (IsBossStageStarted(self.waveIndex) && self.IsStageTransitionWave() && self.waveController.GetNormalizedProgress() > 0.5f && nextBonusTime == 0f && !bossStageCompleted && !bossSpawned && BepConfig.BossStageBoss.Value != BossEnum.None)
+            if (IsBossStageStarted(self.waveIndex) && self.IsStageTransitionWave() && nextBonusTime == 0f && !bossStageCompleted && BepConfig.BossStageBoss.Value != BossEnum.None)
             {
-                // spawn boss
-                bossSpawned = true;
-                EliteDef eliteDef = null;
-                if(BepConfig.BossStageBossElite.Value != EliteEnum.None)
+                if (self.waveController.GetNormalizedProgress() > 0.5f && !bossSpawned)
                 {
-                    eliteDef = EliteDefs[BepConfig.BossStageBossElite.Value];
+                    // spawn boss
+                    bossSpawned = true;
+                    EliteDef eliteDef = null;
+                    if (BepConfig.BossStageBossElite.Value != EliteEnum.None)
+                    {
+                        eliteDef = EliteDefs[BepConfig.BossStageBossElite.Value];
+                    }
+                    for (int i = 0; i < BepConfig.BossStageBossCount.Value; i++)
+                    {
+                        self.waveController.combatDirector.Spawn(bossSpawnCard.WaitForCompletion(), eliteDef, self.waveController.spawnTarget.transform, DirectorCore.MonsterSpawnDistance.Far, false);
+                    }
                 }
-                for(int i = 0; i < BepConfig.BossStageBossCount.Value; i++)
+                // increase/decrease safe ward zone size
+                if (!self.waveController.isInSuddenDeath)
                 {
-                    self.waveController.combatDirector.Spawn(bossSpawnCard.WaitForCompletion(), eliteDef, self.waveController.spawnTarget.transform, DirectorCore.MonsterSpawnDistance.Far, false);
+                    if (self.waveController._zoneRadiusPercentage < BepConfig.BossStageBossRadius.Value)
+                    {
+                        zoneRadiusBoss = Math.Min(BepConfig.BossStageBossRadius.Value, zoneRadiusBoss + self.waveController.suddenDeathRadiusConstrictingPerSecond * Time.fixedDeltaTime);
+                        self.waveController.Network_zoneRadiusPercentage = zoneRadiusBoss;
+                    } 
+                    else if (self.waveController._zoneRadiusPercentage > BepConfig.BossStageBossRadius.Value)
+                    {
+                        zoneRadiusBoss = Math.Max(0f, zoneRadiusBoss - self.waveController.suddenDeathRadiusConstrictingPerSecond * Time.fixedDeltaTime);
+                        self.waveController.Network_zoneRadiusPercentage = zoneRadiusBoss;
+                    }
                 }
             }
 
@@ -250,38 +283,43 @@ namespace SimulacrumBossStageMod
                 return;
             if (Run.instance.GetRunStopwatch() < nextBonusTime)
                 return;
+
+            zoneRadiusBoss = 1f;
             bossSpawned = false;
             if (bonusCounter >= BepConfig.BossStageLunarCoinsReward.Value)
             {
                 nextBonusTime = 0f;
-                if (BepConfig.BossStageCompleteEndRun.Value)
-                {
-                    // End Run
-                    Run.instance.BeginGameOver(RoR2Content.GameEndings.LimboEnding);
-                }
+                // Spawn Teleporter
+                if ((bool)nextStageBeforeBoss)
+                    self.nextStageScene = nextStageBeforeBoss;
                 else
+                    self.PickNextStageSceneFromCurrentSceneDestinations();
+
+                SpawnCard teleporterSpawnCard;
+                if(BepConfig.BossStageCompleteEndRun.Value)
                 {
-                    // Spawn Teleporter
-                    if ((bool)nextStageBeforeBoss)
-                        self.nextStageScene = nextStageBeforeBoss;
-                    else
-                        self.PickNextStageSceneFromCurrentSceneDestinations();
-                    DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(self.stageTransitionPortalCard, new DirectorPlacementRule
-                    {
-                        minDistance = 0f,
-                        maxDistance = self.stageTransitionPortalMaxDistance,
-                        placementMode = DirectorPlacementRule.PlacementMode.Approximate,
-                        position = self.safeWardController.transform.position,
-                        spawnOnTarget = self.safeWardController.transform
-                    }, self.safeWardRng));
-                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                    {
-                        baseToken = self.stageTransitionChatToken
-                    });
-                    if ((bool)self.safeWardController)
-                    {
-                        self.safeWardController.WaitForPortal();
-                    }
+                    // Spawn end teleporter
+                    teleporterSpawnCard = iscVoidOutroPortal.WaitForCompletion();
+                } else
+                {
+                    teleporterSpawnCard = self.stageTransitionPortalCard;
+                }
+
+                DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(teleporterSpawnCard, new DirectorPlacementRule
+                {
+                    minDistance = 0f,
+                    maxDistance = self.stageTransitionPortalMaxDistance,
+                    placementMode = DirectorPlacementRule.PlacementMode.Approximate,
+                    position = self.safeWardController.transform.position,
+                    spawnOnTarget = self.safeWardController.transform
+                }, self.safeWardRng));
+                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                {
+                    baseToken = self.stageTransitionChatToken
+                });
+                if ((bool)self.safeWardController)
+                {
+                    self.safeWardController.WaitForPortal();
                 }
             }
             else
@@ -304,7 +342,7 @@ namespace SimulacrumBossStageMod
                 }
                 if (bonusCounter >= BepConfig.BossStageLunarCoinsReward.Value)
                 {
-                    nextBonusTime = Run.instance.GetRunStopwatch() + 30f;
+                    nextBonusTime = Run.instance.GetRunStopwatch() + 25f;
                 }
                 else
                 {
@@ -342,6 +380,26 @@ namespace SimulacrumBossStageMod
                 if ((bool)self.safeWardController)
                 {
                     self.safeWardController.WaitForPortal();
+                }
+                if (BepConfig.BossStageCompleteEndRun.Value)
+                {
+                    // lore detail: respawn commando as void survivor
+                    foreach (PlayerCharacterMasterController instance in PlayerCharacterMasterController.instances)
+                    {
+                        CharacterMaster master = instance.master;
+                        if (!instance.isConnected)
+                        {
+                            continue;
+                        }
+                        if (master.GetBody().baseNameToken == "COMMANDO_BODY_NAME")
+                        {
+                            var pos = master.GetBody().transform.position;
+                            var rot = master.GetBody().transform.rotation;
+                            master.bodyPrefab = BodyCatalog.FindBodyPrefab("VoidSurvivorBody");
+                            master.Respawn(pos, rot);
+                            Run.instance.HandlePlayerFirstEntryAnimation(master.GetBody(), pos, rot);
+                        }
+                    }
                 }
             }
         }
