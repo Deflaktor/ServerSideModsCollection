@@ -18,6 +18,9 @@ using UnityEngine.UIElements;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Collections;
+using UnityEngine.SceneManagement;
+using System.Security.Cryptography;
+using static UnityEngine.ResourceManagement.ResourceProviders.SceneProvider;
 
 namespace ServerSideTweaks
 {
@@ -41,10 +44,12 @@ namespace ServerSideTweaks
         public static List<PickupIndex> availableLunarItemDropList_Saved = new List<PickupIndex>();
         public static List<PickupIndex> availableLunarEquipmentDropList_Saved = new List<PickupIndex>();
 
+        public static StageEnum debug_nextStage = StageEnum.None;
+
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "ServerSideTweaks";
-        public const string PluginVersion = "1.0.0";
+        public const string PluginVersion = "1.0.1";
 
         public void Awake()
         {
@@ -81,7 +86,9 @@ namespace ServerSideTweaks
             On.RoR2.PickupPickerController.CreatePickup_PickupIndex           += PickupPickerController_CreatePickup_PickupIndex;
             IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer += CommandArtifactManager_OnDropletHitGroundServer;
             On.RoR2.SceneDirector.Start                                       += SceneDirector_Start;
-            
+            // On.RoR2.Run.PickNextStageScene                                    += Run_PickNextStageScene;
+            On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement         += RandomlyLunarUtils_CheckForLunarReplacement;
+
             if (ModCompatibilityShareSuite.enabled)
             {
                 ModCompatibilityShareSuite.AddPickupEventHandler(NonShareableItemCheck);
@@ -105,11 +112,13 @@ namespace ServerSideTweaks
             On.RoR2.PickupPickerController.CreatePickup_PickupIndex           -= PickupPickerController_CreatePickup_PickupIndex;
             IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer -= CommandArtifactManager_OnDropletHitGroundServer;
             On.RoR2.SceneDirector.Start                                       -= SceneDirector_Start;
+            // On.RoR2.Run.PickNextStageScene                                    -= Run_PickNextStageScene;
+            On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement         -= RandomlyLunarUtils_CheckForLunarReplacement;
+
             if (ModCompatibilityShareSuite.enabled)
             {
                 ModCompatibilityShareSuite.RemovePickupEventHandler(NonShareableItemCheck);
             }
-            
         }
 
         private static ItemDef ToItemDef(String itemName)
@@ -292,6 +301,14 @@ namespace ServerSideTweaks
                         usersItemCredit.Add(user.id, +1f);
                     }
                     Log.LogDebug($"Player pressed F5. " + user.id + ".ItemCredit: " + usersItemCredit[user.id]);
+                }
+            }
+            if (Input.GetKeyDown(KeyCode.F12))
+            {
+                foreach (PlayerCharacterMasterController pc in PlayerCharacterMasterController.instances)
+                {
+                    debug_nextStage = IncrementEnumValue(debug_nextStage);
+                    Log.LogDebug($"Player pressed F12. Next stage: " + debug_nextStage.ToString() + " (" + ((int)debug_nextStage) + ")");
                 }
             }
 #endif
@@ -588,7 +605,7 @@ namespace ServerSideTweaks
             if (BepConfig.SimulacrumCommencementArtifactDissonanceChance.Value <= 0f)
                 return;
 
-            if (SceneCatalog.currentSceneDef.cachedName == GetStageName(StageEnum.SimulacrumCommencement) || SceneCatalog.currentSceneDef.cachedName == GetStageName(StageEnum.Commencement))
+            if (SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.SimulacrumCommencement) || SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.Commencement))
             {
                 RunArtifactManager.instance.SetArtifactEnabledServer(GetArtifactDef(ArtifactEnum.Dissonance), false);
             }
@@ -602,7 +619,7 @@ namespace ServerSideTweaks
             if (BepConfig.SimulacrumCommencementArtifactDissonanceChance.Value <= 0f)
                 return;
 
-            if (SceneCatalog.currentSceneDef.cachedName == GetStageName(StageEnum.SimulacrumCommencement) || SceneCatalog.currentSceneDef.cachedName == GetStageName(StageEnum.Commencement))
+            if (SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.SimulacrumCommencement) || SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.Commencement))
             {
                 if (BepConfig.SimulacrumCommencementArtifactDissonanceChance.Value > RoR2Application.rng.nextNormalizedFloat)
                 {
@@ -610,6 +627,118 @@ namespace ServerSideTweaks
                 }
             }
         }
+        #endregion
+
+        private PickupIndex RandomlyLunarUtils_CheckForLunarReplacement(On.RoR2.Items.RandomlyLunarUtils.orig_CheckForLunarReplacement orig, PickupIndex pickupIndex, Xoroshiro128Plus rng)
+        {
+            pickupIndex = orig(pickupIndex, rng);
+            if(!BepConfig.Enabled.Value)
+            {
+                return pickupIndex;
+            }
+            PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
+            if(pickupDef.isLunar)
+            {
+                if(!BepConfig.NoPearlsInBazaar.Value || !SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.Bazaar))
+                {
+                    float randomNumber = rng.nextNormalizedFloat;
+                    if (randomNumber < BepConfig.IrradiantPearlReplacesLunarItemChance.Value)
+                    {
+                        pickupIndex = PickupCatalog.FindPickupIndex(ItemCatalog.FindItemIndex("ShinyPearl"));
+                    } 
+                    else if (randomNumber < BepConfig.IrradiantPearlReplacesLunarItemChance.Value + BepConfig.PearlReplacesLunarItemChance.Value)
+                    {
+                        pickupIndex = PickupCatalog.FindPickupIndex(ItemCatalog.FindItemIndex("Pearl"));
+                    }
+                    return pickupIndex;
+                }
+            }
+            EquipmentDef equip = EquipmentCatalog.GetEquipmentDef(pickupDef.equipmentIndex);
+            if (equip && !pickupDef.isLunar)
+            {
+                if (SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.Bazaar))
+                {
+                    float randomNumber = rng.nextNormalizedFloat;
+                    if (randomNumber < BepConfig.BazaarEliteAspectReplacesEquipmentChance.Value)
+                    {
+                        List<PickupIndex> list = new List<PickupIndex>();
+                        string[] eliteAspects = new string[] {
+                            "EliteEarthEquipment",
+                            "EliteFireEquipment",
+                            "ElitePoisonEquipment",
+                            "EliteLunarEquipment",
+                            "EliteLightningEquipment",
+                            "EliteHauntedEquipment"
+                        };
+                        foreach(var eliteAspect in eliteAspects)
+                        {
+                            var equipIndex = EquipmentCatalog.FindEquipmentIndex(eliteAspect);
+                            list.Add(PickupCatalog.FindPickupIndex(equipIndex));
+                        }
+                        if (list != null && list.Count > 0)
+                        {
+                            int index = rng.RangeInt(0, list.Count);
+                            pickupIndex = list[index];
+                        }
+                    }
+                }
+            }
+            return pickupIndex;
+        }
+
+
+        #region ExtendedMaps
+        /*
+        private void Run_PickNextStageScene(On.RoR2.Run.orig_PickNextStageScene orig, Run self, WeightedSelection<SceneDef> choices)
+        {
+            if (BepConfig.Enabled.Value && BepConfig.SimulacrumExtendedMapPool.Value && Run.instance.GetType() == typeof(InfiniteTowerRun))
+            {  
+                StageEnum[] extendedMapPool = new StageEnum[] {
+                    StageEnum.TitanicPlains,
+                    StageEnum.DistantRoost,
+                    StageEnum.WetlandAspect,
+                    StageEnum.AbandonedAqueduct,
+                    StageEnum.RallypointDelta,
+                    StageEnum.ScorchedAcres,
+                    StageEnum.AbyssalDepths,
+                    StageEnum.SirensCall,
+                    // StageEnum.GildedCoast, need to disable objectives and add crates
+                    // StageEnum.MomentFractured, no spawn points
+                    // StageEnum.MomentWhole, no spawn points
+                    StageEnum.SkyMeadow,
+                    // StageEnum.BullwarksAmbry, // do not spawn the central artifact
+                    // StageEnum.Commencement, moon2 doesnt work (damage fog, seems to force teleport at start), and no crates
+                    StageEnum.SunderedGrove,
+                    // StageEnum.Planetarium, voidling fight
+                    StageEnum.AphelianSanctuary,
+                    StageEnum.SiphonedForest,
+                    StageEnum.SulfurPools
+                };
+                // fix also: no newt altars
+#if DEBUG
+                if(debug_nextStage != StageEnum.None)
+                {
+                    extendedMapPool = new StageEnum[] { debug_nextStage };
+                }
+#endif
+                WeightedSelection<SceneDef> weightedSelection = new WeightedSelection<SceneDef>();
+                foreach (StageEnum stageEnum in extendedMapPool )
+                {
+                    if (SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, stageEnum))
+                        continue; // skip so that we do not go back to the same map
+                    List<string> scenes = new List<string>(SceneNames[stageEnum]);
+                    scenes.Remove("moon2"); // moon2 doesnt seem to work properly
+                    foreach (string sceneName in scenes)
+                    {
+                        weightedSelection.AddChoice(SceneCatalog.FindSceneDef(sceneName), 1f / (float)scenes.Count);
+                    }
+                }
+                orig(self, weightedSelection);
+            } else
+            {
+                orig(self, choices);
+            }
+        }*/
         #endregion
     }
 }

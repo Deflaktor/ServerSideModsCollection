@@ -9,6 +9,38 @@ namespace ServerSideTweaks
 {
     public class EnumCollection
     {
+        public static T DecrementEnumValue<T>(T value) where T : struct, IConvertible
+        {
+            if (!typeof(T).IsEnum)
+            {
+                throw new ArgumentException("T must be an enumerated type");
+            }
+            // Get the total number of enum values
+            int enumCount = Enum.GetValues(typeof(T)).Length;
+
+            // Calculate the previous enum value and wrap around if necessary
+            int previousValue = ((int)(object)value - 1 + enumCount) % enumCount;
+
+            // Cast the integer back to enum type and return
+            return (T)(object)previousValue;
+        }
+
+        public static T IncrementEnumValue<T>(T value) where T : struct, IConvertible
+        {
+            if (!typeof(T).IsEnum)
+            {
+                throw new ArgumentException("T must be an enumerated type");
+            }
+
+            // Get the total number of enum values
+            int enumCount = Enum.GetValues(typeof(T)).Length;
+
+            // Calculate the next enum value and wrap around if necessary
+            int nextValue = ((int)(object)value + 1) % enumCount;
+
+            // Cast the integer back to enum type and return
+            return (T)(object)nextValue;
+        }
         public enum ArtifactEnum
         {
             None,
@@ -66,8 +98,8 @@ namespace ServerSideTweaks
 
         public static Dictionary<StageEnum, List<string>> SceneNames = new Dictionary<StageEnum, List<string>>()  
         {
-            { StageEnum.TitanicPlains, new List<string>(){ "golemplains", "golemplains2", "golemplains trailer" } },
-            { StageEnum.DistantRoost, new List<string>(){ "blackbeach", "blackbeach2", "blackbeachTest" } },
+            { StageEnum.TitanicPlains, new List<string>(){ "golemplains", "golemplains2" } },
+            { StageEnum.DistantRoost, new List<string>(){ "blackbeach", "blackbeach2" } },
             { StageEnum.WetlandAspect, new List<string>(){ "foggyswamp" } },
             { StageEnum.AbandonedAqueduct, new List<string>(){ "goolake" } },
             { StageEnum.RallypointDelta, new List<string>(){ "frozenwall" } },
@@ -99,17 +131,22 @@ namespace ServerSideTweaks
 
         public static bool IsSimulacrumStage(String name)
         {
-            if (GetStageName(StageEnum.SimulacrumAbandonedAquaduct) == name) return true;
-            if (GetStageName(StageEnum.SimulacrumAbyssalDepths) == name) return true;
-            if (GetStageName(StageEnum.SimulacrumAphelianSanctuary) == name) return true;
-            if (GetStageName(StageEnum.SimulacrumCommencement) == name) return true;
-            if (GetStageName(StageEnum.SimulacrumRallypointDelta) == name) return true;
-            if (GetStageName(StageEnum.SimulacrumSkyMeadow) == name) return true;
-            if (GetStageName(StageEnum.SimulacrumTitanicPlains) == name) return true;
+            if (GetFirstStageName(StageEnum.SimulacrumAbandonedAquaduct) == name) return true;
+            if (GetFirstStageName(StageEnum.SimulacrumAbyssalDepths) == name) return true;
+            if (GetFirstStageName(StageEnum.SimulacrumAphelianSanctuary) == name) return true;
+            if (GetFirstStageName(StageEnum.SimulacrumCommencement) == name) return true;
+            if (GetFirstStageName(StageEnum.SimulacrumRallypointDelta) == name) return true;
+            if (GetFirstStageName(StageEnum.SimulacrumSkyMeadow) == name) return true;
+            if (GetFirstStageName(StageEnum.SimulacrumTitanicPlains) == name) return true;
             return false;
         }
 
-        public static string GetStageName(StageEnum stageEnum)
+        public static bool SceneNameIsStage(string sceneName, StageEnum stageEnum)
+        {;
+            return SceneNames[stageEnum].Contains(sceneName);
+        }
+
+        public static string GetFirstStageName(StageEnum stageEnum)
         {
             return SceneNames[stageEnum].First();
         }
