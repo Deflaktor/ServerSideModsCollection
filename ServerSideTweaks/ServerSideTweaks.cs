@@ -49,7 +49,7 @@ namespace ServerSideTweaks
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "ServerSideTweaks";
-        public const string PluginVersion = "1.0.1";
+        public const string PluginVersion = "1.1.0";
 
         public void Awake()
         {
@@ -85,9 +85,9 @@ namespace ServerSideTweaks
             On.RoR2.PickupPickerController.OnInteractionBegin                 += PickupPickerController_OnInteractionBegin;
             On.RoR2.PickupPickerController.CreatePickup_PickupIndex           += PickupPickerController_CreatePickup_PickupIndex;
             IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer += CommandArtifactManager_OnDropletHitGroundServer;
-            On.RoR2.SceneDirector.Start                                       += SceneDirector_Start;
             // On.RoR2.Run.PickNextStageScene                                    += Run_PickNextStageScene;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement         += RandomlyLunarUtils_CheckForLunarReplacement;
+            On.RoR2.InfiniteTowerWaveController.Initialize                    += InfiniteTowerWaveController_Initialize;
 
             if (ModCompatibilityShareSuite.enabled)
             {
@@ -111,9 +111,9 @@ namespace ServerSideTweaks
             On.RoR2.PickupPickerController.OnInteractionBegin                 -= PickupPickerController_OnInteractionBegin;
             On.RoR2.PickupPickerController.CreatePickup_PickupIndex           -= PickupPickerController_CreatePickup_PickupIndex;
             IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer -= CommandArtifactManager_OnDropletHitGroundServer;
-            On.RoR2.SceneDirector.Start                                       -= SceneDirector_Start;
             // On.RoR2.Run.PickNextStageScene                                    -= Run_PickNextStageScene;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement         -= RandomlyLunarUtils_CheckForLunarReplacement;
+            On.RoR2.InfiniteTowerWaveController.Initialize                    -= InfiniteTowerWaveController_Initialize;
 
             if (ModCompatibilityShareSuite.enabled)
             {
@@ -121,92 +121,13 @@ namespace ServerSideTweaks
             }
         }
 
-        private static ItemDef ToItemDef(String itemName)
+        private void InfiniteTowerWaveController_Initialize(On.RoR2.InfiniteTowerWaveController.orig_Initialize orig, InfiniteTowerWaveController self, int waveIndex, Inventory enemyInventory, GameObject spawnTarget)
         {
-            if (itemName == null)
-                return null;
-            var index = ItemCatalog.FindItemIndex(itemName);
-            if (index == ItemIndex.None)
-                return null;
-            return ItemCatalog.GetItemDef(index);
-        }
-
-
-        private void SceneDirector_Start(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
-        {
-            /*
-            if (NetworkServer.active && BepConfig.Enabled.Value && BepConfig.EliteEquipmentsInBazaar.Value)
+            if (NetworkServer.active && BepConfig.Enabled.Value)
             {
-                if (SceneCatalog.mostRecentSceneDef == SceneCatalog.GetSceneDefFromSceneName("bazaar"))
-                {
-                    //availableEquipmentDropList_Saved.AddRange(Run.instance.availableEquipmentDropList);
-
-                    //Run.instance.availableEquipmentDropList.Clear(); // TODO: Remove
-
-                    EquipmentIndex[] equipments = new EquipmentIndex[]
-                    {
-                        EquipmentCatalog.FindEquipmentIndex("EliteEarthEquipment"),
-                        EquipmentCatalog.FindEquipmentIndex("EliteFireEquipment"),
-                        EquipmentCatalog.FindEquipmentIndex("EliteHauntedEquipment"),
-                        EquipmentCatalog.FindEquipmentIndex("EliteIceEquipment"),
-                        EquipmentCatalog.FindEquipmentIndex("EliteLightningEquipment"),
-                        EquipmentCatalog.FindEquipmentIndex("EliteLunarEquipment"),
-                        EquipmentCatalog.FindEquipmentIndex("ElitePoisonEquipment"),
-                        EquipmentCatalog.FindEquipmentIndex("EliteYellowEquipment"),
-                    };
-                    foreach (var equipment in equipments)
-                    {
-                        if (Run.instance.IsEquipmentAvailable(equipment))
-                        {
-                            Run.instance.EnableEquipmentDrop(equipment);
-                            disableEquipments.Add(equipment);
-                        }
-                    }
-
-                    //Run.instance.EnableEquipmentDrop(EquipmentCatalog.FindEquipmentIndex("EliteSecretSpeedEquipment"));
-
-                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteEarthEquipment"));
-                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteFireEquipment"));
-                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteHauntedEquipment"));
-                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteIceEquipment"));
-                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteLightningEquipment"));
-                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteLunarEquipment"));
-                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("ElitePoisonEquipment"));
-                    Run.instance.availableEquipmentDropList.Add(PickupCatalog.FindPickupIndex("EliteSecretSpeedEquipment"));
-
-                    availableLunarItemDropList_Saved.AddRange(Run.instance.availableLunarItemDropList);
-                    Run.instance.availableLunarItemDropList.Clear();
-                    Run.instance.availableLunarItemDropList.Add(PickupCatalog.FindPickupIndex("Pearl"));
-
-                    availableLunarEquipmentDropList_Saved.AddRange(Run.instance.availableLunarEquipmentDropList);
-                    Run.instance.availableLunarEquipmentDropList.Clear();
-                    Run.instance.availableLunarEquipmentDropList.Add(PickupCatalog.FindPickupIndex("ShinyPearl"));
-                }
-            }*/
-            orig(self);
-            /*
-            if (NetworkServer.active && BepConfig.Enabled.Value && BepConfig.EliteEquipmentsInBazaar.Value)
-            {
-                if (SceneCatalog.mostRecentSceneDef == SceneCatalog.GetSceneDefFromSceneName("bazaar"))
-                {
-                    StartCoroutine(DelayRestore());
-                }
-            }*/
-        }
-
-        public IEnumerator DelayRestore()
-        {
-            yield return new WaitForSeconds(2f);
-            /*Run.instance.availableLunarItemDropList.Clear();
-            Run.instance.availableLunarItemDropList.AddRange(availableLunarItemDropList_Saved);
-            Run.instance.availableLunarEquipmentDropList.Clear();
-            Run.instance.availableLunarEquipmentDropList.AddRange(availableLunarEquipmentDropList_Saved);
-            Run.instance.availableEquipmentDropList.Clear();
-            Run.instance.availableEquipmentDropList.AddRange(availableEquipmentDropList_Saved);*/
-            foreach (var equipment in disableEquipments)
-            {
-                Run.instance.DisableEquipmentDrop(equipment);
+                self.maxSquadSize = BepConfig.SimulacrumMaxSquadSize.Value;
             }
+            orig(self, waveIndex, enemyInventory, spawnTarget);
         }
 
         private bool NonShareableItemCheck(GenericPickupController pickup, CharacterBody picker)
@@ -665,6 +586,7 @@ namespace ServerSideTweaks
                         string[] eliteAspects = new string[] {
                             "EliteEarthEquipment",
                             "EliteFireEquipment",
+                            "EliteIceEquipment",
                             "ElitePoisonEquipment",
                             "EliteLunarEquipment",
                             "EliteLightningEquipment",
