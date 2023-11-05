@@ -29,7 +29,7 @@ namespace SimulacrumBossStageMod
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "SimulacrumBossStageMod";
-        public const string PluginVersion = "1.2.0";
+        public const string PluginVersion = "1.2.1";
 
         public AsyncOperationHandle<SpawnCard> iscVoidPortal;
         public AsyncOperationHandle<SpawnCard> iscVoidOutroPortal;
@@ -71,7 +71,10 @@ namespace SimulacrumBossStageMod
             On.RoR2.InfiniteTowerRun.RecalculateDifficultyCoefficentInternal += InfiniteTowerRun_RecalculateDifficultyCoefficentInternal;
             IL.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer          += InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer1;
             On.RoR2.InfiniteTowerBossWaveController.Initialize               += InfiniteTowerBossWaveController_Initialize;
+            On.RoR2.InfiniteTowerWaveController.Initialize                   += InfiniteTowerWaveController_Initialize;
+            On.RoR2.InfiniteTowerWaveController.DropRewards                  += InfiniteTowerWaveController_DropRewards;
         }
+
 
         private void OnDisable()
         {
@@ -82,7 +85,10 @@ namespace SimulacrumBossStageMod
             On.RoR2.InfiniteTowerRun.RecalculateDifficultyCoefficentInternal -= InfiniteTowerRun_RecalculateDifficultyCoefficentInternal;
             IL.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer          -= InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer1;
             On.RoR2.InfiniteTowerBossWaveController.Initialize               -= InfiniteTowerBossWaveController_Initialize;
+            On.RoR2.InfiniteTowerWaveController.Initialize                   -= InfiniteTowerWaveController_Initialize;
+            On.RoR2.InfiniteTowerWaveController.DropRewards                  -= InfiniteTowerWaveController_DropRewards;
         }
+
         private void InfiniteTowerRun_Start(On.RoR2.InfiniteTowerRun.orig_Start orig, InfiniteTowerRun self)
         {
             orig(self);
@@ -192,6 +198,15 @@ namespace SimulacrumBossStageMod
                     ModCompatibilityServerSideTweaks.ResetOverridePowerBias();
                 }
             }
+        }
+
+        private void InfiniteTowerWaveController_Initialize(On.RoR2.InfiniteTowerWaveController.orig_Initialize orig, InfiniteTowerWaveController self, int waveIndex, Inventory enemyInventory, GameObject spawnTarget)
+        {
+            if (NetworkServer.active && BepConfig.Enabled.Value && IsBossStageStarted(waveIndex) && ((InfiniteTowerRun)Run.instance).IsStageTransitionWave() && !bossStageCompleted)
+            {
+                self.secondsBeforeSuddenDeath = 180f;
+            }
+            orig(self, waveIndex, enemyInventory, spawnTarget);
         }
 
         private bool IsBossStageStarted(int waveIndex)
@@ -402,6 +417,15 @@ namespace SimulacrumBossStageMod
                     }
                 }
             }
+        }
+        private void InfiniteTowerWaveController_DropRewards(On.RoR2.InfiniteTowerWaveController.orig_DropRewards orig, InfiniteTowerWaveController self)
+        {
+            if (NetworkServer.active && BepConfig.Enabled.Value && IsBossStageStarted(self.waveIndex) && ((InfiniteTowerRun)Run.instance).IsStageTransitionWave() && !bossStageCompleted && BepConfig.BossStageCompleteEndRun.Value)
+            {
+                // skip dropping rewards if boss wave was completed and run is to be ended
+                return;
+            }
+            orig(self);
         }
         private void InfiniteTowerRun_RecalculateDifficultyCoefficentInternal(On.RoR2.InfiniteTowerRun.orig_RecalculateDifficultyCoefficentInternal orig, InfiniteTowerRun self)
         {
