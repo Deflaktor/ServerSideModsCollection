@@ -1,0 +1,26 @@
+{
+    "name": "VanillaLike_ServerSide_Modpack",
+    "version_number": "1.2.0",
+    "website_url": "",
+    "description": "Server-side compatible mod pack.",
+    "dependencies": [
+		"Moffein-AI_Blacklist-1.6.0",
+		"XoXFaby-BetterUI-2.8.4",
+		"konomiyu-CustomChaosPool-1.1.4",
+		"niwith-DropinMultiplayer-3.0.0",
+		"Moffein-Fix_Playercount-1.2.2",
+		"KingEnderBrine-LobbyVotesSave-1.3.0",
+		"KingEnderBrine-InLobbyConfig-1.4.1",
+		"KingEnderBrine-ScrollableLobbyUI-1.7.6",
+		"KingEnderBrine-ProperSave-2.8.11",
+		"KingEnderBrine-RandomCharacterSelection-1.4.1",
+		"dan8991iel-LunarCoinShareOnPickup-4.2.1",
+		"BetterPing-PingItemDescription-1.0.4",
+		"JohnEdwa-RTAutoSprintEx-2.1.2",
+		"Moonlol-SeerPing-1.2.1",
+		"NotTsunami-ShowDeathCause-3.0.1",
+		"MagnusMagnuson-ShrineOfDio-1.6.1",
+		"Bubbet-SkipIntro-1.0.0",
+		"6thmoon-HealthBarViewer-0.1.2"
+    ]
+}
