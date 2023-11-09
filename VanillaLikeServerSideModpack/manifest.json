@@ -1,6 +1,6 @@
 {
     "name": "VanillaLike_ServerSide_Modpack",
-    "version_number": "1.2.0",
+    "version_number": "1.2.1",
     "website_url": "",
     "description": "Server-side compatible mod pack.",
     "dependencies": [
@@ -21,6 +21,7 @@
 		"NotTsunami-ShowDeathCause-3.0.1",
 		"MagnusMagnuson-ShrineOfDio-1.6.1",
 		"Bubbet-SkipIntro-1.0.0",
-		"6thmoon-HealthBarViewer-0.1.2"
+		"6thmoon-HealthBarViewer-0.1.2",
+		"Moffein-Bandit_Tweaks-1.9.0"
     ]
 }
