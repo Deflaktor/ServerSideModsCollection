@@ -1,6 +1,6 @@
 {
     "name": "Simulacrum_Escape_Modpack",
-    "version_number": "1.0.5",
+    "version_number": "1.0.6",
     "website_url": "",
     "description": "Server-side compatible mod pack for making finite challenging Simulacrum runs.",
     "dependencies": [
