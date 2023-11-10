@@ -49,7 +49,7 @@ namespace ServerSideTweaks
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "ServerSideTweaks";
-        public const string PluginVersion = "1.1.0";
+        public const string PluginVersion = "1.1.1";
 
         public void Awake()
         {
@@ -71,23 +71,24 @@ namespace ServerSideTweaks
         }
         private void OnEnable()
         {
-            On.RoR2.Run.Start                                                 += Run_Start;
-            On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer           += InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
-            On.RoR2.InfiniteTowerRun.AdvanceWave                              += InfiniteTowerRun_AdvanceWave;
-            IL.RoR2.CombatDirector.AttemptSpawnOnTarget                       += CombatDirector_AttemptSpawnOnTarget;
-            On.RoR2.Run.FixedUpdate                                           += Run_FixedUpdate;
-            IL.RoR2.InfiniteTowerWaveController.DropRewards                   += InfiniteTowerWaveController_DropRewards;
-            On.RoR2.InfiniteTowerWaveController.DropRewards                   += InfiniteTowerWaveController_DropRewards1;
-            On.RoR2.GenericPickupController.AttemptGrant                      += GenericPickupController_AttemptGrant;
-            On.RoR2.GenericPickupController.OnInteractionBegin                += GenericPickupController_OnInteractionBegin;
-            IL.RoR2.GenericPickupController.CreatePickup                      += GenericPickupController_CreatePickup;
-            On.RoR2.PickupDropletController.OnCollisionEnter                  += PickupDropletController_OnCollisionEnter;
-            On.RoR2.PickupPickerController.OnInteractionBegin                 += PickupPickerController_OnInteractionBegin;
-            On.RoR2.PickupPickerController.CreatePickup_PickupIndex           += PickupPickerController_CreatePickup_PickupIndex;
-            IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer += CommandArtifactManager_OnDropletHitGroundServer;
-            // On.RoR2.Run.PickNextStageScene                                    += Run_PickNextStageScene;
-            On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement         += RandomlyLunarUtils_CheckForLunarReplacement;
-            On.RoR2.InfiniteTowerWaveController.Initialize                    += InfiniteTowerWaveController_Initialize;
+            On.RoR2.Run.Start                                                    += Run_Start;
+            On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer              += InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
+            On.RoR2.InfiniteTowerRun.AdvanceWave                                 += InfiniteTowerRun_AdvanceWave;
+            IL.RoR2.CombatDirector.AttemptSpawnOnTarget                          += CombatDirector_AttemptSpawnOnTarget;
+            On.RoR2.Run.FixedUpdate                                              += Run_FixedUpdate;
+            IL.RoR2.InfiniteTowerWaveController.DropRewards                      += InfiniteTowerWaveController_DropRewards;
+            On.RoR2.InfiniteTowerWaveController.DropRewards                      += InfiniteTowerWaveController_DropRewards1;
+            On.RoR2.GenericPickupController.AttemptGrant                         += GenericPickupController_AttemptGrant;
+            On.RoR2.GenericPickupController.OnInteractionBegin                   += GenericPickupController_OnInteractionBegin;
+            IL.RoR2.GenericPickupController.CreatePickup                         += GenericPickupController_CreatePickup;
+            On.RoR2.PickupDropletController.OnCollisionEnter                     += PickupDropletController_OnCollisionEnter;
+            On.RoR2.PickupPickerController.OnInteractionBegin                    += PickupPickerController_OnInteractionBegin;
+            On.RoR2.PickupPickerController.CreatePickup_PickupIndex              += PickupPickerController_CreatePickup_PickupIndex;
+            IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer    += CommandArtifactManager_OnDropletHitGroundServer;
+            // On.RoR2.Run.PickNextStageScene                                       += Run_PickNextStageScene;
+            On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement            += RandomlyLunarUtils_CheckForLunarReplacement;
+            On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray += RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
+            On.RoR2.InfiniteTowerWaveController.Initialize                       += InfiniteTowerWaveController_Initialize;
 
             if (ModCompatibilityShareSuite.enabled)
             {
@@ -97,23 +98,24 @@ namespace ServerSideTweaks
 
         private void OnDisable()
         {
-            On.RoR2.Run.Start                                                 -= Run_Start;
-            On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer           -= InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
-            On.RoR2.InfiniteTowerRun.AdvanceWave                              -= InfiniteTowerRun_AdvanceWave;
-            IL.RoR2.CombatDirector.AttemptSpawnOnTarget                       -= CombatDirector_AttemptSpawnOnTarget;
-            On.RoR2.Run.FixedUpdate                                           -= Run_FixedUpdate;
-            IL.RoR2.InfiniteTowerWaveController.DropRewards                   -= InfiniteTowerWaveController_DropRewards;
-            On.RoR2.InfiniteTowerWaveController.DropRewards                   -= InfiniteTowerWaveController_DropRewards1;
-            On.RoR2.GenericPickupController.AttemptGrant                      -= GenericPickupController_AttemptGrant;
-            On.RoR2.GenericPickupController.OnInteractionBegin                -= GenericPickupController_OnInteractionBegin;
-            IL.RoR2.GenericPickupController.CreatePickup                      -= GenericPickupController_CreatePickup;
-            On.RoR2.PickupDropletController.OnCollisionEnter                  -= PickupDropletController_OnCollisionEnter;
-            On.RoR2.PickupPickerController.OnInteractionBegin                 -= PickupPickerController_OnInteractionBegin;
-            On.RoR2.PickupPickerController.CreatePickup_PickupIndex           -= PickupPickerController_CreatePickup_PickupIndex;
-            IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer -= CommandArtifactManager_OnDropletHitGroundServer;
-            // On.RoR2.Run.PickNextStageScene                                    -= Run_PickNextStageScene;
-            On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement         -= RandomlyLunarUtils_CheckForLunarReplacement;
-            On.RoR2.InfiniteTowerWaveController.Initialize                    -= InfiniteTowerWaveController_Initialize;
+            On.RoR2.Run.Start                                                    -= Run_Start;
+            On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer              -= InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
+            On.RoR2.InfiniteTowerRun.AdvanceWave                                 -= InfiniteTowerRun_AdvanceWave;
+            IL.RoR2.CombatDirector.AttemptSpawnOnTarget                          -= CombatDirector_AttemptSpawnOnTarget;
+            On.RoR2.Run.FixedUpdate                                              -= Run_FixedUpdate;
+            IL.RoR2.InfiniteTowerWaveController.DropRewards                      -= InfiniteTowerWaveController_DropRewards;
+            On.RoR2.InfiniteTowerWaveController.DropRewards                      -= InfiniteTowerWaveController_DropRewards1;
+            On.RoR2.GenericPickupController.AttemptGrant                         -= GenericPickupController_AttemptGrant;
+            On.RoR2.GenericPickupController.OnInteractionBegin                   -= GenericPickupController_OnInteractionBegin;
+            IL.RoR2.GenericPickupController.CreatePickup                         -= GenericPickupController_CreatePickup;
+            On.RoR2.PickupDropletController.OnCollisionEnter                     -= PickupDropletController_OnCollisionEnter;
+            On.RoR2.PickupPickerController.OnInteractionBegin                    -= PickupPickerController_OnInteractionBegin;
+            On.RoR2.PickupPickerController.CreatePickup_PickupIndex              -= PickupPickerController_CreatePickup_PickupIndex;
+            IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer    -= CommandArtifactManager_OnDropletHitGroundServer;
+            // On.RoR2.Run.PickNextStageScene                                       -= Run_PickNextStageScene;
+            On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement            -= RandomlyLunarUtils_CheckForLunarReplacement;
+            On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray -= RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
+            On.RoR2.InfiniteTowerWaveController.Initialize                       -= InfiniteTowerWaveController_Initialize;
 
             if (ModCompatibilityShareSuite.enabled)
             {
@@ -608,6 +610,66 @@ namespace ServerSideTweaks
             return pickupIndex;
         }
 
+        private void RandomlyLunarUtils_CheckForLunarReplacementUniqueArray(On.RoR2.Items.RandomlyLunarUtils.orig_CheckForLunarReplacementUniqueArray orig, PickupIndex[] pickupIndices, Xoroshiro128Plus rng)
+        {
+            orig(pickupIndices, rng);
+            if (!BepConfig.Enabled.Value)
+                return;
+
+            List<PickupIndex> listEquip = new List<PickupIndex>();
+            string[] eliteAspects = new string[] {
+                "EliteEarthEquipment",
+                "EliteFireEquipment",
+                "EliteIceEquipment",
+                "ElitePoisonEquipment",
+                "EliteLunarEquipment",
+                "EliteLightningEquipment",
+                "EliteHauntedEquipment"
+            };
+            foreach (var eliteAspect in eliteAspects)
+            {
+                var equipIndex = EquipmentCatalog.FindEquipmentIndex(eliteAspect);
+                listEquip.Add(PickupCatalog.FindPickupIndex(equipIndex));
+            }
+            bool shuffled = false;
+
+            for (int i = 0; i < pickupIndices.Length; i++)
+            {
+                PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndices[i]);
+                if (pickupDef.isLunar)
+                {
+                    if (!BepConfig.NoPearlsInBazaar.Value || !SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.Bazaar))
+                    {
+                        float randomNumber = rng.nextNormalizedFloat;
+                        if (randomNumber < BepConfig.IrradiantPearlReplacesLunarItemChance.Value)
+                        {
+                            pickupIndices[i] = PickupCatalog.FindPickupIndex(ItemCatalog.FindItemIndex("ShinyPearl"));
+                        }
+                        else if (randomNumber < BepConfig.IrradiantPearlReplacesLunarItemChance.Value + BepConfig.PearlReplacesLunarItemChance.Value)
+                        {
+                            pickupIndices[i] = PickupCatalog.FindPickupIndex(ItemCatalog.FindItemIndex("Pearl"));
+                        }
+                    }
+                }
+                EquipmentDef equip = EquipmentCatalog.GetEquipmentDef(pickupDef.equipmentIndex);
+                if (equip && !pickupDef.isLunar && listEquip != null && listEquip.Count > 0)
+                {
+                    if (SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.Bazaar))
+                    {
+                        float randomNumber = rng.nextNormalizedFloat;
+                        if (randomNumber < BepConfig.BazaarEliteAspectReplacesEquipmentChance.Value)
+                        {
+                            if(!shuffled)
+                            {
+                                Util.ShuffleList(listEquip, rng);
+                                shuffled = true;
+                            }
+                            pickupIndices[i] = listEquip[i % listEquip.Count];
+                        }
+                    }
+                }
+            }
+        }
 
         #region ExtendedMaps
         /*
