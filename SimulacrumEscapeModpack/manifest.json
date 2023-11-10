@@ -1,6 +1,6 @@
 {
     "name": "Simulacrum_Escape_Modpack",
-    "version_number": "1.0.4",
+    "version_number": "1.0.5",
     "website_url": "",
     "description": "Server-side compatible mod pack for making finite challenging Simulacrum runs.",
     "dependencies": [
@@ -14,9 +14,9 @@
 		"Lunzir2-BazaarIsMyHome-1.3.0",
 		"Flyingcomputer-Exchange_Changes-1.0.8",
 		"Def-SimulacrumNormalStagesFix-1.0.4",
-		"Def-SimulacrumBossStageMod-1.2.0",
+		"Def-SimulacrumBossStageMod-1.2.1",
 		"Def-StartBonusMod-1.0.1",
-		"Def-DefsServerSideTweaks-1.0.1",
+		"Def-DefsServerSideTweaks-1.1.1",
 		"OakPrime-CaptainSkillsUsable-1.0.1",
 		"Thrayonlosa-ItemBlacklist-1.1.4",
 		"KingEnderBrine-ScrollableLobbyUI-1.7.6"
