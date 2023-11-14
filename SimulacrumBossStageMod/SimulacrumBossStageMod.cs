@@ -29,7 +29,7 @@ namespace SimulacrumBossStageMod
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "SimulacrumBossStageMod";
-        public const string PluginVersion = "1.2.1";
+        public const string PluginVersion = "1.2.2";
 
         public AsyncOperationHandle<SpawnCard> iscVoidPortal;
         public AsyncOperationHandle<SpawnCard> iscVoidOutroPortal;
