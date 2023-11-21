@@ -9,6 +9,7 @@ This mod fixes some non-Simulacrum stages when they are used in Simulacrum mode.
 - Removes the exit portal from the Void Fields stage
 - Removes the objectives from the Void Fields stage
 - Removes the objectives from the Void Locus stage
+- When in Simulacrum Mode, makes the Void Fields stage count as a normal stage again
 
 This affects only Simulacrum mode. Normal runs are unaffected.
 

@@ -1,3 +1,9 @@
+# 1.1.0
+
+## Added
+
+- When in Simulacrum Mode, Void Fields count as a normal stage again
+
 # 1.0.3
 
 ## Removed

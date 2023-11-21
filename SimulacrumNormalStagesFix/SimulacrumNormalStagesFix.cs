@@ -27,7 +27,7 @@ namespace SimulacrumNormalStagesFix
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "SimulacrumNormalStagesFix";
-        public const string PluginVersion = "1.0.4";
+        public const string PluginVersion = "1.1.0";
 
         public void Awake()
         {
@@ -42,6 +42,7 @@ namespace SimulacrumNormalStagesFix
             IL.RoR2.VoidStageMissionController.Start          += VoidStageMissionController_Start;
             IL.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer += InfiniteTowerRun_OnPrePopulateSceneServer;
             On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer += InfiniteTowerRun_OnPrePopulateSceneServer;
+            On.RoR2.SceneCatalog.OnActiveSceneChanged         += SceneCatalog_OnActiveSceneChanged;
         }
 
         private void OnDisable()
@@ -51,7 +52,18 @@ namespace SimulacrumNormalStagesFix
             IL.RoR2.VoidStageMissionController.Start          -= VoidStageMissionController_Start;
             IL.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer -= InfiniteTowerRun_OnPrePopulateSceneServer;
             On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer -= InfiniteTowerRun_OnPrePopulateSceneServer;
+            On.RoR2.SceneCatalog.OnActiveSceneChanged         -= SceneCatalog_OnActiveSceneChanged;
         }
+
+        private void SceneCatalog_OnActiveSceneChanged(On.RoR2.SceneCatalog.orig_OnActiveSceneChanged orig, UnityEngine.SceneManagement.Scene oldScene, UnityEngine.SceneManagement.Scene newScene)
+        {
+            orig(oldScene, newScene);
+            if (NetworkServer.active && Run.instance.GetType() == typeof(InfiniteTowerRun) && SceneCatalog.mostRecentSceneDef != null && SceneCatalog.mostRecentSceneDef.baseSceneName == "arena")
+            {
+                SceneCatalog.mostRecentSceneDef.sceneType = SceneType.Stage;
+            }
+        }
+
         private void ReturnImmediately<T>(ILContext il, Func<T, bool> funcWhetherToReturnImmediately)
         {
             var methodContinue = il.DefineLabel();

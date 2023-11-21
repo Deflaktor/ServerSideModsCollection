@@ -13,6 +13,7 @@ using System.Linq;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using ServerSideTweaks;
 using Newtonsoft.Json.Linq;
+using HarmonyLib;
 
 namespace SimulacrumBossStageMod
 {
@@ -29,7 +30,7 @@ namespace SimulacrumBossStageMod
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "SimulacrumBossStageMod";
-        public const string PluginVersion = "1.2.2";
+        public const string PluginVersion = "1.2.3";
 
         public AsyncOperationHandle<SpawnCard> iscVoidPortal;
         public AsyncOperationHandle<SpawnCard> iscVoidOutroPortal;
@@ -74,7 +75,6 @@ namespace SimulacrumBossStageMod
             On.RoR2.InfiniteTowerWaveController.Initialize                   += InfiniteTowerWaveController_Initialize;
             On.RoR2.InfiniteTowerWaveController.DropRewards                  += InfiniteTowerWaveController_DropRewards;
         }
-
 
         private void OnDisable()
         {
