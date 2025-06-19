@@ -1,0 +1,10 @@
+﻿{
+	"name": "ServerSideItems",
+	"version_number": "1.0.0",
+	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
+	"description": "Implements some unreleased items server-side.",
+	"dependencies": [
+		"bbepis-BepInExPack-5.4.9",
+		"RiskofThunder-HookGenPatcher-1.2.1"
+	]
+}

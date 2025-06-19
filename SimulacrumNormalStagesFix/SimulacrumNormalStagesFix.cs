@@ -58,7 +58,7 @@ namespace SimulacrumNormalStagesFix
         private void SceneCatalog_OnActiveSceneChanged(On.RoR2.SceneCatalog.orig_OnActiveSceneChanged orig, UnityEngine.SceneManagement.Scene oldScene, UnityEngine.SceneManagement.Scene newScene)
         {
             orig(oldScene, newScene);
-            if (NetworkServer.active && Run.instance.GetType() == typeof(InfiniteTowerRun) && SceneCatalog.mostRecentSceneDef != null && SceneCatalog.mostRecentSceneDef.baseSceneName == "arena")
+            if (NetworkServer.active && Run.instance != null && Run.instance.GetType() == typeof(InfiniteTowerRun) && SceneCatalog.mostRecentSceneDef != null && SceneCatalog.mostRecentSceneDef.baseSceneName == "arena")
             {
                 SceneCatalog.mostRecentSceneDef.sceneType = SceneType.Stage;
             }

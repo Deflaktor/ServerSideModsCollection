@@ -43,13 +43,14 @@ namespace ServerSideTweaks
         public static List<PickupIndex> availableEquipmentDropList_Saved = new List<PickupIndex>();
         public static List<PickupIndex> availableLunarItemDropList_Saved = new List<PickupIndex>();
         public static List<PickupIndex> availableLunarEquipmentDropList_Saved = new List<PickupIndex>();
+        public static float eliteSecretSpeedEquipmentOriginalDropOnDeathChance = 0f;
 
         public static StageEnum debug_nextStage = StageEnum.None;
 
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "ServerSideTweaks";
-        public const string PluginVersion = "1.1.1";
+        public const string PluginVersion = "1.2.0";
 
         public void Awake()
         {
@@ -89,6 +90,13 @@ namespace ServerSideTweaks
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement            += RandomlyLunarUtils_CheckForLunarReplacement;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray += RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
             On.RoR2.InfiniteTowerWaveController.Initialize                       += InfiniteTowerWaveController_Initialize;
+            // Server-Side Items
+            On.RoR2.CharacterBody.OnEquipmentGained                              += CharacterBody_OnEquipmentGained;
+            On.RoR2.CharacterBody.OnEquipmentLost                                += CharacterBody_OnEquipmentLost;
+            IL.RoR2.CharacterBody.RecalculateStats                               += CharacterBody_RecalculateStats;
+            IL.RoR2.CharacterBody.UpdateAllTemporaryVisualEffects                += CharacterBody_UpdateAllTemporaryVisualEffects;
+            IL.RoR2.Items.SprintWispBodyBehavior.FixedUpdate                     += SprintWispBodyBehavior_FixedUpdate;
+            IL.RoR2.MushroomVoidBehavior.FixedUpdate                             += MushroomVoidBehavior_FixedUpdate;
 
             if (ModCompatibilityShareSuite.enabled)
             {
@@ -116,11 +124,148 @@ namespace ServerSideTweaks
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement            -= RandomlyLunarUtils_CheckForLunarReplacement;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray -= RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
             On.RoR2.InfiniteTowerWaveController.Initialize                       -= InfiniteTowerWaveController_Initialize;
+            On.RoR2.CharacterBody.OnEquipmentGained                              -= CharacterBody_OnEquipmentGained;
+            On.RoR2.CharacterBody.OnEquipmentLost                                -= CharacterBody_OnEquipmentLost;
+            IL.RoR2.CharacterBody.RecalculateStats                               -= CharacterBody_RecalculateStats;
+            IL.RoR2.CharacterBody.UpdateAllTemporaryVisualEffects                -= CharacterBody_UpdateAllTemporaryVisualEffects;
+            IL.RoR2.Items.SprintWispBodyBehavior.FixedUpdate                     -= SprintWispBodyBehavior_FixedUpdate;
+            IL.RoR2.MushroomVoidBehavior.FixedUpdate                             -= MushroomVoidBehavior_FixedUpdate;
 
             if (ModCompatibilityShareSuite.enabled)
             {
                 ModCompatibilityShareSuite.RemovePickupEventHandler(NonShareableItemCheck);
             }
+        }
+
+        private void CharacterBody_OnEquipmentGained(On.RoR2.CharacterBody.orig_OnEquipmentGained orig, CharacterBody self, EquipmentDef equipmentDef)
+        {
+            if (NetworkServer.active && BepConfig.Enabled.Value && BepConfig.ImplementBeyondTheLimits.Value && equipmentDef?.equipmentIndex == EquipmentCatalog.FindEquipmentIndex("EliteSecretSpeedEquipment"))
+            {
+                self.AddBuff(DLC1Content.Buffs.KillMoveSpeed);
+                self.AddBuff(DLC1Content.Buffs.KillMoveSpeed);
+            }
+            else
+            {
+                orig(self, equipmentDef);
+            }
+        }
+
+        private void CharacterBody_OnEquipmentLost(On.RoR2.CharacterBody.orig_OnEquipmentLost orig, CharacterBody self, EquipmentDef equipmentDef)
+        {
+            if (NetworkServer.active && BepConfig.Enabled.Value && BepConfig.ImplementBeyondTheLimits.Value && equipmentDef?.equipmentIndex == EquipmentCatalog.FindEquipmentIndex("EliteSecretSpeedEquipment"))
+            {
+                self.RemoveBuff(DLC1Content.Buffs.KillMoveSpeed);
+                self.RemoveBuff(DLC1Content.Buffs.KillMoveSpeed);
+            }
+            else
+            {
+                orig(self, equipmentDef);
+            }
+        }
+        private bool isSprinting(CharacterBody characterBody)
+        {
+            if (NetworkServer.active && BepConfig.Enabled.Value && BepConfig.ImplementBeyondTheLimits.Value && characterBody.inventory?.currentEquipmentIndex == EquipmentCatalog.FindEquipmentIndex("EliteSecretSpeedEquipment"))
+            {
+                return characterBody.notMovingStopwatch == 0f;
+            }
+            return characterBody._isSprinting;
+        }
+
+        private void CharacterBody_UpdateAllTemporaryVisualEffects(ILContext il)
+        {
+            ILCursor c = new ILCursor(il);
+            var label = c.DefineLabel();
+            // if (isSprinting)
+            // IL_005a: ldarg.0
+            // IL_005b: call instance bool RoR2.CharacterBody::get_isSprinting()
+            // IL_0060: brfalse.s IL_007e
+            c.GotoNext(
+                x => x.MatchLdarg(0),
+                x => x.MatchCall<CharacterBody>("get_isSprinting")
+            );
+            c.Index += 1;
+            c.Remove();
+            c.EmitDelegate(isSprinting);
+            Debug.Log(il.ToString());
+        }
+
+        private void MushroomVoidBehavior_FixedUpdate(ILContext il)
+        {
+            ILCursor c = new ILCursor(il);
+            var label = c.DefineLabel();
+            // if (body.isSprinting)
+            // IL_0010: ldarg.0
+            // IL_0011: ldfld class RoR2.CharacterBody RoR2.CharacterBody/ItemBehavior::body
+            // IL_0016: callvirt instance bool RoR2.CharacterBody::get_isSprinting()
+            // IL_001b: brfalse.s IL_0050
+            c.GotoNext(
+                x => x.MatchLdarg(0),
+                x => x.MatchLdfld<CharacterBody.ItemBehavior>("body"),
+                x => x.MatchCallvirt<CharacterBody>("get_isSprinting")
+            );
+            c.Index += 2;
+            c.Remove();
+            c.EmitDelegate(isSprinting);
+            Debug.Log(il.ToString());
+        }
+
+        private void SprintWispBodyBehavior_FixedUpdate(ILContext il)
+        {
+            ILCursor c = new ILCursor(il);
+            var label = c.DefineLabel();
+            // if (base.body.isSprinting)
+            // IL_0000: ldarg.0
+            // IL_0001: call instance class RoR2.CharacterBody RoR2.Items.BaseItemBodyBehavior::get_body()
+            // IL_0006: callvirt instance bool RoR2.CharacterBody::get_isSprinting()
+            // IL_000b: brfalse.s IL_0068
+            c.GotoNext(
+                x => x.MatchLdarg(0),
+                x => x.MatchCall<RoR2.Items.BaseItemBodyBehavior>("get_body"),
+                x => x.MatchCallvirt<CharacterBody>("get_isSprinting")
+            );
+            c.Index += 2;
+            c.Remove();
+            c.EmitDelegate(isSprinting);
+            Debug.Log(il.ToString());
+        }
+
+        private void CharacterBody_RecalculateStats(ILContext il)
+        {
+            ILCursor c = new ILCursor(il);
+            var label = c.DefineLabel();
+            // if (isSprinting && num22 > 0)
+            // IL_0fdc: ldarg.0
+            // IL_0fdd: call instance bool RoR2.CharacterBody::get_isSprinting()
+            // IL_0fe2: brfalse.s IL_0ffc
+            // 
+            // IL_0fe4: ldloc.s 22
+            // IL_0fe6: ldc.i4.0
+            // IL_0fe7: ble.s IL_0ffc
+            // 
+            // armor += num22 * 30;
+            // IL_0fe9: ldarg.0
+            // IL_0fea: ldarg.0
+            // IL_0feb: call instance float32 RoR2.CharacterBody::get_armor()
+            // IL_0ff0: ldloc.s 22
+            // IL_0ff2: ldc.i4.s 30
+            // IL_0ff4: mul
+            // IL_0ff5: conv.r4
+            // IL_0ff6: add
+            c.GotoNext(
+                x => x.MatchLdarg(0),
+                x => x.MatchCall<CharacterBody>("get_isSprinting"),
+                x => x.MatchBrfalse(out _),
+                x => x.MatchLdloc(22),
+                x => x.MatchLdcI4(0),
+                x => x.MatchBle(out _),
+                x => x.MatchLdarg(0),
+                x => x.MatchLdarg(0),
+                x => x.MatchCall<CharacterBody>("get_armor")
+            ); ;
+            c.Index += 1;
+            c.Remove();
+            c.EmitDelegate(isSprinting);
+            Debug.Log(il.ToString());
         }
 
         private void InfiniteTowerWaveController_Initialize(On.RoR2.InfiniteTowerWaveController.orig_Initialize orig, InfiniteTowerWaveController self, int waveIndex, Inventory enemyInventory, GameObject spawnTarget)
@@ -145,8 +290,27 @@ namespace ServerSideTweaks
             mostRecentlyCreatedPickup = null;
             usersItemCredit.Clear();
             ResetOverridePowerBias();
+            var equipDef = EquipmentCatalog.GetEquipmentDef(EquipmentCatalog.FindEquipmentIndex("EliteSecretSpeedEquipment"));
+            if(equipDef)
+            {
+                if (BepConfig.Enabled.Value && BepConfig.ImplementBeyondTheLimits.Value)
+                {
+                    if (eliteSecretSpeedEquipmentOriginalDropOnDeathChance == 0f)
+                    {
+                        eliteSecretSpeedEquipmentOriginalDropOnDeathChance = equipDef.dropOnDeathChance;
+                        equipDef.dropOnDeathChance = 0f;
+                    }
+                }
+                else
+                {
+                    if (eliteSecretSpeedEquipmentOriginalDropOnDeathChance > 0f)
+                    {
+                        equipDef.dropOnDeathChance = eliteSecretSpeedEquipmentOriginalDropOnDeathChance;
+                        eliteSecretSpeedEquipmentOriginalDropOnDeathChance = 0f;
+                    }
+                }
+            }
             orig(self);
-
         }
 
         public static void SetOverridePowerBias(float powerBias)
@@ -552,6 +716,30 @@ namespace ServerSideTweaks
         }
         #endregion
 
+        private List<PickupIndex> GetEnabledEliteAspectsList()
+        {
+            List<PickupIndex> listEquip = new List<PickupIndex>();
+            if (BepConfig.BazaarEliteAspectHisReassurance.Value)
+                listEquip.Add(PickupCatalog.FindPickupIndex(EquipmentCatalog.FindEquipmentIndex("EliteEarthEquipment")));
+            if (BepConfig.BazaarEliteAspectIfritsDistinction.Value)
+                listEquip.Add(PickupCatalog.FindPickupIndex(EquipmentCatalog.FindEquipmentIndex("EliteFireEquipment")));
+            if (BepConfig.BazaarEliteAspectHerBitingEmbrace.Value)
+                listEquip.Add(PickupCatalog.FindPickupIndex(EquipmentCatalog.FindEquipmentIndex("EliteIceEquipment")));
+            if (BepConfig.BazaarEliteAspectNkuhanasRetort.Value)
+                listEquip.Add(PickupCatalog.FindPickupIndex(EquipmentCatalog.FindEquipmentIndex("ElitePoisonEquipment")));
+            if (BepConfig.BazaarEliteAspectSharedDesign.Value)
+                listEquip.Add(PickupCatalog.FindPickupIndex(EquipmentCatalog.FindEquipmentIndex("EliteLunarEquipment")));
+            if (BepConfig.BazaarEliteAspectSilenceBetweenTwoStrikes.Value)
+                listEquip.Add(PickupCatalog.FindPickupIndex(EquipmentCatalog.FindEquipmentIndex("EliteLightningEquipment")));
+            if (BepConfig.BazaarEliteAspectSpectralCirclet.Value)
+                listEquip.Add(PickupCatalog.FindPickupIndex(EquipmentCatalog.FindEquipmentIndex("EliteHauntedEquipment")));
+            if (BepConfig.BazaarEliteAspectVoidTouched.Value)
+                listEquip.Add(PickupCatalog.FindPickupIndex(EquipmentCatalog.FindEquipmentIndex("EliteVoidEquipment")));
+            if (BepConfig.BazaarEliteAspectBeyondTheLimits.Value)
+                listEquip.Add(PickupCatalog.FindPickupIndex(EquipmentCatalog.FindEquipmentIndex("EliteSecretSpeedEquipment")));
+            return listEquip;
+        }
+
         private PickupIndex RandomlyLunarUtils_CheckForLunarReplacement(On.RoR2.Items.RandomlyLunarUtils.orig_CheckForLunarReplacement orig, PickupIndex pickupIndex, Xoroshiro128Plus rng)
         {
             pickupIndex = orig(pickupIndex, rng);
@@ -584,25 +772,11 @@ namespace ServerSideTweaks
                     float randomNumber = rng.nextNormalizedFloat;
                     if (randomNumber < BepConfig.BazaarEliteAspectReplacesEquipmentChance.Value)
                     {
-                        List<PickupIndex> list = new List<PickupIndex>();
-                        string[] eliteAspects = new string[] {
-                            "EliteEarthEquipment",
-                            "EliteFireEquipment",
-                            "EliteIceEquipment",
-                            "ElitePoisonEquipment",
-                            "EliteLunarEquipment",
-                            "EliteLightningEquipment",
-                            "EliteHauntedEquipment"
-                        };
-                        foreach(var eliteAspect in eliteAspects)
+                        List<PickupIndex> listEquip = GetEnabledEliteAspectsList();
+                        if (listEquip != null && listEquip.Count > 0)
                         {
-                            var equipIndex = EquipmentCatalog.FindEquipmentIndex(eliteAspect);
-                            list.Add(PickupCatalog.FindPickupIndex(equipIndex));
-                        }
-                        if (list != null && list.Count > 0)
-                        {
-                            int index = rng.RangeInt(0, list.Count);
-                            pickupIndex = list[index];
+                            int index = rng.RangeInt(0, listEquip.Count);
+                            pickupIndex = listEquip[index];
                         }
                     }
                 }
@@ -616,21 +790,7 @@ namespace ServerSideTweaks
             if (!BepConfig.Enabled.Value)
                 return;
 
-            List<PickupIndex> listEquip = new List<PickupIndex>();
-            string[] eliteAspects = new string[] {
-                "EliteEarthEquipment",
-                "EliteFireEquipment",
-                "EliteIceEquipment",
-                "ElitePoisonEquipment",
-                "EliteLunarEquipment",
-                "EliteLightningEquipment",
-                "EliteHauntedEquipment"
-            };
-            foreach (var eliteAspect in eliteAspects)
-            {
-                var equipIndex = EquipmentCatalog.FindEquipmentIndex(eliteAspect);
-                listEquip.Add(PickupCatalog.FindPickupIndex(equipIndex));
-            }
+            List<PickupIndex> listEquip = GetEnabledEliteAspectsList();
             bool shuffled = false;
 
             for (int i = 0; i < pickupIndices.Length; i++)

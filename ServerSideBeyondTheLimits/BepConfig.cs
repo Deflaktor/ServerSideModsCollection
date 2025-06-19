@@ -3,11 +3,9 @@ using RoR2;
 using UnityEngine;
 using R2API;
 using System.Collections.Generic;
-using static ServerSideTweaks.BepConfig;
 using System.Linq;
-using static ServerSideTweaks.EnumCollection;
 
-namespace ServerSideTweaks
+namespace ServerSideBeyondTheLimits
 {
     public class BepConfig
     {
@@ -41,7 +39,7 @@ namespace ServerSideTweaks
 
         public static void Init()
         {
-            var config = ServerSideTweaks.instance.Config;
+            var config = ServerSideBeyondTheLimits.instance.Config;
 
             Enabled = config.Bind("Main", "Enabled", true, "Enable Mod");
             // --- General ---
@@ -66,23 +64,6 @@ namespace ServerSideTweaks
             // --- Items ---
             {
                 ImplementBeyondTheLimits = config.Bind("Items", "Implement Beyond The Limits", false, new ConfigDescription("Makes it so that the wearer of the unused 'Beyond The Limits' aspect gains a passive 50% movement speed bonus and relaxes for the wearer the requirement for activation of certain items from 'when sprinting' to 'when moving'."));
-            }
-            // --- Simulacrum ---
-            {
-                SimulacrumNonSharedLoot = config.Bind("Simulacrum", "Non-shared loot", false, new ConfigDescription("(ShareSuite only) Forces the loot dropped at the end of each wave to be non-shared."));
-                SimulacrumLootMaxItemDebt = config.Bind("Simulacrum", "Max loot debt", 2, new ConfigDescription("Prevents greedy players from taking too much of the loot dropped at the end of each wave."));
-                SimulacrumCommencementArtifactDissonanceChance = config.Bind("Simulacrum", "Commencement Artifact of Dissonance Chance", 0.5f, new ConfigDescription("The chance for Artifact of Dissonance to be activated each wave when in the commencement stage to increase enemy variety."));
-                SimulacrumDirectorEnemyPowerBias = config.Bind("Simulacrum", "Director: Enemy Power Bias", 0.5f, new ConfigDescription("Bias towards many,weak enemies (=0) or few,strong enemies (=1). Value between 0 and 1, 0.5 = vanilla."));
-                SimulacrumMaxSquadSize = config.Bind("Simulacrum", "Max squad size", 30, new ConfigDescription("No more than this many enemies shall be spawned at the same time (30 = vanilla)."));
-                // SimulacrumExtendedMapPool = config.Bind("Simulacrum", "Normal Map Pool", false, new ConfigDescription("Uses the normal map pool instead of the simulacrum maps.")); // Buggy: Void Pockets need to be disabled. Initial spawn bugged.
-            }
-            // --- Classic Run ---
-            {
-                ClassicDirectorEnemyPowerBias = config.Bind("Classic", "Director: Enemy Power Bias", 0.5f, new ConfigDescription("Bias towards many,weak enemies (=0) or few,strong enemies (=1). Value between 0 and 1, 0.5 = vanilla."));
-            }
-            if (ModCompatibilityInLobbyConfig.enabled)
-            {
-                ModCompatibilityInLobbyConfig.CreateFromBepInExConfigFile(config, "Server-Side Tweaks");
             }
         }
     }
