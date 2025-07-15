@@ -109,6 +109,7 @@ namespace StartBonusMod
             SymbioticScorpion,
             UnstableTeslaCoil,
             WakeOfVultures
+            SonorousWhispers   
         }
         public enum ItemBossEnum
         {
@@ -215,6 +216,7 @@ namespace StartBonusMod
             TheCrowdfunder,
             TrophyHuntersTricorn,
             VolcanicEgg
+            SeedofLife
         }
         private static ItemDef ToItemDef(String itemName)
         {
@@ -344,6 +346,7 @@ namespace StartBonusMod
                 case ItemRedEnum.SymbioticScorpion: return "PermanentDebuffOnHit";
                 case ItemRedEnum.UnstableTeslaCoil: return "ShockNearby";
                 case ItemRedEnum.WakeOfVultures: return "HeadHunter";
+                case ItemRedEnum.SonorousWhispers: return "ItemDropChanceOnKill";  
             }
             return null;
         }
@@ -462,6 +465,7 @@ namespace StartBonusMod
                 case ItemEquipEnum.TheCrowdfunder: return "GoldGat";
                 case ItemEquipEnum.TrophyHuntersTricorn: return "BossHunter";
                 case ItemEquipEnum.VolcanicEgg: return "FireBallDash";
+                case ItemEquipEnum.SeedofLife: return "HealAndRevive";
             }
             return null;
         }
