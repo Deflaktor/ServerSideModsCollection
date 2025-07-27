@@ -16,5 +16,7 @@ namespace ServerSideTweaks
             var message = $"<color=#{RedColor}>{userName} is being greedy!</color>";
             RoR2.Chat.SendBroadcastChat(new RoR2.Chat.SimpleChatMessage { baseToken = message });
         }
+
+
     }
 }

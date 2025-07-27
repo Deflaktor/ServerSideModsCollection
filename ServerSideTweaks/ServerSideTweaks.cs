@@ -21,6 +21,8 @@ using System.Collections;
 using UnityEngine.SceneManagement;
 using System.Security.Cryptography;
 using static UnityEngine.ResourceManagement.ResourceProviders.SceneProvider;
+using static RoR2.Networking.NetworkManagerSystem;
+using System.Collections.ObjectModel;
 
 namespace ServerSideTweaks
 {
@@ -38,7 +40,7 @@ namespace ServerSideTweaks
         public static int totalItemRewardCount = 0;
         public static float directorEnemyPowerBiasOverride = -1;
         public static GameObject mostRecentlyCreatedPickup = null;
-        public static Dictionary<NetworkUserId, float> usersItemCredit = new Dictionary<NetworkUserId, float>();
+        public static Dictionary<PlayerCharacterMasterController, float> usersItemCredit = new Dictionary<PlayerCharacterMasterController, float>();
         public static List<EquipmentIndex> disableEquipments = new List<EquipmentIndex>();
         public static List<PickupIndex> availableEquipmentDropList_Saved = new List<PickupIndex>();
         public static List<PickupIndex> availableLunarItemDropList_Saved = new List<PickupIndex>();
@@ -57,6 +59,7 @@ namespace ServerSideTweaks
             instance = this;
             Log.Init(Logger);
             BepConfig.Init();
+            FastSimulacrumVrab.Setup();
 #if DEBUG
             Logger.LogWarning("You're on a debug build. If you see this after downloading from the thunderstore, panic!");
             //This is so we can connect to ourselves.
@@ -84,11 +87,16 @@ namespace ServerSideTweaks
             On.RoR2.PickupDropletController.OnCollisionEnter                     += PickupDropletController_OnCollisionEnter;
             On.RoR2.PickupPickerController.OnInteractionBegin                    += PickupPickerController_OnInteractionBegin;
             On.RoR2.PickupPickerController.CreatePickup_PickupIndex              += PickupPickerController_CreatePickup_PickupIndex;
-            IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer    += CommandArtifactManager_OnDropletHitGroundServer;
+
+            IL.RoR2.GlobalEventManager.OnCharacterDeath += GlobalEventManager_OnCharacterDeath;
+
+            //IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer    += CommandArtifactManager_OnDropletHitGroundServer;
             // On.RoR2.Run.PickNextStageScene                                       += Run_PickNextStageScene;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement            += RandomlyLunarUtils_CheckForLunarReplacement;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray += RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
             On.RoR2.InfiniteTowerWaveController.Initialize                       += InfiniteTowerWaveController_Initialize;
+
+            FastSimulacrumVrab.Enable();
 
             if (ModCompatibilityShareSuite.enabled)
             {
@@ -111,11 +119,16 @@ namespace ServerSideTweaks
             On.RoR2.PickupDropletController.OnCollisionEnter                     -= PickupDropletController_OnCollisionEnter;
             On.RoR2.PickupPickerController.OnInteractionBegin                    -= PickupPickerController_OnInteractionBegin;
             On.RoR2.PickupPickerController.CreatePickup_PickupIndex              -= PickupPickerController_CreatePickup_PickupIndex;
-            IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer    -= CommandArtifactManager_OnDropletHitGroundServer;
+
+            IL.RoR2.GlobalEventManager.OnCharacterDeath -= GlobalEventManager_OnCharacterDeath;
+
+            //IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer    -= CommandArtifactManager_OnDropletHitGroundServer;
             // On.RoR2.Run.PickNextStageScene                                       -= Run_PickNextStageScene;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement            -= RandomlyLunarUtils_CheckForLunarReplacement;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray -= RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
             On.RoR2.InfiniteTowerWaveController.Initialize                       -= InfiniteTowerWaveController_Initialize;
+
+            FastSimulacrumVrab.Disable();
 
             if (ModCompatibilityShareSuite.enabled)
             {
@@ -123,9 +136,31 @@ namespace ServerSideTweaks
             }
         }
 
+        private void GlobalEventManager_OnCharacterDeath(ILContext il)
+        {
+            ILCursor c = new ILCursor(il);
+            var label = c.DefineLabel();
+            // IL_114f: callvirt instance float32 RoR2.CharacterBody::get_maxHealth()
+            c.GotoNext(
+            x => x.MatchCallvirt<CharacterBody>("get_maxHealth")
+            );
+            c.Remove();
+            c.EmitDelegate<Func<CharacterBody, float>>((body) =>
+            {
+                if (BepConfig.Enabled.Value && BepConfig.ShatterspleenWorksOnBaseHealth.Value)
+                {
+                    return Math.Min(body.baseMaxHealth + body.levelMaxHealth * (body.level - 1f), body.maxHealth);
+                }
+                else
+                {
+                    return body.maxHealth;
+                }
+            });
+        }
+
         private void InfiniteTowerWaveController_Initialize(On.RoR2.InfiniteTowerWaveController.orig_Initialize orig, InfiniteTowerWaveController self, int waveIndex, Inventory enemyInventory, GameObject spawnTarget)
         {
-            if (NetworkServer.active && BepConfig.Enabled.Value)
+            if (BepConfig.Enabled.Value)
             {
                 self.maxSquadSize = BepConfig.SimulacrumMaxSquadSize.Value;
             }
@@ -146,7 +181,6 @@ namespace ServerSideTweaks
             usersItemCredit.Clear();
             ResetOverridePowerBias();
             orig(self);
-
         }
 
         public static void SetOverridePowerBias(float powerBias)
@@ -177,9 +211,14 @@ namespace ServerSideTweaks
         private void Run_FixedUpdate(On.RoR2.Run.orig_FixedUpdate orig, Run self)
         {
             orig(self);
+
             if (!NetworkServer.active)
                 return;
+
 #if DEBUG
+
+
+
             if (Input.GetKeyDown(KeyCode.F3))
             {
                 BepConfig.SimulacrumDirectorEnemyPowerBias.Value -= 0.1f;
@@ -198,40 +237,30 @@ namespace ServerSideTweaks
             {
                 foreach (PlayerCharacterMasterController pc in PlayerCharacterMasterController.instances)
                 {
-                    var user = pc.networkUser;
-                    if (usersItemCredit.ContainsKey(user.id))
+                    if (usersItemCredit.ContainsKey(pc))
                     {
-                        usersItemCredit[user.id] -= 1f;
+                        usersItemCredit[pc] -= 1f;
                     }
                     else
                     {
-                        usersItemCredit.Add(user.id, -1f);
+                        usersItemCredit.Add(pc, -1f);
                     }
-                    Log.LogDebug($"Player pressed F5. "+ user.id+".ItemCredit: " + usersItemCredit[user.id]);
+                    Log.LogDebug($"Player pressed F5. "+ pc.networkIdentity + ".ItemCredit: " + usersItemCredit[pc]);
                 }
             }
             if (Input.GetKeyDown(KeyCode.F6))
             {
                 foreach (PlayerCharacterMasterController pc in PlayerCharacterMasterController.instances)
                 {
-                    var user = pc.networkUser;
-                    if (usersItemCredit.ContainsKey(user.id))
+                    if (usersItemCredit.ContainsKey(pc))
                     {
-                        usersItemCredit[user.id] += 1f;
+                        usersItemCredit[pc] += 1f;
                     }
                     else
                     {
-                        usersItemCredit.Add(user.id, +1f);
+                        usersItemCredit.Add(pc, +1f);
                     }
-                    Log.LogDebug($"Player pressed F5. " + user.id + ".ItemCredit: " + usersItemCredit[user.id]);
-                }
-            }
-            if (Input.GetKeyDown(KeyCode.F12))
-            {
-                foreach (PlayerCharacterMasterController pc in PlayerCharacterMasterController.instances)
-                {
-                    debug_nextStage = IncrementEnumValue(debug_nextStage);
-                    Log.LogDebug($"Player pressed F12. Next stage: " + debug_nextStage.ToString() + " (" + ((int)debug_nextStage) + ")");
+                    Log.LogDebug($"Player pressed F5. " + pc + ".ItemCredit: " + usersItemCredit[pc]);
                 }
             }
 #endif
@@ -251,7 +280,7 @@ namespace ServerSideTweaks
                 orig(self, activator);
             }
         }
-        private bool CanInteract(GameObject self, Interactor activator)
+        private bool CanInteract(GameObject self, CharacterBody body)
         {
             if (!BepConfig.Enabled.Value)
             {
@@ -259,28 +288,37 @@ namespace ServerSideTweaks
             }
             if (self.TryGetComponent<NonShareableItem>(out _))
             {
-                var body = activator?.GetComponent<CharacterBody>();
-                var user = Util.LookUpBodyNetworkUser(body);
-                if (user != null)
+                var master = body.master;
+                if (master != null && master.playerCharacterMasterController != null)
                 {
+                    var pc = master.playerCharacterMasterController;
                     float credit;
-                    usersItemCredit.TryGetValue(user.id, out credit);
-                    if (credit >= -BepConfig.SimulacrumLootMaxItemDebt.Value)
+                    usersItemCredit.TryGetValue(pc, out credit);
+                    if (credit + BepConfig.SimulacrumLootMaxItemDebt.Value >= 1)
                     {
                         return true;
                     }
                     else
                     {
-                        ChatHelper.PlayerHasTooManyItems(user.userName);
+                        ChatHelper.PlayerHasTooManyItems(pc.GetDisplayName());
                         return false;
                     }
                 }
             }
             return true;
         }
+
+        private bool CanInteract(GameObject self, Interactor activator)
+        {
+            return CanInteract(self, activator?.GetComponent<CharacterBody>());
+        }
+
         private void GenericPickupController_AttemptGrant(On.RoR2.GenericPickupController.orig_AttemptGrant orig, GenericPickupController self, CharacterBody body)
         {
-            orig(self, body);
+            if((BepConfig.Enabled.Value && CanInteract(self.gameObject, body)) || !BepConfig.Enabled.Value)
+            {
+                orig(self, body);
+            }
             if (!NetworkServer.active)
             {
                 return;
@@ -289,18 +327,39 @@ namespace ServerSideTweaks
             {
                 if (self.consumed)
                 {
-                    var user = Util.LookUpBodyNetworkUser(body);
-                    if (usersItemCredit.ContainsKey(user.id))
+                    var master = body.master;
+                    if (master != null && master.playerCharacterMasterController != null)
                     {
-                        usersItemCredit[user.id] -= 1f;
-                    }
-                    else
-                    {
-                        usersItemCredit.Add(user.id, -1f);
+                        var pc = master.playerCharacterMasterController;
+                        if (usersItemCredit.ContainsKey(pc))
+                        {
+                            usersItemCredit[pc] -= 1f;
+                        }
+                        else
+                        {
+                            usersItemCredit.Add(pc, -1f);
+                        }
+                        SetSkullCounterCount(body.inventory, (int)Math.Floor(usersItemCredit[pc] + BepConfig.SimulacrumLootMaxItemDebt.Value));
                     }
                 }
             }
         }
+
+        private void SetSkullCounterCount(Inventory inventory, int count)
+        {
+            if (BepConfig.SimulacrumLootSkullTokens.Value)
+            {
+                ItemIndex itemIndex = ItemCatalog.FindItemIndex("SkullCounter");
+                int currentCount = inventory.GetItemCount(itemIndex);
+                int diff = count - currentCount;
+                if (diff != 0)
+                {
+                    inventory.GiveItem(itemIndex, diff);
+                }
+            }
+        }
+
+
         private void InfiniteTowerWaveController_DropRewards(ILContext il)
         {
             ILCursor c = new ILCursor(il);
@@ -310,12 +369,10 @@ namespace ServerSideTweaks
             // IL_0112: ldloc.2
             // IL_0113: call void RoR2.PickupDropletController::CreatePickupDroplet(valuetype RoR2.GenericPickupController / CreatePickupInfo, valuetype[UnityEngine.CoreModule]UnityEngine.Vector3, valuetype[UnityEngine.CoreModule]UnityEngine.Vector3)
             c.GotoNext(
-            x => x.MatchLdloc(6),
-            x => x.MatchLdloc(4),
             x => x.MatchLdloc(2),
             x => x.MatchCall<PickupDropletController>("CreatePickupDroplet")
             );
-            c.Index += 3;
+            c.Index += 1;
             c.Remove();
             c.EmitDelegate<Action<CreatePickupInfo, Vector3, Vector3>>((pickupInfo, position, velocity) =>
             {
@@ -351,23 +408,47 @@ namespace ServerSideTweaks
             }
             if(BepConfig.Enabled.Value)
             {
-                // give item credit to every connected player
-                int connectedCount = PlayerCharacterMasterController.instances.Where(pc => pc.isConnected).Count();
+                // detect disconnected players
+                float freeCredit = 0;
+                int connectedCount = 0;
                 foreach (PlayerCharacterMasterController pc in PlayerCharacterMasterController.instances)
                 {
                     if (pc.isConnected)
                     {
-                        float credit = 0;
-                        usersItemCredit.TryGetValue(pc.networkUser.id, out credit);
-                        if (usersItemCredit.ContainsKey(pc.networkUser.id))
+                        connectedCount++;
+                    }
+                    else if(usersItemCredit.ContainsKey(pc))
+                    {
+                        // if the player disconnected, distribute his remaining credits to everyone else
+                        freeCredit += Math.Max(0, usersItemCredit[pc]);
+                        usersItemCredit[pc] = 0;
+                        SetSkullCounterCount(pc.master.inventory, BepConfig.SimulacrumLootMaxItemDebt.Value);
+                    }
+                }
+                // give item credit to every connected player
+                foreach (PlayerCharacterMasterController pc in PlayerCharacterMasterController.instances)
+                {
+                    if (pc.isConnected)
+                    {
+                        if (usersItemCredit.ContainsKey(pc))
                         {
-                            usersItemCredit[pc.networkUser.id] += (float)totalItemRewardCount / (float)connectedCount;
+                            usersItemCredit[pc] += (float)totalItemRewardCount / (float)connectedCount;
                         }
                         else
                         {
-                            usersItemCredit.Add(pc.networkUser.id, (float)totalItemRewardCount / (float)connectedCount);
+                            usersItemCredit.Add(pc, (float)totalItemRewardCount / (float)connectedCount);
                         }
-                        Log.LogDebug(pc.networkUser.userName + " itemCredit: " + usersItemCredit[pc.networkUser.id]);
+                        usersItemCredit[pc] += freeCredit / Math.Max(1f, connectedCount);
+                        if(connectedCount == 1)
+                        {
+                            // if there is no one else connected, remove the skull counters
+                            SetSkullCounterCount(pc.master.inventory, 0);
+                        }
+                        else
+                        {
+                            SetSkullCounterCount(pc.master.inventory, (int)Math.Floor(usersItemCredit[pc] + BepConfig.SimulacrumLootMaxItemDebt.Value));
+                        }
+                        Log.LogDebug(pc.networkUser.userName + " itemCredit: " + usersItemCredit[pc]);
                     }
                 }
                 totalItemRewardCount = 0;
@@ -439,8 +520,7 @@ namespace ServerSideTweaks
             x => x.MatchLdfld<CreatePickupInfo>("position"),
             x => x.MatchLdarg(0),
             x => x.MatchLdfld<CreatePickupInfo>("rotation"),
-            x => x.MatchCall<UnityEngine.Object>("Instantiate"),
-            x => x.MatchDup()
+            x => x.MatchCall<UnityEngine.Object>("Instantiate")
             );
             c.Index += 5;
             c.EmitDelegate<Func<GameObject, GameObject>>((obj) =>
@@ -505,14 +585,26 @@ namespace ServerSideTweaks
                 return costMultipliedByMaximumNumberToSpawnBeforeSkipping < combatDirector.monsterCredit;
             });
             c.Emit(OpCodes.Brfalse, label);
-            // IL_022e: ldarg.0
-            // IL_022f: ldfld class RoR2.DirectorCard RoR2.CombatDirector::currentMonsterCard    
-            // IL_0234: ldfld class RoR2.SpawnCard RoR2.DirectorCard::spawnCard
-            // IL_0239: stloc.s 4
+            c.Index += 2;
+            /*
+            c.Index = 222;
+            c.GotoNext(x => x.MatchLdarg(0));
+            Debug.Log(c.ToString());
+            c.GotoNext(x => x.MatchLdfld<CombatDirector>("currentMonsterCard"));
+            Debug.Log(c.ToString());
+            c.GotoNext(x => x.MatchCallvirt<DirectorCard>("GetSpawnCard"));
+            Debug.Log(c.ToString());
+            c.GotoNext(x => x.MatchStloc(4));
+            Debug.Log(c.ToString());*/
+
+            // IL_0250: ldarg.0
+            // IL_0251: ldfld class RoR2.DirectorCard RoR2.CombatDirector::currentMonsterCard
+            // IL_0256: callvirt instance class RoR2.SpawnCard RoR2.DirectorCard::GetSpawnCard()
+            // IL_025b: stloc.s 4
             c.GotoNext(
                 x => x.MatchLdarg(0),
                 x => x.MatchLdfld<CombatDirector>("currentMonsterCard"),
-                x => x.MatchLdfld<DirectorCard>("spawnCard"),
+                x => x.MatchCallvirt<DirectorCard>("GetSpawnCard"),
                 x => x.MatchStloc(4)
             );
             c.MarkLabel(label);
@@ -589,10 +681,12 @@ namespace ServerSideTweaks
                             "EliteEarthEquipment",
                             "EliteFireEquipment",
                             "EliteIceEquipment",
-                            "ElitePoisonEquipment",
+                            //"ElitePoisonEquipment", // causes too much visual clutter
                             "EliteLunarEquipment",
                             "EliteLightningEquipment",
-                            "EliteHauntedEquipment"
+                            //"EliteHauntedEquipment", // causes too much visual clutter
+                            //"EliteAurelioniteEquipment", // gives too much nuggets
+                            //"EliteBeadEquipment" // causes too much visual clutter
                         };
                         foreach(var eliteAspect in eliteAspects)
                         {
@@ -621,10 +715,12 @@ namespace ServerSideTweaks
                 "EliteEarthEquipment",
                 "EliteFireEquipment",
                 "EliteIceEquipment",
-                "ElitePoisonEquipment",
+                //"ElitePoisonEquipment", // causes too much visual clutter
                 "EliteLunarEquipment",
                 "EliteLightningEquipment",
-                "EliteHauntedEquipment"
+                //"EliteHauntedEquipment", // causes too much visual clutter
+                //"EliteAurelioniteEquipment", // gives too much nuggets
+                //"EliteBeadEquipment" // causes too much visual clutter
             };
             foreach (var eliteAspect in eliteAspects)
             {
