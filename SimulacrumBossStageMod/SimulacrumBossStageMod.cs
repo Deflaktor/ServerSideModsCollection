@@ -20,6 +20,7 @@ namespace SimulacrumBossStageMod
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("Def.ServerSideTweaks", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("Def.SimulacrumNormalStages", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class SimulacrumBossStageMod : BaseUnityPlugin
@@ -30,11 +31,12 @@ namespace SimulacrumBossStageMod
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "SimulacrumBossStageMod";
-        public const string PluginVersion = "1.2.3";
+        public const string PluginVersion = "1.3.0";
 
         public AsyncOperationHandle<SpawnCard> iscVoidPortal;
         public AsyncOperationHandle<SpawnCard> iscVoidOutroPortal;
         public AsyncOperationHandle<CharacterSpawnCard> bossSpawnCard;
+        public AsyncOperationHandle<EliteDef> edBead;
         public float nextBonusTime;
         public int bonusCounter;
         public bool bossStageCompleted;
@@ -55,6 +57,7 @@ namespace SimulacrumBossStageMod
 
             iscVoidPortal = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC1/PortalVoid/iscVoidPortal.asset");
             iscVoidOutroPortal = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC1/VoidOutroPortal/iscVoidOutroPortal.asset");
+            edBead = Addressables.LoadAssetAsync<EliteDef>(key: "RoR2/DLC2/Elites/EliteBead/edBead.asset");
             // bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset");
             // bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabBase.asset");
             // bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase1.asset");
@@ -105,7 +108,7 @@ namespace SimulacrumBossStageMod
                 poisonEliteTier = new CombatDirector.EliteTierDef
                 {
                     costMultiplier = CombatDirector.baseEliteCostMultiplier * 5f,
-                    eliteTypes = new EliteDef[1] { RoR2Content.Elites.Poison },
+                    eliteTypes = new EliteDef[2] { RoR2Content.Elites.Poison, edBead.WaitForCompletion() },
                     isAvailable = (SpawnCard.EliteRules rules) => checkEliteAvailable(rules),
                     canSelectWithoutAvailableEliteDef = false
                 };
@@ -180,31 +183,28 @@ namespace SimulacrumBossStageMod
         private void InfiniteTowerBossWaveController_Initialize(On.RoR2.InfiniteTowerBossWaveController.orig_Initialize orig, InfiniteTowerBossWaveController self, int waveIndex, Inventory enemyInventory, GameObject spawnTarget)
         {
             orig(self, waveIndex, enemyInventory, spawnTarget);
-            if (waveIndex > BepConfig.BossStageStartWave.Value && BepConfig.Enabled.Value && ((InfiniteTowerRun)Run.instance).IsStageTransitionWave())
+
+            bool isFinalBoss = waveIndex > BepConfig.BossStageStartWave.Value && ((InfiniteTowerRun)Run.instance).IsStageTransitionWave();
+
+            if (BepConfig.Enabled.Value && ModCompatibilityServerSideTweaks.enabled && isFinalBoss)
             {
-                if (ModCompatibilityServerSideTweaks.enabled)
-                {
-                    float currentBias = ModCompatibilityServerSideTweaks.GetCurrentPowerBias();
-                    bool isFinalBossWave = ((InfiniteTowerRun)Run.instance).IsStageTransitionWave();
-                    float targetBias = (float)Math.Max(ModCompatibilityServerSideTweaks.GetCurrentPowerBias(), isFinalBossWave ? 1.0f : 0.9f);
-                    float averageBias = (float)((currentBias + targetBias) / 2.0);
-                    ModCompatibilityServerSideTweaks.SetOverridePowerBias(averageBias);
-                }
-            }
-            else
-            {
-                if (ModCompatibilityServerSideTweaks.enabled)
-                {
-                    ModCompatibilityServerSideTweaks.ResetOverridePowerBias();
-                }
+                float currentBias = ModCompatibilityServerSideTweaks.GetCurrentPowerBias();
+                bool isFinalBossWave = ((InfiniteTowerRun)Run.instance).IsStageTransitionWave();
+                float targetBias = (float)Math.Max(ModCompatibilityServerSideTweaks.GetCurrentPowerBias(), isFinalBossWave ? 1.0f : 0.9f);
+                float averageBias = (float)((currentBias + targetBias) / 2.0);
+                ModCompatibilityServerSideTweaks.SetOverridePowerBias(averageBias);
             }
         }
 
         private void InfiniteTowerWaveController_Initialize(On.RoR2.InfiniteTowerWaveController.orig_Initialize orig, InfiniteTowerWaveController self, int waveIndex, Inventory enemyInventory, GameObject spawnTarget)
         {
-            if (NetworkServer.active && BepConfig.Enabled.Value && IsBossStageStarted(waveIndex) && ((InfiniteTowerRun)Run.instance).IsStageTransitionWave() && !bossStageCompleted)
+            if (NetworkServer.active && BepConfig.Enabled.Value)
             {
-                self.secondsBeforeSuddenDeath = 180f;
+                if (IsBossStageStarted(waveIndex) && ((InfiniteTowerRun)Run.instance).IsStageTransitionWave() && !bossStageCompleted)
+                {
+                    self.secondsBeforeSuddenDeath *= 3f;
+                    self.wavePeriodSeconds *= 2.5f;
+                }
             }
             orig(self, waveIndex, enemyInventory, spawnTarget);
         }
@@ -223,6 +223,11 @@ namespace SimulacrumBossStageMod
             {
                 Log.LogDebug($"Player pressed F2. Advancing to next wave");
                 self.AdvanceWave();
+            }
+            if(Input.GetKeyDown(KeyCode.F12))
+            {
+                Log.LogDebug($"Player pressed F12. Moving safe ward");
+                self.MoveSafeWard();
             }
             if (Input.GetKeyDown(KeyCode.F7))
             {
