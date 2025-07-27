@@ -1,0 +1,11 @@
+﻿{
+	"name": "AeroltHostOnly",
+	"version_number": "1.0.0",
+	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
+	"description": "Makes it so Aerolt can only be used by the host.",
+	"dependencies": [
+		"bbepis-BepInExPack-5.4.9",
+		"RiskofThunder-HookGenPatcher-1.2.1",
+		"Lodington-Aerolt-4.1.1"
+	]
+}
