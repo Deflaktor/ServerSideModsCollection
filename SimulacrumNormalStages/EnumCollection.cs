@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using static RoR2.SceneCollection;
 
-namespace SimulacrumNormalStagesFix
+namespace SimulacrumNormalStages
 {
     public class EnumCollection
     {
