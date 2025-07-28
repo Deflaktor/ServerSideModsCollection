@@ -25,6 +25,7 @@ namespace ServerSideTweaks
         public static ConfigEntry<float> SimulacrumCommencementArtifactDissonanceChance;
         public static ConfigEntry<float> SimulacrumDirectorEnemyPowerBias;
         public static ConfigEntry<int> SimulacrumMaxSquadSize;
+        public static ConfigEntry<float> SimulacrumWavePeriodSecondsFactor;
         public static ConfigEntry<bool> SimulacrumFastVoidCrab;
         // classic tweaks
         public static ConfigEntry<float> ClassicDirectorEnemyPowerBias;
@@ -50,6 +51,7 @@ namespace ServerSideTweaks
                 SimulacrumCommencementArtifactDissonanceChance = config.Bind("Simulacrum", "Commencement Artifact of Dissonance Chance", 0.5f, new ConfigDescription("The chance for Artifact of Dissonance to be activated each wave when in the commencement stage to increase enemy variety."));
                 SimulacrumDirectorEnemyPowerBias = config.Bind("Simulacrum", "Director: Enemy Power Bias", 0.5f, new ConfigDescription("Bias towards many,weak enemies (=0) or few,strong enemies (=1). Value between 0 and 1, 0.5 = vanilla."));
                 SimulacrumMaxSquadSize = config.Bind("Simulacrum", "Max squad size", 30, new ConfigDescription("No more than this many enemies shall be spawned at the same time (30 = vanilla)."));
+                SimulacrumWavePeriodSecondsFactor = config.Bind("Simulacrum", "Wave Period Seconds Factor", 1.0f, new ConfigDescription("A factor on how long each wave takes. A value smaller than 1.0 makes the wave go faster, but also with stronger enemies. A value higher than 1.0 makes the wave take longer but the enemies are weaker. (1.0 = vanilla)."));
                 SimulacrumFastVoidCrab = config.Bind("Simulacrum", "Void Crab picks up speed", false, new ConfigDescription("Makes the Void Crab faster the more waves you complete."));
             }
             // --- Classic Run ---

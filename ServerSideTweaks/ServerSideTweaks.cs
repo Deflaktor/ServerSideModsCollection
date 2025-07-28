@@ -164,6 +164,11 @@ namespace ServerSideTweaks
             {
                 self.maxSquadSize = BepConfig.SimulacrumMaxSquadSize.Value;
             }
+
+            if (NetworkServer.active && BepConfig.Enabled.Value)
+            {
+                self.wavePeriodSeconds *= BepConfig.SimulacrumWavePeriodSecondsFactor.Value;
+            }
             orig(self, waveIndex, enemyInventory, spawnTarget);
         }
 
