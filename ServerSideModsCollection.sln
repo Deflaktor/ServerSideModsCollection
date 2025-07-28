@@ -5,15 +5,21 @@ VisualStudioVersion = 17.5.33424.131
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimulacrumBossStageMod", "SimulacrumBossStageMod\SimulacrumBossStageMod.csproj", "{72130566-2537-48E7-A5A7-3D8A586F3B56}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimulacrumNormalStagesFix", "SimulacrumNormalStagesFix\SimulacrumNormalStagesFix.csproj", "{C1339ACF-CE72-453E-93AC-D846C0356F25}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimulacrumNormalStages", "SimulacrumNormalStages\SimulacrumNormalStages.csproj", "{C1339ACF-CE72-453E-93AC-D846C0356F25}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StartBonusMod", "StartBonusMod\StartBonusMod.csproj", "{021941A7-2AF1-442A-8059-0AECEF8EEB49}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoR2-ArtifactEvolutionPlusPlus", "RoR2-ArtifactEvolutionPlusPlus\RoR2-ArtifactEvolutionPlusPlus.csproj", "{3FC85E3D-5C8C-4F75-B808-8C984E19DB70}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareSuite", "ShareSuite\ShareSuite.csproj", "{ABC6FFFC-1521-467F-AB27-E8C5F5E1FCAB}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerSideTweaks", "ServerSideTweaks\ServerSideTweaks.csproj", "{C917D024-F8E5-4C85-89DF-279F104EBFB8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoR2-BazaarIsMyHome", "RoR2-BazaarIsMyHome\RoR2-BazaarIsMyHome.csproj", "{FFF873A6-D7C4-1915-ACF6-A3BC490EFE46}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AeroltHostOnly", "AeroltHostOnly\AeroltHostOnly.csproj", "{AA2C7D13-214C-1E4D-B858-E44CF9F46DDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareSuite", "ShareSuite\ShareSuite.csproj", "{6C8E8DAD-7D65-34DC-975A-6D520719A796}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RandomEvents", "RandomEvents\RandomEvents.csproj", "{2E8F49CF-ACCF-FB21-374D-41B0B74594EA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,14 +43,26 @@ Global
 		{3FC85E3D-5C8C-4F75-B808-8C984E19DB70}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3FC85E3D-5C8C-4F75-B808-8C984E19DB70}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3FC85E3D-5C8C-4F75-B808-8C984E19DB70}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ABC6FFFC-1521-467F-AB27-E8C5F5E1FCAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ABC6FFFC-1521-467F-AB27-E8C5F5E1FCAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ABC6FFFC-1521-467F-AB27-E8C5F5E1FCAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ABC6FFFC-1521-467F-AB27-E8C5F5E1FCAB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C917D024-F8E5-4C85-89DF-279F104EBFB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C917D024-F8E5-4C85-89DF-279F104EBFB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C917D024-F8E5-4C85-89DF-279F104EBFB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C917D024-F8E5-4C85-89DF-279F104EBFB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFF873A6-D7C4-1915-ACF6-A3BC490EFE46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFF873A6-D7C4-1915-ACF6-A3BC490EFE46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFF873A6-D7C4-1915-ACF6-A3BC490EFE46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFF873A6-D7C4-1915-ACF6-A3BC490EFE46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA2C7D13-214C-1E4D-B858-E44CF9F46DDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA2C7D13-214C-1E4D-B858-E44CF9F46DDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA2C7D13-214C-1E4D-B858-E44CF9F46DDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA2C7D13-214C-1E4D-B858-E44CF9F46DDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C8E8DAD-7D65-34DC-975A-6D520719A796}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C8E8DAD-7D65-34DC-975A-6D520719A796}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C8E8DAD-7D65-34DC-975A-6D520719A796}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C8E8DAD-7D65-34DC-975A-6D520719A796}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E8F49CF-ACCF-FB21-374D-41B0B74594EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E8F49CF-ACCF-FB21-374D-41B0B74594EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E8F49CF-ACCF-FB21-374D-41B0B74594EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E8F49CF-ACCF-FB21-374D-41B0B74594EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
