@@ -15,12 +15,15 @@ namespace StartBonusMod
             ArmorPiercingRounds,
             BackupMagazine,
             BisonSteak,
+            BolsteringLantern,
             BundleOfFireworks,
             BustlingFungus,
             CautiousSlug,
+            ChronicExpansion,
             Crowbar,
             DelicateWatch,
             EnergyDrink,
+            ElusiveAntlers,
             FocusCrystal,
             Gasoline,
             ItemScrapWhite,
@@ -41,7 +44,8 @@ namespace StartBonusMod
             TopazBrooch,
             TougherTimes,
             TriTipDagger,
-            Warbanner
+            Warbanner,
+            WarpedEcho
         }
         public enum ItemGreenEnum
         {
@@ -49,6 +53,8 @@ namespace StartBonusMod
             AtGMissileMk1,
             Bandolier,
             BerzerkersPauldron,
+            BreachingFin,
+            ChanceDoll,
             Chronobauble,
             DeathMark,
             FuelCell,
@@ -62,18 +68,23 @@ namespace StartBonusMod
             KjarosBand,
             LeechingSeed,
             LeptonDaisy,
+            LuminousShot,
+            NoxiousThorn,
             OldGuillotine,
             OldWarStealthkit,
+            PrayerBeads,
             PredatoryInstincts,
             Razorwire,
             RedWhip,
             RegeneratingScrap,
             RoseBuckler,
             RunaldsBand,
+            SaleStar,
             ShippingRequestForm,
             Shuriken,
             SquidPolyp,
             Ukulele,
+            UnstableTransmitter,
             WarHorn,
             WaxQuail,
             WillOTheWisp
@@ -91,7 +102,9 @@ namespace StartBonusMod
             CeremonialDagger,
             DefensiveMicrobots,
             DiosBestFriend,
+            ElectricBoomerang,
             FrostRelic,
+            GrowthNectar,
             H3AD5Tv2,
             HappiestMask,
             HardlightAfterburner,
@@ -102,13 +115,16 @@ namespace StartBonusMod
             PocketICBM,
             RejuvenationRack,
             ResonanceDisc,
+            RunicLens,
             SentientMeatHook,
             ShatteringJustice,
+            SonorousWhispers,
             SoulboundCatalyst,
             SpareDroneParts,
             SymbioticScorpion,
             UnstableTeslaCoil,
-            WakeOfVultures
+            WakeOfVultures,
+            WarBonds
         }
         public enum ItemBossEnum
         {
@@ -160,6 +176,7 @@ namespace StartBonusMod
             FocusedConvergence,
             GestureOfTheDrowned,
             HooksOfHeresy,
+            LongstandingSolitude,
             LightFluxPauldron,
             MercurialRachis,
             Purity,
@@ -246,10 +263,13 @@ namespace StartBonusMod
                 case ItemWhiteEnum.BisonSteak: return "FlatHealth";
                 case ItemWhiteEnum.BundleOfFireworks: return "Firework";
                 case ItemWhiteEnum.BustlingFungus: return "Mushroom";
+                case ItemWhiteEnum.BolsteringLantern: return "AttackSpeedPerNearbyAllyOrEnemy";
                 case ItemWhiteEnum.CautiousSlug: return "HealWhileSafe";
+                case ItemWhiteEnum.ChronicExpansion: return "IncreaseDamageOnMultiKill";
                 case ItemWhiteEnum.Crowbar: return "Crowbar";
                 case ItemWhiteEnum.DelicateWatch: return "FragileDamageBonus";
                 case ItemWhiteEnum.EnergyDrink: return "SprintBonus";
+                case ItemWhiteEnum.ElusiveAntlers: return "SprintBonus";
                 case ItemWhiteEnum.FocusCrystal: return "NearbyDamageBonus";
                 case ItemWhiteEnum.Gasoline: return "IgniteOnKill";
                 case ItemWhiteEnum.ItemScrapWhite: return "ScrapWhite";
@@ -271,7 +291,8 @@ namespace StartBonusMod
                 case ItemWhiteEnum.TougherTimes: return "Bear";
                 case ItemWhiteEnum.TriTipDagger: return "BleedOnHit";
                 case ItemWhiteEnum.Warbanner: return "WardOnLevel";
-            };
+                case ItemWhiteEnum.WarpedEcho: return "DelayedDamage";
+            }
             return null;
         }
         private static string getItemName(ItemGreenEnum item)
@@ -281,6 +302,8 @@ namespace StartBonusMod
                 case ItemGreenEnum.AtGMissileMk1: return "Missile";
                 case ItemGreenEnum.Bandolier: return "Bandolier";
                 case ItemGreenEnum.BerzerkersPauldron: return "WarCryOnMultiKill";
+                case ItemGreenEnum.BreachingFin: return "KnockBackHitEnemies";
+                case ItemGreenEnum.ChanceDoll: return "ExtraShrineItem";
                 case ItemGreenEnum.Chronobauble: return "SlowOnHit";
                 case ItemGreenEnum.DeathMark: return "DeathMark";
                 case ItemGreenEnum.FuelCell: return "EquipmentMagazine";
@@ -294,18 +317,23 @@ namespace StartBonusMod
                 case ItemGreenEnum.KjarosBand: return "FireRing";
                 case ItemGreenEnum.LeechingSeed: return "Seed";
                 case ItemGreenEnum.LeptonDaisy: return "TPHealingNova";
+                case ItemGreenEnum.LuminousShot: return "IncreasePrimaryDamage";
+                case ItemGreenEnum.NoxiousThorn: return "TriggerEnemyDebuffs";
                 case ItemGreenEnum.OldGuillotine: return "ExecuteLowHealthElite";
                 case ItemGreenEnum.OldWarStealthkit: return "Phasing";
                 case ItemGreenEnum.PredatoryInstincts: return "AttackSpeedOnCrit";
+                case ItemGreenEnum.PrayerBeads: return "ExtraStatsOnLevelUp";
                 case ItemGreenEnum.Razorwire: return "Thorns";
                 case ItemGreenEnum.RedWhip: return "SprintOutOfCombat";
                 case ItemGreenEnum.RegeneratingScrap: return "RegeneratingScrap";
                 case ItemGreenEnum.RoseBuckler: return "SprintArmor";
                 case ItemGreenEnum.RunaldsBand: return "IceRing";
+                case ItemGreenEnum.SaleStar: return "SaleStar";
                 case ItemGreenEnum.ShippingRequestForm: return "FreeChest";
                 case ItemGreenEnum.Shuriken: return "PrimarySkillShuriken";
                 case ItemGreenEnum.SquidPolyp: return "Squid";
                 case ItemGreenEnum.Ukulele: return "ChainLightning";
+                case ItemGreenEnum.UnstableTransmitter: return "TeleportOnLowHealth";
                 case ItemGreenEnum.WarHorn: return "EnergizedOnEquipmentUse";
                 case ItemGreenEnum.WaxQuail: return "JumpBoost";
                 case ItemGreenEnum.WillOTheWisp: return "ExplodeOnDeath";
@@ -326,7 +354,9 @@ namespace StartBonusMod
                 case ItemRedEnum.CeremonialDagger: return "Dagger";
                 case ItemRedEnum.DefensiveMicrobots: return "CaptainDefenseMatrix";
                 case ItemRedEnum.DiosBestFriend: return "ExtraLife";
+                case ItemRedEnum.ElectricBoomerang: return "StunAndPierce";
                 case ItemRedEnum.FrostRelic: return "Icicle";
+                case ItemRedEnum.GrowthNectar: return "BoostAllStats";
                 case ItemRedEnum.H3AD5Tv2: return "FallBoots";
                 case ItemRedEnum.HappiestMask: return "GhostOnKill";
                 case ItemRedEnum.HardlightAfterburner: return "UtilitySkillMagazine";
@@ -337,13 +367,16 @@ namespace StartBonusMod
                 case ItemRedEnum.PocketICBM: return "MoreMissile";
                 case ItemRedEnum.RejuvenationRack: return "IncreaseHealing";
                 case ItemRedEnum.ResonanceDisc: return "LaserTurbine";
+                case ItemRedEnum.RunicLens: return "MeteorAttackOnHighDamage";
                 case ItemRedEnum.SentientMeatHook: return "BounceNearby";
                 case ItemRedEnum.ShatteringJustice: return "ArmorReductionOnHit";
+                case ItemRedEnum.SonorousWhispers: return "ItemDropChanceOnKill";
                 case ItemRedEnum.SoulboundCatalyst: return "Talisman";
                 case ItemRedEnum.SpareDroneParts: return "DroneWeapons";
                 case ItemRedEnum.SymbioticScorpion: return "PermanentDebuffOnHit";
                 case ItemRedEnum.UnstableTeslaCoil: return "ShockNearby";
                 case ItemRedEnum.WakeOfVultures: return "HeadHunter";
+                case ItemRedEnum.WarBonds: return "BarrageOnBoss";
             }
             return null;
         }
@@ -404,6 +437,7 @@ namespace StartBonusMod
                 case ItemLunarEnum.FocusedConvergence: return "FocusConvergence";
                 case ItemLunarEnum.GestureOfTheDrowned: return "AutoCastEquipment";
                 case ItemLunarEnum.HooksOfHeresy: return "LunarSecondaryReplacement";
+                case ItemLunarEnum.LongstandingSolitude: return "OnLevelUpFreeUnlock";
                 case ItemLunarEnum.LightFluxPauldron: return "HalfAttackSpeedHalfCooldowns";
                 case ItemLunarEnum.MercurialRachis: return "RandomDamageZone";
                 case ItemLunarEnum.Purity: return "LunarBadLuck";

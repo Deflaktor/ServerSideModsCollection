@@ -25,7 +25,7 @@ namespace StartBonusMod
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "StartBonusMod";
-        public const string PluginVersion = "1.0.1";
+        public const string PluginVersion = "1.1.0";
 
         public void Awake()
         {
@@ -37,10 +37,13 @@ namespace StartBonusMod
         private void OnEnable()
         {
             IL.RoR2.Run.SetupUserCharacterMaster += Run_SetupUserCharacterMaster;
+            //RoR2.NetworkUser.onPostNetworkUserStart += NetworkUser_onPostNetworkUserStart;
         }
+
         private void OnDisable()
         {
             IL.RoR2.Run.SetupUserCharacterMaster -= Run_SetupUserCharacterMaster;
+            //RoR2.NetworkUser.onPostNetworkUserStart -= NetworkUser_onPostNetworkUserStart;
         }
 
         private void Run_SetupUserCharacterMaster(ILContext il)
@@ -75,6 +78,15 @@ namespace StartBonusMod
                 GiveStartingItems(characterMaster.inventory);
             });
         }
+        //private void NetworkUser_onPostNetworkUserStart(NetworkUser networkUser)
+        //{
+        //    if (NetworkServer.active && Run.instance != null && networkUser.master == null)
+        //    {
+        //        networkUser.master.GiveMoney((uint)BepConfig.StartingCash.Value);
+        //        GiveStartingItems(networkUser.master.inventory);
+        //    }
+        //}
+
         private void GiveStartingItems(Inventory inventory)
         {
             ItemDef itemDef = ToItemDef(BepConfig.StartingItemWhite.Value);
