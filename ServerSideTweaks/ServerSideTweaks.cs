@@ -1,28 +1,29 @@
 using BepInEx;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 using R2API;
 using R2API.Utils;
 using RoR2;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using MonoMod.Cil;
-using System;
-using System.Reflection;
 using UnityEngine.Networking;
-using static ServerSideTweaks.EnumCollection;
-using System.Linq;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.UIElements.UIR;
-using Mono.Cecil.Cil;
-using static RoR2.GenericPickupController;
-using UnityEngine.UIElements;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Collections;
 using UnityEngine.SceneManagement;
-using System.Security.Cryptography;
-using static UnityEngine.ResourceManagement.ResourceProviders.SceneProvider;
+using UnityEngine.UIElements;
+using UnityEngine.UIElements.UIR;
+using static RoR2.GenericPickupController;
 using static RoR2.Networking.NetworkManagerSystem;
-using System.Collections.ObjectModel;
+using static ServerSideTweaks.EnumCollection;
+using static UnityEngine.ResourceManagement.ResourceProviders.SceneProvider;
 
 namespace ServerSideTweaks
 {
@@ -344,13 +345,22 @@ namespace ServerSideTweaks
                         {
                             usersItemCredit.Add(pc, -1f);
                         }
-                        SetSkullCounterCount(body.inventory, (int)Math.Floor(usersItemCredit[pc] + BepConfig.SimulacrumLootMaxItemDebt.Value));
+                        int connectedCount = PlayerCharacterMasterController.instances.Where(pc => pc.isConnected).Count();
+                        if (connectedCount == 1)
+                        {
+                            // if there is no one else connected, remove the skull counters
+                            SetSkullCounterCount(body.inventory, 0, null);
+                        }
+                        else
+                        {
+                            SetSkullCounterCount(body.inventory, (int)Math.Floor(usersItemCredit[pc] + BepConfig.SimulacrumLootMaxItemDebt.Value), body.gameObject);
+                        }
                     }
                 }
             }
         }
 
-        private void SetSkullCounterCount(Inventory inventory, int count)
+        private void SetSkullCounterCount(Inventory inventory, int count, GameObject playerObject)
         {
             if (BepConfig.SimulacrumLootSkullTokens.Value)
             {
@@ -360,6 +370,19 @@ namespace ServerSideTweaks
                 if (diff != 0)
                 {
                     inventory.GiveItem(itemIndex, diff);
+                    var safeWardController = ((InfiniteTowerRun)Run.instance).safeWardController;
+                    if (playerObject != null && safeWardController != null)
+                    {
+                        var safeWardPosition = safeWardController.transform.position;
+                        if (diff > 0)
+                        {
+                            PurchaseInteraction.CreateItemTakenOrb(safeWardPosition, playerObject, itemIndex);
+                        }
+                        else
+                        {
+                            PurchaseInteraction.CreateItemTakenOrb(playerObject.transform.position, safeWardController.gameObject, itemIndex);
+                        }
+                    }
                 }
             }
         }
@@ -427,7 +450,7 @@ namespace ServerSideTweaks
                         // if the player disconnected, distribute his remaining credits to everyone else
                         freeCredit += Math.Max(0, usersItemCredit[pc]);
                         usersItemCredit[pc] = 0;
-                        SetSkullCounterCount(pc.master.inventory, BepConfig.SimulacrumLootMaxItemDebt.Value);
+                        SetSkullCounterCount(pc.master.inventory, BepConfig.SimulacrumLootMaxItemDebt.Value, pc.body?.gameObject);
                     }
                 }
                 // give item credit to every connected player
@@ -447,11 +470,11 @@ namespace ServerSideTweaks
                         if(connectedCount == 1)
                         {
                             // if there is no one else connected, remove the skull counters
-                            SetSkullCounterCount(pc.master.inventory, 0);
+                            SetSkullCounterCount(pc.master.inventory, 0, null);
                         }
                         else
                         {
-                            SetSkullCounterCount(pc.master.inventory, (int)Math.Floor(usersItemCredit[pc] + BepConfig.SimulacrumLootMaxItemDebt.Value));
+                            SetSkullCounterCount(pc.master.inventory, (int)Math.Floor(usersItemCredit[pc] + BepConfig.SimulacrumLootMaxItemDebt.Value), pc.body?.gameObject);
                         }
                         Log.LogDebug(pc.networkUser.userName + " itemCredit: " + usersItemCredit[pc]);
                     }
