@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareSuite", "ShareSuite\Sh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RandomEvents", "RandomEvents\RandomEvents.csproj", "{2E8F49CF-ACCF-FB21-374D-41B0B74594EA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerSideItems", "ServerSideItems\ServerSideItems.csproj", "{631FCEF7-268A-43CC-8041-755124178957}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{2E8F49CF-ACCF-FB21-374D-41B0B74594EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E8F49CF-ACCF-FB21-374D-41B0B74594EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E8F49CF-ACCF-FB21-374D-41B0B74594EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{631FCEF7-268A-43CC-8041-755124178957}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{631FCEF7-268A-43CC-8041-755124178957}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{631FCEF7-268A-43CC-8041-755124178957}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{631FCEF7-268A-43CC-8041-755124178957}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

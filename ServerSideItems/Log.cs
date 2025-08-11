@@ -1,6 +1,6 @@
 ﻿using BepInEx.Logging;
 
-namespace SimulacrumNormalStagesFix
+namespace ServerSideItems
 {
     internal static class Log
     {
