@@ -267,7 +267,7 @@ namespace SimulacrumBossStageMod
 
             if (IsBossStageStarted(self.waveIndex) && self.IsStageTransitionWave() && nextBonusTime == 0f && !bossStageCompleted && BepConfig.BossStageBoss.Value != BossEnum.None)
             {
-                if (self.waveController.GetNormalizedProgress() > 0.5f && !bossSpawned)
+                if (self.waveController.GetNormalizedProgress() > 0.99f && !bossSpawned)
                 {
                     // spawn boss
                     bossSpawned = true;
