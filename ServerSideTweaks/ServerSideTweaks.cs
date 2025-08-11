@@ -298,16 +298,16 @@ namespace ServerSideTweaks
                 if (master != null && master.playerCharacterMasterController != null)
                 {
                     var pc = master.playerCharacterMasterController;
-                    float credit;
-                    usersItemCredit.TryGetValue(pc, out credit);
-                    if (credit + BepConfig.SimulacrumLootMaxItemDebt.Value >= 1)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        ChatHelper.PlayerHasTooManyItems(pc.GetDisplayName());
-                        return false;
+                    if (usersItemCredit.TryGetValue(pc, out float credit)) {
+                        if (credit + BepConfig.SimulacrumLootMaxItemDebt.Value >= 1)
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            ChatHelper.PlayerHasTooManyItems(pc.GetDisplayName());
+                            return false;
+                        }
                     }
                 }
             }
