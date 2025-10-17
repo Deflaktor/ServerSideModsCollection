@@ -33,6 +33,7 @@ namespace ServerSideItems
 
         private readonly BeyondTheLimits beyondTheLimits = new BeyondTheLimits();
         private readonly NewlyHatchedZoea newlyHatchedZoea = new NewlyHatchedZoea();
+        private readonly ShatterSpleenTweak shatterSpleenTweak = new ShatterSpleenTweak();
 
         public void Awake()
         {
@@ -42,6 +43,7 @@ namespace ServerSideItems
             BepConfig.Init();
             beyondTheLimits.Init();
             newlyHatchedZoea.Init();
+            shatterSpleenTweak.Init();
 
             ItemCatalog.availability.CallWhenAvailable(() =>
             {
@@ -52,6 +54,9 @@ namespace ServerSideItems
         IEnumerator DelayUpdatingItemDescriptions()
         {
             yield return new WaitForSeconds(1.0f);
+            var itemIndex = DLC1Content.Items.VoidMegaCrabItem.itemIndex;
+            var itemDef = ItemCatalog.GetItemDef(DLC1Content.Items.VoidMegaCrabItem.itemIndex);
+            itemDef.tags = itemDef.tags.Where(s => s != ItemTag.CannotCopy).ToArray();
             if (ModCompatibilityLookingGlass.enabled)
             {
                 ModCompatibilityLookingGlass.UpdateNewlyHatchedZoeaDescription();
@@ -62,12 +67,14 @@ namespace ServerSideItems
         {
             //beyondTheLimits.Hook();
             newlyHatchedZoea.Hook();
+            shatterSpleenTweak.Hook();
         }
 
         private void OnDisable()
         {
             //beyondTheLimits.Unhook();
             newlyHatchedZoea.Unhook();
+            shatterSpleenTweak.Unhook();
         }
 
     }

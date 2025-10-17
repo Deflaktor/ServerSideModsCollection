@@ -69,7 +69,7 @@ namespace ServerSideItems
         private void HealthComponent_TakeDamageProcess(On.RoR2.HealthComponent.orig_TakeDamageProcess orig, HealthComponent self, DamageInfo damageInfo)
         {
             orig(self, damageInfo);
-            if (self.body.inventory.GetItemCount(DLC1Content.Items.VoidMegaCrabItem) > 0)
+            if (self.body?.inventory?.GetItemCount(DLC1Content.Items.VoidMegaCrabItem) > 0 && NetworkServer.active && BepConfig.Enabled.Value && BepConfig.NewlyHatchedZoeaRework.Value)
             {
                 //if (!self.alive)
                 //{
@@ -80,7 +80,7 @@ namespace ServerSideItems
 
         private void CharacterMaster_OnBodyDeath(On.RoR2.CharacterMaster.orig_OnBodyDeath orig, CharacterMaster self, CharacterBody body)
         {
-            if (self.inventory.GetItemCount(DLC1Content.Items.VoidMegaCrabItem) > 0 && NetworkServer.active)
+            if (self.inventory.GetItemCount(DLC1Content.Items.VoidMegaCrabItem) > 0 && NetworkServer.active && BepConfig.Enabled.Value && BepConfig.NewlyHatchedZoeaRework.Value)
             {
                 FireProjectileInfo fireProjectileInfo = new FireProjectileInfo
                 {
@@ -112,12 +112,18 @@ namespace ServerSideItems
 
         private void VoidMegaCrabItemBehavior_FixedUpdate(On.RoR2.VoidMegaCrabItemBehavior.orig_FixedUpdate orig, VoidMegaCrabItemBehavior self)
         {
-            if(!BepConfig.Enabled.Value)
+            if(!NetworkServer.active || !BepConfig.Enabled.Value || !BepConfig.NewlyHatchedZoeaRework.Value)
             {
                 orig(self);
                 return;
             }
             self.spawnTimer += Time.fixedDeltaTime;
+
+            // TODO fix for turrets
+            if (self.body == null || self.body.master == null)
+            {
+                return;
+            }
 
             if (!fireProjectileByCharacter.ContainsKey(self.body.master))
             {
@@ -134,7 +140,7 @@ namespace ServerSideItems
 
             var reloadDuration = GetRechargeDuration(self.stack);
 
-            if (self.spawnTimer > reloadDuration)
+            if (self.spawnTimer > reloadDuration && NetworkServer.active)
             {
                 selfData.FireTimer -= Time.fixedDeltaTime;
                 // Done Reloading -> Fire
@@ -210,7 +216,7 @@ namespace ServerSideItems
 
         private void CharacterBody_onBodyInventoryChangedGlobal(CharacterBody obj)
         {
-            if (NetworkServer.active)
+            if (NetworkServer.active && BepConfig.Enabled.Value && BepConfig.NewlyHatchedZoeaRework.Value)
             {
                 var stackSize = obj.inventory.GetItemCount(DLC1Content.Items.VoidMegaCrabItem);
                 if (stackSize > 0)
