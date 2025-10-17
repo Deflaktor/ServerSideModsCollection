@@ -4,6 +4,6 @@
 [submodule "ShareSuite"]
 	path = ShareSuite
 	url = https://github.com/Deflaktor/ShareSuite.git
-[submodule "RoR2-BazaarIsMyHome"]
-	path = RoR2-BazaarIsMyHome
+[submodule "BazaarIsMyHaven"]
+	path = BazaarIsMyHaven
 	url = https://github.com/Deflaktor/RoR2-BazaarIsMyHome.git

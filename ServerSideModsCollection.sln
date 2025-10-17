@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoR2-ArtifactEvolutionPlusP
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerSideTweaks", "ServerSideTweaks\ServerSideTweaks.csproj", "{C917D024-F8E5-4C85-89DF-279F104EBFB8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoR2-BazaarIsMyHome", "RoR2-BazaarIsMyHome\RoR2-BazaarIsMyHome.csproj", "{FFF873A6-D7C4-1915-ACF6-A3BC490EFE46}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BazaarIsMyHaven", "BazaarIsMyHaven\BazaarIsMyHaven.csproj", "{FFF873A6-D7C4-1915-ACF6-A3BC490EFE46}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AeroltHostOnly", "AeroltHostOnly\AeroltHostOnly.csproj", "{AA2C7D13-214C-1E4D-B858-E44CF9F46DDA}"
 EndProject
