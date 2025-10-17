@@ -29,7 +29,7 @@ namespace SimulacrumNormalStages
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "SimulacrumNormalStages";
-        public const string PluginVersion = "1.0.1";
+        public const string PluginVersion = "1.0.2";
 
         public static SimulacrumNormalStages instance;
         public static SceneCollection realityDestinations = ScriptableObject.CreateInstance<SceneCollection>();
@@ -369,7 +369,6 @@ namespace SimulacrumNormalStages
 
         private static void Run_Start(On.RoR2.Run.orig_Start orig, Run self)
         {
-            orig(self);
             if(Run.instance.GetType() == typeof(InfiniteTowerRun) && BepConfig.Enabled.Value) {
                 RuleDef StageOrderRule = RuleCatalog.FindRuleDef("Misc.StageOrder");
                 self.ruleBook.GetRuleChoice(StageOrderRule).extraData = StageOrder.Random;
@@ -377,6 +376,7 @@ namespace SimulacrumNormalStages
                 DoDestinations();
                 shouldAttemptToSpawnShopPortal = false;
             }
+            orig(self);
         }
 
         private static void DoReality(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
@@ -509,7 +509,7 @@ namespace SimulacrumNormalStages
 
         private static bool Allow_Earlier_Spawns(On.RoR2.DirectorCard.orig_IsAvailable orig, DirectorCard self)
         {
-            if(Run.instance.GetType() == typeof(InfiniteTowerRun) && BepConfig.Enabled.Value)
+            if(BepConfig.Enabled.Value && Run.instance?.GetType() == typeof(InfiniteTowerRun))
             {
                 if (self.minimumStageCompletions > 2)
                 {

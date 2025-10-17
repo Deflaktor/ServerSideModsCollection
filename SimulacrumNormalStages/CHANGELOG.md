@@ -1,11 +1,11 @@
-# 1.0.1
+# 1.0.2
 
-## Changed
+- Fix the first stage to also be a normal stage
+
+# 1.0.1
 
 - Updated the Readme
 
 # 1.0.0
-
-## Added
 
 - Initial Release
