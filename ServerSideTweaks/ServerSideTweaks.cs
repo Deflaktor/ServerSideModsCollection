@@ -52,7 +52,7 @@ namespace ServerSideTweaks
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "ServerSideTweaks";
-        public const string PluginVersion = "1.1.1";
+        public const string PluginVersion = "2.0.0";
 
         public void Awake()
         {
@@ -89,8 +89,6 @@ namespace ServerSideTweaks
             On.RoR2.PickupPickerController.OnInteractionBegin                    += PickupPickerController_OnInteractionBegin;
             On.RoR2.PickupPickerController.CreatePickup_PickupIndex              += PickupPickerController_CreatePickup_PickupIndex;
 
-            IL.RoR2.GlobalEventManager.OnCharacterDeath += GlobalEventManager_OnCharacterDeath;
-
             //IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer    += CommandArtifactManager_OnDropletHitGroundServer;
             // On.RoR2.Run.PickNextStageScene                                       += Run_PickNextStageScene;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement            += RandomlyLunarUtils_CheckForLunarReplacement;
@@ -121,8 +119,6 @@ namespace ServerSideTweaks
             On.RoR2.PickupPickerController.OnInteractionBegin                    -= PickupPickerController_OnInteractionBegin;
             On.RoR2.PickupPickerController.CreatePickup_PickupIndex              -= PickupPickerController_CreatePickup_PickupIndex;
 
-            IL.RoR2.GlobalEventManager.OnCharacterDeath -= GlobalEventManager_OnCharacterDeath;
-
             //IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer    -= CommandArtifactManager_OnDropletHitGroundServer;
             // On.RoR2.Run.PickNextStageScene                                       -= Run_PickNextStageScene;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement            -= RandomlyLunarUtils_CheckForLunarReplacement;
@@ -135,28 +131,6 @@ namespace ServerSideTweaks
             {
                 ModCompatibilityShareSuite.RemovePickupEventHandler(NonShareableItemCheck);
             }
-        }
-
-        private void GlobalEventManager_OnCharacterDeath(ILContext il)
-        {
-            ILCursor c = new ILCursor(il);
-            var label = c.DefineLabel();
-            // IL_114f: callvirt instance float32 RoR2.CharacterBody::get_maxHealth()
-            c.GotoNext(
-            x => x.MatchCallvirt<CharacterBody>("get_maxHealth")
-            );
-            c.Remove();
-            c.EmitDelegate<Func<CharacterBody, float>>((body) =>
-            {
-                if (BepConfig.Enabled.Value && BepConfig.ShatterspleenWorksOnBaseHealth.Value)
-                {
-                    return Math.Min(body.baseMaxHealth + body.levelMaxHealth * (body.level - 1f), body.maxHealth);
-                }
-                else
-                {
-                    return body.maxHealth;
-                }
-            });
         }
 
         private void InfiniteTowerWaveController_Initialize(On.RoR2.InfiniteTowerWaveController.orig_Initialize orig, InfiniteTowerWaveController self, int waveIndex, Inventory enemyInventory, GameObject spawnTarget)
@@ -373,10 +347,9 @@ namespace ServerSideTweaks
                     var safeWardController = ((InfiniteTowerRun)Run.instance).safeWardController;
                     if (playerObject != null && safeWardController != null)
                     {
-                        var safeWardPosition = safeWardController.transform.position;
                         if (diff > 0)
                         {
-                            PurchaseInteraction.CreateItemTakenOrb(safeWardPosition, playerObject, itemIndex);
+                            PurchaseInteraction.CreateItemTakenOrb(safeWardController.transform.position, playerObject, itemIndex);
                         }
                         else
                         {
@@ -696,39 +669,6 @@ namespace ServerSideTweaks
                     return pickupIndex;
                 }
             }
-            EquipmentDef equip = EquipmentCatalog.GetEquipmentDef(pickupDef.equipmentIndex);
-            if (equip && !pickupDef.isLunar)
-            {
-                if (SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.Bazaar))
-                {
-                    float randomNumber = rng.nextNormalizedFloat;
-                    if (randomNumber < BepConfig.BazaarEliteAspectReplacesEquipmentChance.Value)
-                    {
-                        List<PickupIndex> list = new List<PickupIndex>();
-                        string[] eliteAspects = new string[] {
-                            "EliteEarthEquipment",
-                            "EliteFireEquipment",
-                            "EliteIceEquipment",
-                            //"ElitePoisonEquipment", // causes too much visual clutter
-                            "EliteLunarEquipment",
-                            "EliteLightningEquipment",
-                            //"EliteHauntedEquipment", // causes too much visual clutter
-                            //"EliteAurelioniteEquipment", // gives too much nuggets
-                            //"EliteBeadEquipment" // causes too much visual clutter
-                        };
-                        foreach(var eliteAspect in eliteAspects)
-                        {
-                            var equipIndex = EquipmentCatalog.FindEquipmentIndex(eliteAspect);
-                            list.Add(PickupCatalog.FindPickupIndex(equipIndex));
-                        }
-                        if (list != null && list.Count > 0)
-                        {
-                            int index = rng.RangeInt(0, list.Count);
-                            pickupIndex = list[index];
-                        }
-                    }
-                }
-            }
             return pickupIndex;
         }
 
@@ -737,25 +677,6 @@ namespace ServerSideTweaks
             orig(pickupIndices, rng);
             if (!BepConfig.Enabled.Value)
                 return;
-
-            List<PickupIndex> listEquip = new List<PickupIndex>();
-            string[] eliteAspects = new string[] {
-                "EliteEarthEquipment",
-                "EliteFireEquipment",
-                "EliteIceEquipment",
-                //"ElitePoisonEquipment", // causes too much visual clutter
-                "EliteLunarEquipment",
-                "EliteLightningEquipment",
-                //"EliteHauntedEquipment", // causes too much visual clutter
-                //"EliteAurelioniteEquipment", // gives too much nuggets
-                //"EliteBeadEquipment" // causes too much visual clutter
-            };
-            foreach (var eliteAspect in eliteAspects)
-            {
-                var equipIndex = EquipmentCatalog.FindEquipmentIndex(eliteAspect);
-                listEquip.Add(PickupCatalog.FindPickupIndex(equipIndex));
-            }
-            bool shuffled = false;
 
             for (int i = 0; i < pickupIndices.Length; i++)
             {
@@ -772,23 +693,6 @@ namespace ServerSideTweaks
                         else if (randomNumber < BepConfig.IrradiantPearlReplacesLunarItemChance.Value + BepConfig.PearlReplacesLunarItemChance.Value)
                         {
                             pickupIndices[i] = PickupCatalog.FindPickupIndex(ItemCatalog.FindItemIndex("Pearl"));
-                        }
-                    }
-                }
-                EquipmentDef equip = EquipmentCatalog.GetEquipmentDef(pickupDef.equipmentIndex);
-                if (equip && !pickupDef.isLunar && listEquip != null && listEquip.Count > 0)
-                {
-                    if (SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.Bazaar))
-                    {
-                        float randomNumber = rng.nextNormalizedFloat;
-                        if (randomNumber < BepConfig.BazaarEliteAspectReplacesEquipmentChance.Value)
-                        {
-                            if(!shuffled)
-                            {
-                                Util.ShuffleList(listEquip, rng);
-                                shuffled = true;
-                            }
-                            pickupIndices[i] = listEquip[i % listEquip.Count];
                         }
                     }
                 }

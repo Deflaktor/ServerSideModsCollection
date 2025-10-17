@@ -16,8 +16,6 @@ namespace ServerSideTweaks
         public static ConfigEntry<float> PearlReplacesLunarItemChance;
         public static ConfigEntry<float> IrradiantPearlReplacesLunarItemChance;
         public static ConfigEntry<bool> NoPearlsInBazaar;
-        public static ConfigEntry<float> BazaarEliteAspectReplacesEquipmentChance;
-        public static ConfigEntry<bool> ShatterspleenWorksOnBaseHealth;
         // simulacrum tweaks
         public static ConfigEntry<bool> SimulacrumNonSharedLoot;
         public static ConfigEntry<int> SimulacrumLootMaxItemDebt;
@@ -40,8 +38,6 @@ namespace ServerSideTweaks
                 PearlReplacesLunarItemChance = config.Bind("Main", "Pearl replaces Lunar Item chance", 0.1f, new ConfigDescription("Adds a chance for lunar items to be replaced by a pearl."));
                 IrradiantPearlReplacesLunarItemChance = config.Bind("Main", "Irradiant Pearl replaces Lunar Item chance", 0.02f, new ConfigDescription("Adds a chance for lunar items to be replaced by an irradiant pearl."));
                 NoPearlsInBazaar = config.Bind("Main", "No Pearl replacements in the Bazaar between Times", true, new ConfigDescription("Prevents pearls from appearing in the Bazaar to prevent hoarding."));
-                BazaarEliteAspectReplacesEquipmentChance = config.Bind("Main", "Bazaar: Elite Aspect replaces Equipment Chance", 0.2f, new ConfigDescription("Chance that an equipment item is replaced by an elite aspect (only in Bazaar between Times). Only useful in combination with BazaarIsMyHome."));
-                ShatterspleenWorksOnBaseHealth = config.Bind("Main", "Shatterspleen: Works on Base Health instead of Combined Heatlh", true, new ConfigDescription("Shatterspleen normally applies dmg based on the combined max heatlh of enemies. This makes it super strong if enemies have health increasing items."));
             }
             // --- Simulacrum ---
             {
