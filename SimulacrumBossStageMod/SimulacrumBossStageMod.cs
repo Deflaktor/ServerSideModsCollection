@@ -31,7 +31,7 @@ namespace SimulacrumBossStageMod
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "SimulacrumBossStageMod";
-        public const string PluginVersion = "1.3.0";
+        public const string PluginVersion = "1.3.1";
 
         public AsyncOperationHandle<SpawnCard> iscVoidPortal;
         public AsyncOperationHandle<SpawnCard> iscVoidOutroPortal;
@@ -107,7 +107,7 @@ namespace SimulacrumBossStageMod
             {
                 poisonEliteTier = new CombatDirector.EliteTierDef
                 {
-                    costMultiplier = CombatDirector.baseEliteCostMultiplier * 5f,
+                    costMultiplier = CombatDirector.baseEliteCostMultiplier * 3f,
                     eliteTypes = new EliteDef[2] { RoR2Content.Elites.Poison, edBead.WaitForCompletion() },
                     isAvailable = (SpawnCard.EliteRules rules) => checkEliteAvailable(rules),
                     canSelectWithoutAvailableEliteDef = false
@@ -267,7 +267,7 @@ namespace SimulacrumBossStageMod
 
             if (IsBossStageStarted(self.waveIndex) && self.IsStageTransitionWave() && nextBonusTime == 0f && !bossStageCompleted && BepConfig.BossStageBoss.Value != BossEnum.None)
             {
-                if (self.waveController.GetNormalizedProgress() > 0.99f && !bossSpawned)
+                if (self.waveController.GetNormalizedProgress() > 0.8f && !bossSpawned)
                 {
                     // spawn boss
                     bossSpawned = true;
