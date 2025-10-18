@@ -52,7 +52,7 @@ namespace ServerSideTweaks
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "ServerSideTweaks";
-        public const string PluginVersion = "2.0.0";
+        public const string PluginVersion = "2.1.0";
 
         public void Awake()
         {
@@ -60,6 +60,8 @@ namespace ServerSideTweaks
             instance = this;
             Log.Init(Logger);
             BepConfig.Init();
+            BepConfig.ChildReducedTeleportRange.SettingChanged += ChildReducedTeleportRange_SettingChanged;
+            ChildReducedTeleportRange_SettingChanged(null, null);
             FastSimulacrumVrab.Setup();
 #if DEBUG
             Logger.LogWarning("You're on a debug build. If you see this after downloading from the thunderstore, panic!");
@@ -73,6 +75,19 @@ namespace ServerSideTweaks
             On.RoR2.Networking.NetworkManagerSystem.ClientSendAuth += (orig, self, conn) => { };
 #endif
         }
+
+        private void ChildReducedTeleportRange_SettingChanged(object sender, EventArgs e)
+        {
+            if(BepConfig.ChildReducedTeleportRange.Value)
+            {
+                IL.EntityStates.ChildMonster.FrolicAway.TeleportAway += FrolicAway_TeleportAway;
+            }
+            else
+            {
+                IL.EntityStates.ChildMonster.FrolicAway.TeleportAway -= FrolicAway_TeleportAway;
+            }
+        }
+
         private void OnEnable()
         {
             On.RoR2.Run.Start                                                    += Run_Start;
@@ -94,6 +109,9 @@ namespace ServerSideTweaks
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement            += RandomlyLunarUtils_CheckForLunarReplacement;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray += RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
             On.RoR2.InfiniteTowerWaveController.Initialize                       += InfiniteTowerWaveController_Initialize;
+            
+            On.RoR2.ChildMonsterController.RegisterTeleport += ChildMonsterController_RegisterTeleport;
+
 
             FastSimulacrumVrab.Enable();
 
@@ -125,12 +143,42 @@ namespace ServerSideTweaks
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray -= RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
             On.RoR2.InfiniteTowerWaveController.Initialize                       -= InfiniteTowerWaveController_Initialize;
 
+            On.RoR2.ChildMonsterController.RegisterTeleport -= ChildMonsterController_RegisterTeleport;
+
             FastSimulacrumVrab.Disable();
 
             if (ModCompatibilityShareSuite.enabled)
             {
                 ModCompatibilityShareSuite.RemovePickupEventHandler(NonShareableItemCheck);
             }
+        }
+
+        private void ChildMonsterController_RegisterTeleport(On.RoR2.ChildMonsterController.orig_RegisterTeleport orig, ChildMonsterController self, bool addInvincibility)
+        {
+            if (BepConfig.Enabled.Value && BepConfig.ChildRemoveInvincibility.Value)
+            {
+                orig(self, false);
+            }
+            else
+            {
+                orig(self, addInvincibility);
+            }
+        }
+
+        private void FrolicAway_TeleportAway(ILContext il)
+        {
+            ILCursor c = new ILCursor(il);
+            // var label = c.DefineLabel();
+            // IL_0033: ldc.r4 100
+            // IL_0038: ldc.r4 200
+            c.GotoNext(
+            x => x.MatchLdcR4(100),
+            x => x.MatchLdcR4(200)
+            );
+            c.Remove();
+            c.Remove();
+            c.Emit(OpCodes.Ldc_R4, 50f);
+            c.Emit(OpCodes.Ldc_R4, 100f);
         }
 
         private void InfiniteTowerWaveController_Initialize(On.RoR2.InfiniteTowerWaveController.orig_Initialize orig, InfiniteTowerWaveController self, int waveIndex, Inventory enemyInventory, GameObject spawnTarget)

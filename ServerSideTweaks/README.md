@@ -6,6 +6,8 @@ A small list of server-side configurable tweaks:
 
 - Chance to have Lunar Items be replaced by Pearls
 - Add elite aspects to item pool during bazaar stage (useful in combination with BazaarIsMyHome)
+- Reduce the teleport range of child
+- Remove teleport invincibility of child
 
 ## Simulacrum Tweaks
 

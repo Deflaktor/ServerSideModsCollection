@@ -16,6 +16,8 @@ namespace ServerSideTweaks
         public static ConfigEntry<float> PearlReplacesLunarItemChance;
         public static ConfigEntry<float> IrradiantPearlReplacesLunarItemChance;
         public static ConfigEntry<bool> NoPearlsInBazaar;
+        public static ConfigEntry<bool> ChildReducedTeleportRange;
+        public static ConfigEntry<bool> ChildRemoveInvincibility;
         // simulacrum tweaks
         public static ConfigEntry<bool> SimulacrumNonSharedLoot;
         public static ConfigEntry<int> SimulacrumLootMaxItemDebt;
@@ -38,6 +40,8 @@ namespace ServerSideTweaks
                 PearlReplacesLunarItemChance = config.Bind("Main", "Pearl replaces Lunar Item chance", 0.1f, new ConfigDescription("Adds a chance for lunar items to be replaced by a pearl."));
                 IrradiantPearlReplacesLunarItemChance = config.Bind("Main", "Irradiant Pearl replaces Lunar Item chance", 0.02f, new ConfigDescription("Adds a chance for lunar items to be replaced by an irradiant pearl."));
                 NoPearlsInBazaar = config.Bind("Main", "No Pearl replacements in the Bazaar between Times", true, new ConfigDescription("Prevents pearls from appearing in the Bazaar to prevent hoarding."));
+                ChildReducedTeleportRange = config.Bind("Main", "Child: Reduced teleport range", true, new ConfigDescription("Reduces the range children can teleport away."));
+                ChildRemoveInvincibility = config.Bind("Main", "Child: Remove invincibility", true, new ConfigDescription("Removes the invincibility buff that children get before teleporting."));
             }
             // --- Simulacrum ---
             {
