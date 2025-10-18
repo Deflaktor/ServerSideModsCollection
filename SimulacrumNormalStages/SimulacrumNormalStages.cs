@@ -29,7 +29,7 @@ namespace SimulacrumNormalStages
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "SimulacrumNormalStages";
-        public const string PluginVersion = "1.0.2";
+        public const string PluginVersion = "1.0.3";
 
         public static SimulacrumNormalStages instance;
         public static SceneCollection realityDestinations = ScriptableObject.CreateInstance<SceneCollection>();
@@ -369,14 +369,18 @@ namespace SimulacrumNormalStages
 
         private static void Run_Start(On.RoR2.Run.orig_Start orig, Run self)
         {
+            if (Run.instance.GetType() == typeof(InfiniteTowerRun) && BepConfig.Enabled.Value)
+            {
+                DoDestinations();
+                self.startingSceneGroup = realityDestinations;
+            }
+            orig(self);
             if(Run.instance.GetType() == typeof(InfiniteTowerRun) && BepConfig.Enabled.Value) {
                 RuleDef StageOrderRule = RuleCatalog.FindRuleDef("Misc.StageOrder");
                 self.ruleBook.GetRuleChoice(StageOrderRule).extraData = StageOrder.Random;
                 visitedScenes = new List<SceneDef>();
-                DoDestinations();
                 shouldAttemptToSpawnShopPortal = false;
             }
-            orig(self);
         }
 
         private static void DoReality(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
@@ -493,9 +497,11 @@ namespace SimulacrumNormalStages
                     SceneDef[] array = SceneCatalog.allStageSceneDefs.Where(new System.Func<SceneDef, bool>(RealityValidSceneDefs)).ToArray<SceneDef>();
                     self.nextStageScene = self.nextStageRng.NextElementUniform<SceneDef>(array);
                 }
-                return;
             }
-            orig(self, choices);
+            else
+            {
+                orig(self, choices);
+            }
         }
 
         private static bool RealityValidSceneDefs(SceneDef sceneDef)
