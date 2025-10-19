@@ -52,7 +52,7 @@ namespace ServerSideTweaks
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "ServerSideTweaks";
-        public const string PluginVersion = "2.1.0";
+        public const string PluginVersion = "2.1.1";
 
         public void Awake()
         {
@@ -696,12 +696,12 @@ namespace ServerSideTweaks
         private PickupIndex RandomlyLunarUtils_CheckForLunarReplacement(On.RoR2.Items.RandomlyLunarUtils.orig_CheckForLunarReplacement orig, PickupIndex pickupIndex, Xoroshiro128Plus rng)
         {
             pickupIndex = orig(pickupIndex, rng);
-            if(!BepConfig.Enabled.Value)
+            if(!BepConfig.Enabled.Value || pickupIndex == PickupIndex.none)
             {
                 return pickupIndex;
             }
             PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
-            if(pickupDef.isLunar)
+            if(pickupDef != null && pickupDef.isLunar)
             {
                 if(!BepConfig.NoPearlsInBazaar.Value || !SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.Bazaar))
                 {
@@ -729,7 +729,7 @@ namespace ServerSideTweaks
             for (int i = 0; i < pickupIndices.Length; i++)
             {
                 PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndices[i]);
-                if (pickupDef.isLunar)
+                if (pickupDef != null && pickupDef.isLunar)
                 {
                     if (!BepConfig.NoPearlsInBazaar.Value || !SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.Bazaar))
                     {
