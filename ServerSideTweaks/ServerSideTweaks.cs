@@ -22,7 +22,6 @@ using UnityEngine.UIElements;
 using UnityEngine.UIElements.UIR;
 using static RoR2.GenericPickupController;
 using static RoR2.Networking.NetworkManagerSystem;
-using static ServerSideTweaks.EnumCollection;
 using static UnityEngine.ResourceManagement.ResourceProviders.SceneProvider;
 
 namespace ServerSideTweaks
@@ -46,8 +45,6 @@ namespace ServerSideTweaks
         public static List<PickupIndex> availableEquipmentDropList_Saved = new List<PickupIndex>();
         public static List<PickupIndex> availableLunarItemDropList_Saved = new List<PickupIndex>();
         public static List<PickupIndex> availableLunarEquipmentDropList_Saved = new List<PickupIndex>();
-
-        public static StageEnum debug_nextStage = StageEnum.None;
 
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
@@ -669,9 +666,9 @@ namespace ServerSideTweaks
             if (BepConfig.SimulacrumCommencementArtifactDissonanceChance.Value <= 0f)
                 return;
 
-            if (SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.SimulacrumCommencement) || SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.Commencement))
+            if (IsCurrentMapCommencment())
             {
-                RunArtifactManager.instance.SetArtifactEnabledServer(GetArtifactDef(ArtifactEnum.Dissonance), false);
+                RunArtifactManager.instance.SetArtifactEnabledServer(RoR2Content.Artifacts.MixEnemy, false);
             }
         }
         private void InfiniteTowerRun_AdvanceWave(On.RoR2.InfiniteTowerRun.orig_AdvanceWave orig, InfiniteTowerRun self)
@@ -683,16 +680,23 @@ namespace ServerSideTweaks
             if (BepConfig.SimulacrumCommencementArtifactDissonanceChance.Value <= 0f)
                 return;
 
-            if (SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.SimulacrumCommencement) || SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.Commencement))
+            if (IsCurrentMapCommencment())
             {
                 if (BepConfig.SimulacrumCommencementArtifactDissonanceChance.Value > RoR2Application.rng.nextNormalizedFloat)
                 {
-                    RunArtifactManager.instance.SetArtifactEnabledServer(GetArtifactDef(ArtifactEnum.Dissonance), true);
+                    RunArtifactManager.instance.SetArtifactEnabledServer(RoR2Content.Artifacts.MixEnemy, true);
                 }
             }
         }
         #endregion
-
+        private bool IsCurrentMapInBazaar()
+        {
+            return SceneManager.GetActiveScene().name == "bazaar";
+        }
+        private bool IsCurrentMapCommencment()
+        {
+            return SceneManager.GetActiveScene().name == "moon" || SceneManager.GetActiveScene().name == "moon2" || SceneManager.GetActiveScene().name == "itmoon";
+        }
         private PickupIndex RandomlyLunarUtils_CheckForLunarReplacement(On.RoR2.Items.RandomlyLunarUtils.orig_CheckForLunarReplacement orig, PickupIndex pickupIndex, Xoroshiro128Plus rng)
         {
             pickupIndex = orig(pickupIndex, rng);
@@ -703,7 +707,7 @@ namespace ServerSideTweaks
             PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
             if(pickupDef != null && pickupDef.isLunar)
             {
-                if(!BepConfig.NoPearlsInBazaar.Value || !SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.Bazaar))
+                if(!BepConfig.NoPearlsInBazaar.Value || !IsCurrentMapInBazaar())
                 {
                     float randomNumber = rng.nextNormalizedFloat;
                     if (randomNumber < BepConfig.IrradiantPearlReplacesLunarItemChance.Value)
@@ -720,6 +724,7 @@ namespace ServerSideTweaks
             return pickupIndex;
         }
 
+
         private void RandomlyLunarUtils_CheckForLunarReplacementUniqueArray(On.RoR2.Items.RandomlyLunarUtils.orig_CheckForLunarReplacementUniqueArray orig, PickupIndex[] pickupIndices, Xoroshiro128Plus rng)
         {
             orig(pickupIndices, rng);
@@ -731,7 +736,7 @@ namespace ServerSideTweaks
                 PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndices[i]);
                 if (pickupDef != null && pickupDef.isLunar)
                 {
-                    if (!BepConfig.NoPearlsInBazaar.Value || !SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, StageEnum.Bazaar))
+                    if (!BepConfig.NoPearlsInBazaar.Value || !IsCurrentMapInBazaar())
                     {
                         float randomNumber = rng.nextNormalizedFloat;
                         if (randomNumber < BepConfig.IrradiantPearlReplacesLunarItemChance.Value)
@@ -746,59 +751,5 @@ namespace ServerSideTweaks
                 }
             }
         }
-
-        #region ExtendedMaps
-        /*
-        private void Run_PickNextStageScene(On.RoR2.Run.orig_PickNextStageScene orig, Run self, WeightedSelection<SceneDef> choices)
-        {
-            if (BepConfig.Enabled.Value && BepConfig.SimulacrumExtendedMapPool.Value && Run.instance.GetType() == typeof(InfiniteTowerRun))
-            {  
-                StageEnum[] extendedMapPool = new StageEnum[] {
-                    StageEnum.TitanicPlains,
-                    StageEnum.DistantRoost,
-                    StageEnum.WetlandAspect,
-                    StageEnum.AbandonedAqueduct,
-                    StageEnum.RallypointDelta,
-                    StageEnum.ScorchedAcres,
-                    StageEnum.AbyssalDepths,
-                    StageEnum.SirensCall,
-                    // StageEnum.GildedCoast, need to disable objectives and add crates
-                    // StageEnum.MomentFractured, no spawn points
-                    // StageEnum.MomentWhole, no spawn points
-                    StageEnum.SkyMeadow,
-                    // StageEnum.BullwarksAmbry, // do not spawn the central artifact
-                    // StageEnum.Commencement, moon2 doesnt work (damage fog, seems to force teleport at start), and no crates
-                    StageEnum.SunderedGrove,
-                    // StageEnum.Planetarium, voidling fight
-                    StageEnum.AphelianSanctuary,
-                    StageEnum.SiphonedForest,
-                    StageEnum.SulfurPools
-                };
-                // fix also: no newt altars
-#if DEBUG
-                if(debug_nextStage != StageEnum.None)
-                {
-                    extendedMapPool = new StageEnum[] { debug_nextStage };
-                }
-#endif
-                WeightedSelection<SceneDef> weightedSelection = new WeightedSelection<SceneDef>();
-                foreach (StageEnum stageEnum in extendedMapPool )
-                {
-                    if (SceneNameIsStage(SceneCatalog.currentSceneDef.cachedName, stageEnum))
-                        continue; // skip so that we do not go back to the same map
-                    List<string> scenes = new List<string>(SceneNames[stageEnum]);
-                    scenes.Remove("moon2"); // moon2 doesnt seem to work properly
-                    foreach (string sceneName in scenes)
-                    {
-                        weightedSelection.AddChoice(SceneCatalog.FindSceneDef(sceneName), 1f / (float)scenes.Count);
-                    }
-                }
-                orig(self, weightedSelection);
-            } else
-            {
-                orig(self, choices);
-            }
-        }*/
-        #endregion
     }
 }

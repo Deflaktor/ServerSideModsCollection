@@ -5,7 +5,6 @@ using R2API;
 using System.Collections.Generic;
 using static ServerSideTweaks.BepConfig;
 using System.Linq;
-using static ServerSideTweaks.EnumCollection;
 
 namespace ServerSideTweaks
 {
