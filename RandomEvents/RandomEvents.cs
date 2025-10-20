@@ -1,24 +1,30 @@
 using BepInEx;
+using HarmonyLib;
+using MonoMod.Cil;
+using Newtonsoft.Json.Linq;
 using R2API;
 using R2API.Utils;
 using RoR2;
+using ServerSideTweaks;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using MonoMod.Cil;
-using System;
-using System.Reflection;
 using UnityEngine.Networking;
-using System.Linq;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using ServerSideTweaks;
-using Newtonsoft.Json.Linq;
-using HarmonyLib;
+using UnityEngine.UIElements;
+using static RandomEvents.EventSkillsOnly;
+using static Rewired.UI.ControlMapper.ControlMapper;
 
 namespace RandomEvents
 {
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("Def.ServerSideTweaks", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("Def.ServerSideTweaks", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class RandomEvents : BaseUnityPlugin
@@ -31,107 +37,481 @@ namespace RandomEvents
         public const string PluginName = "RandomEvents";
         public const string PluginVersion = "1.0.0";
 
+        public List<AbstractEvent> m_allEventsIncludingNotLoadedOnes = new List<AbstractEvent>();
+        public List<AbstractEvent> m_loadedEvents = new List<AbstractEvent>();
+        public List<AbstractEvent> m_activeEvents = new List<AbstractEvent>();
+        public List<AbstractEvent> m_upcomingEvents = new List<AbstractEvent>();
+        public float currentEventProbability = 0f;
+        public AsyncOperationHandle<CharacterSpawnCard> someMonster;
+        public AsyncOperationHandle<CharacterSpawnCard> someMonster2;
+        public bool m_announcementGiven = false;
+        public int m_eventStartTime = 0;
+
         public void Awake()
         {
             PInfo = Info;
             instance = this;
             Log.Init(Logger);
-            BepConfig.Init();
+
+            ChatHelper.RegisterLanguageTokens();
+
+            TemporaryInventory.Hook();
+            TemporaryEquipment.Hook();
+
+            ModConfig.Init();
+            InitAndHookEvent(new EventBulletHell());
+            InitAndHookEvent(new EventCasinoItem());
+            InitAndHookEvent(new EventEquipmentOnly());
+            InitAndHookEvent(new EventExplodingCorpses());
+            InitAndHookEvent(new EventFallingEnemies());
+            InitAndHookEvent(new EventFuelArray());
+            InitAndHookEvent(new EventGhosts());
+            InitAndHookEvent(new EventHaste());
+            InitAndHookEvent(new EventItemZone());
+            InitAndHookEvent(new EventRandomArtifact());
+            InitAndHookEvent(new EventRandomTeams());
+            InitAndHookEvent(new EventSkillsOnly());
+            InitAndHookEvent(new EventSmallArena());
+            InitAndHookEvent(new EventStrongEnemies());
+            InitAndHookEvent(new EventWeakEnemies());
+            InitAndHookEvent(new EventZombies());
+            ModConfig.InLobbyConfig();
+
+            someMonster = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/MajorAndMinorConstruct/cscMinorConstruct.asset");
+            someMonster2 = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/Wisp/cscLesserWisp.asset");
+        }
+        private AbstractEvent InitAndHookEvent(AbstractEvent ev)
+        {
+            if (ev.LoadCondition())
+            {
+                ev.SetupConfig(instance.Config);
+                ev.Preload();
+                ev.Hook();
+                m_loadedEvents.Add(ev);
+            }
+            m_allEventsIncludingNotLoadedOnes.Add(ev);
+            return ev;
+        }
+
+        private AbstractEvent ChooseRandomEvent(List<AbstractEvent> eventCandidates, List<AbstractEvent> activeEvents)
+        {
+            WeightedSelection<AbstractEvent> weightedSelection = new WeightedSelection<AbstractEvent>();
+            foreach (var ev in eventCandidates)
+            {
+                if (!activeEvents.Contains(ev) && ev.IsEnabled() && ev.Condition(activeEvents))
+                {
+                    weightedSelection.AddChoice(ev, ev.GetWeight());
+                }
+            }
+            if (weightedSelection.Count == 0)
+                return null;
+            return weightedSelection.Evaluate(UnityEngine.Random.value);
+        }
+
+        private void PrepareAndAnnounceUpcomingEvents(float announceDelay)
+        {
+#if DEBUG
+            Config.Reload();
+#endif
+            if (ModConfig.Enabled.Value && NetworkServer.active && SceneCatalog.GetSceneDefForCurrentScene().sceneType == SceneType.Stage || SceneCatalog.GetSceneDefForCurrentScene().cachedName == "arena")
+            {
+                if (currentEventProbability >= 1.0f || RoR2Application.rng.nextNormalizedFloat < currentEventProbability)
+                {
+                    currentEventProbability = ModConfig.EventProbability.Value;
+                    WeightedSelection<int> weightedSelection = new WeightedSelection<int>();
+                    weightedSelection.AddChoice(1, ModConfig.SingleEventWeight.Value);
+                    weightedSelection.AddChoice(2, ModConfig.DoubleEventWeight.Value);
+                    weightedSelection.AddChoice(3, ModConfig.TripleEventWeight.Value);
+                    var eventAmount = weightedSelection.Evaluate(UnityEngine.Random.value);
+
+                    for (int i = 0; i < eventAmount; i++)
+                    {
+                        var ev = ChooseRandomEvent(m_loadedEvents, m_upcomingEvents);
+                        if (ev != null)
+                        {
+                            m_upcomingEvents.Add(ev);
+                            ev.Prepare();
+                        }
+                    }
+
+                    instance.StartCoroutine(DelayChatSendAnnouncement(announceDelay, new List<AbstractEvent>(m_upcomingEvents)));
+                } 
+                else
+                {
+                    currentEventProbability += ModConfig.EventProbabilityIncrease.Value;
+                }
+            }
         }
         private void OnEnable()
         {
-            On.RoR2.InfiniteTowerRun.Start                                   += InfiniteTowerRun_Start;
-            On.RoR2.InfiniteTowerRun.AdvanceWave                             += InfiniteTowerRun_AdvanceWave;
-            On.RoR2.InfiniteTowerRun.RecalculateDifficultyCoefficentInternal += InfiniteTowerRun_RecalculateDifficultyCoefficentInternal;
-            On.RoR2.InfiniteTowerBossWaveController.Initialize               += InfiniteTowerBossWaveController_Initialize;
-            On.RoR2.InfiniteTowerWaveController.Initialize                   += InfiniteTowerWaveController_Initialize;
+            On.RoR2.InfiniteTowerRun.Start += InfiniteTowerRun_Start;
+            On.EntityStates.InfiniteTowerSafeWard.AwaitingActivation.OnEnter += AwaitingActivation_OnEnter;
+            On.RoR2.InfiniteTowerRun.CleanUpCurrentWave += InfiniteTowerRun_CleanUpCurrentWave;
+            On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer += InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
+            On.RoR2.InfiniteTowerRun.InitializeWaveController += InfiniteTowerRun_InitializeWaveController;
+            On.RoR2.SceneDirector.Start += SceneDirector_Start;
+            On.RoR2.Run.Start += Run_Start;
+            On.RoR2.Run.OnFixedUpdate += Run_OnFixedUpdate;
         }
 
         private void OnDisable()
         {
-            On.RoR2.InfiniteTowerRun.Start                                   -= InfiniteTowerRun_Start;
-            On.RoR2.InfiniteTowerRun.AdvanceWave                             -= InfiniteTowerRun_AdvanceWave;
-            On.RoR2.InfiniteTowerRun.RecalculateDifficultyCoefficentInternal -= InfiniteTowerRun_RecalculateDifficultyCoefficentInternal;
-            On.RoR2.InfiniteTowerBossWaveController.Initialize               -= InfiniteTowerBossWaveController_Initialize;
-            On.RoR2.InfiniteTowerWaveController.Initialize                   -= InfiniteTowerWaveController_Initialize;
+            On.RoR2.InfiniteTowerRun.Start -= InfiniteTowerRun_Start;
+            On.EntityStates.InfiniteTowerSafeWard.AwaitingActivation.OnEnter -= AwaitingActivation_OnEnter;
+            On.RoR2.InfiniteTowerRun.CleanUpCurrentWave -= InfiniteTowerRun_CleanUpCurrentWave;
+            On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer -= InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
+            On.RoR2.InfiniteTowerRun.InitializeWaveController -= InfiniteTowerRun_InitializeWaveController;
+            On.RoR2.SceneDirector.Start -= SceneDirector_Start;
+            On.RoR2.Run.Start -= Run_Start;
+            On.RoR2.Run.OnFixedUpdate -= Run_OnFixedUpdate;
+        }
+
+        private void Run_OnFixedUpdate(On.RoR2.Run.orig_OnFixedUpdate orig, Run self)
+        {
+            orig(self);
+            if(!ModConfig.Enabled.Value || Run.instance is InfiniteTowerRun infiniteTowerRun || !NetworkServer.active)
+            {
+                return;
+            }
+            int eventDuration = (int)Math.Round(60 * ModConfig.EventDuration.Value);
+            int eventFrequency = (int)Math.Round(60 * ModConfig.EventFrequency.Value);
+            int stopWatch = (int)Math.Round(self.GetRunStopwatch() * 60);
+            int oneSecond = 60 * 1;
+            int sixSeconds = 60 * 6;
+            if(m_activeEvents.Count > 0)
+            {
+                var timer = (stopWatch - m_eventStartTime) % eventFrequency;
+                if(timer >= eventDuration - oneSecond)
+                {
+                    m_announcementGiven = false;
+                    ChatHelper.AnnounceEventConclusion();
+                    StopAllActiveEvents();
+                }
+            }
+            else
+            {
+                var timer = stopWatch % eventFrequency;
+                if (timer >= eventFrequency - sixSeconds && !m_announcementGiven)
+                {
+                    m_announcementGiven = true;
+                    PrepareAndAnnounceUpcomingEvents(0f);
+                }
+                if (timer >= eventFrequency - oneSecond)
+                {
+                    m_announcementGiven = false;
+                    m_eventStartTime = stopWatch;
+                    StartUpcomingEvents();
+                }
+            }
+        }
+        private void Run_Start(On.RoR2.Run.orig_Start orig, Run self)
+        {
+            m_eventStartTime = 0;
+            m_announcementGiven = false;
+            currentEventProbability = ModConfig.EventProbability.Value;
+            orig(self);
+        }
+
+
+        private void SceneDirector_Start(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
+        {
+            orig(self);
+            if (!ModConfig.Enabled.Value || Run.instance is InfiniteTowerRun infiniteTowerRun || !NetworkServer.active)
+            {
+                return;
+            }
+            StopAllActiveEvents();
+            m_eventStartTime = 0;
+            m_announcementGiven = false;
         }
 
         private void InfiniteTowerRun_Start(On.RoR2.InfiniteTowerRun.orig_Start orig, InfiniteTowerRun self)
         {
             orig(self);
-            if (ModCompatibilityServerSideTweaks.enabled)
+            WriteRandomEventsMarkdownFile();
+            // remove incompatible wave categories
+            foreach (var waveCategory in self.waveCategories)
             {
-                ModCompatibilityServerSideTweaks.ResetOverridePowerBias();
-            }
-        }
-        
-        private void InfiniteTowerBossWaveController_Initialize(On.RoR2.InfiniteTowerBossWaveController.orig_Initialize orig, InfiniteTowerBossWaveController self, int waveIndex, Inventory enemyInventory, GameObject spawnTarget)
-        {
-            orig(self, waveIndex, enemyInventory, spawnTarget);
-            if (BepConfig.Enabled.Value && ModCompatibilityServerSideTweaks.enabled)
-            {
-                if (RoR2Application.rng.nextNormalizedFloat < 0.1f)
+                List<InfiniteTowerWaveCategory.WeightedWave> wavePrefabs = new List<InfiniteTowerWaveCategory.WeightedWave>();
+                foreach (var wavePrefab in waveCategory.wavePrefabs)
                 {
-                    if (RoR2Application.rng.nextNormalizedFloat < 0.5f)
+                    if(wavePrefab.wavePrefab.GetComponent<ArtifactEnabler>() == null)
                     {
-                        ModCompatibilityServerSideTweaks.SetOverridePowerBias(0.05f);
-                    }
-                    else
-                    {
-                        ModCompatibilityServerSideTweaks.SetOverridePowerBias(0.95f);
+                        wavePrefabs.Add(wavePrefab);
                     }
                 }
-                else
+                waveCategory.wavePrefabs = wavePrefabs.ToArray();
+            }
+            currentEventProbability = ModConfig.EventProbability.Value;
+        }
+
+        private void InfiniteTowerRun_CleanUpCurrentWave(On.RoR2.InfiniteTowerRun.orig_CleanUpCurrentWave orig, InfiniteTowerRun self)
+        {
+            if (ModConfig.Enabled.Value && NetworkServer.active)
+            {
+                ChatHelper.AnnounceEventConclusion();
+                StopAllActiveEvents();
+            }
+            orig(self);
+        }
+
+        private void StopAllActiveEvents()
+        {
+            m_activeEvents.ForEach(ev => ev.Stop());
+            m_activeEvents.Clear();
+        }
+
+        private void StartUpcomingEvents()
+        {
+            m_activeEvents.AddRange(m_upcomingEvents);
+            m_activeEvents.ForEach(e => e.Start(m_activeEvents));
+            m_upcomingEvents.Clear();
+        }
+
+        private void AwaitingActivation_OnEnter(On.EntityStates.InfiniteTowerSafeWard.AwaitingActivation.orig_OnEnter orig, EntityStates.InfiniteTowerSafeWard.AwaitingActivation self)
+        {
+            orig(self);
+            PrepareAndAnnounceUpcomingEvents(1.0f);
+        }
+
+        private void InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer(On.RoR2.InfiniteTowerRun.orig_OnWaveAllEnemiesDefeatedServer orig, InfiniteTowerRun self, InfiniteTowerWaveController wc)
+        {
+            orig(self, wc);
+            if (ModConfig.Enabled.Value && NetworkServer.active)
+            {
+                StopAllActiveEvents();
+
+                IEnumerator DelayPrepareEvents()
                 {
-                    if (ModCompatibilityServerSideTweaks.enabled)
+                    yield return new WaitForSeconds(1.0f);
+                    if (Run.instance is InfiniteTowerRun instance)
                     {
-                        ModCompatibilityServerSideTweaks.ResetOverridePowerBias();
+                        if (instance.safeWardController.wardStateMachine.state is EntityStates.InfiniteTowerSafeWard.Active)
+                        {
+                            PrepareAndAnnounceUpcomingEvents(0f);
+                        }
                     }
+                }
+                instance.StartCoroutine(DelayPrepareEvents());
+            }
+        }
+
+        private void InfiniteTowerRun_InitializeWaveController(On.RoR2.InfiniteTowerRun.orig_InitializeWaveController orig, InfiniteTowerRun self)
+        {
+            orig(self);
+            if (ModConfig.Enabled.Value && NetworkServer.active && m_upcomingEvents.Count > 0)
+            {
+                StartUpcomingEvents();
+            }
+        }
+
+        private CharacterMaster SpawnHiddenMonsterWithInvadingDoppelgangerItem()
+        {
+            bool foundPosition = false;
+            Vector3 lowestFloor = new Vector3(0f, float.MaxValue, 0f);
+            ReadOnlyCollection<TeamComponent> teamMembers = TeamComponent.GetTeamMembers(TeamIndex.Player);
+            foreach (var teamMember in teamMembers)
+            {
+                if (teamMember.body != null && teamMember.body.isPlayerControlled)
+                {
+                    var floor = Helper.RaycastToFloor(teamMember.body.corePosition, 50f, false);
+                    var lowestPosition = floor.HasValue ? floor.Value : teamMember.body.footPosition;
+                    if (lowestPosition.y < lowestFloor.y)
+                    {
+                        lowestFloor.x = lowestPosition.x;
+                        lowestFloor.y = lowestPosition.y;
+                        lowestFloor.z = lowestPosition.z;
+                        foundPosition = true;
+                    }
+                }
+            }
+            if (!foundPosition)
+            {
+                return null;
+            }
+            lowestFloor.y -= 15f;
+            DirectorPlacementRule directorPlacementRule = new DirectorPlacementRule
+            {
+                placementMode = DirectorPlacementRule.PlacementMode.Direct,
+                position = lowestFloor
+            };
+            SpawnCard spawnCard = someMonster2.WaitForCompletion();
+            DirectorSpawnRequest directorSpawnRequest = new DirectorSpawnRequest(spawnCard, directorPlacementRule, Run.instance.runRNG);
+            directorSpawnRequest.teamIndexOverride = TeamIndex.None;
+            directorSpawnRequest.ignoreTeamMemberLimit = true;
+            directorSpawnRequest.onSpawnedServer = (Action<SpawnCard.SpawnResult>)Delegate.Combine(directorSpawnRequest.onSpawnedServer, (Action<SpawnCard.SpawnResult>)delegate (SpawnCard.SpawnResult result)
+            {
+                var spawnResult = result.spawnedInstance.GetComponent<CharacterMaster>();
+                spawnResult.inventory.GiveItem(RoR2Content.Items.InvadingDoppelganger);
+                spawnResult.inventory.GiveItem(RoR2Content.Items.Ghost);
+            });
+            var result = spawnCard.DoSpawn(directorSpawnRequest.placementRule.position, UnityEngine.Quaternion.identity, directorSpawnRequest).spawnedInstance;
+            return result.GetComponent<CharacterMaster>();
+        }
+
+        IEnumerator DelayChatSendAnnouncement(float time, List<AbstractEvent> events)
+        {
+            yield return new WaitForSeconds(time);
+            if (events.Count == 1)
+            {
+                ChatHelper.AnnounceEvent();
+            }
+            else if (events.Count == 2)
+            {
+                ChatHelper.AnnounceDoubleEvent();
+            }
+            else
+            {
+                ChatHelper.AnnounceTripleEvent();
+            }
+            var gameObject = SpawnHiddenMonsterWithInvadingDoppelgangerItem();
+            yield return new WaitForSeconds(0.5f);
+            gameObject.TrueKill();
+            yield return new WaitForSeconds(0.5f);
+            events[0].GetAnnouncement();
+            string announcement = "";
+            List<string> eventAnnouncements = new List<string>();
+            var conjunction = Language.GetString("ANNOUNCE_EVENTS_CONJUNCTION");
+            for (int i = 0; i < events.Count; i++)
+            {
+                announcement += $"<style=cWorldEvent>{events[i].GetAnnouncement()}</style>";
+                if (i < events.Count - 1)
+                {
+                    announcement += $"<style=cEvent>{conjunction}</style>";
+                }
+            }
+            ChatHelper.Send($"<size=26px>{announcement}</size>");
+            if (events.Count >= 2)
+            {
+                gameObject = SpawnHiddenMonsterWithInvadingDoppelgangerItem();
+                yield return new WaitForSeconds(0.5f);
+                gameObject.TrueKill();
+                if (events.Count >= 3)
+                {
+                    yield return new WaitForSeconds(0.5f);
+                    gameObject = SpawnHiddenMonsterWithInvadingDoppelgangerItem();
+                    yield return new WaitForSeconds(0.5f);
+                    gameObject.TrueKill();
                 }
             }
         }
 
-        private void InfiniteTowerWaveController_Initialize(On.RoR2.InfiniteTowerWaveController.orig_Initialize orig, InfiniteTowerWaveController self, int waveIndex, Inventory enemyInventory, GameObject spawnTarget)
+        [ConCommand(commandName = "start_event", flags = ConVarFlags.ExecuteOnServer, helpText = "Starts the given event. Provide internal event name.")]
+        private static void Command_StartEvent(ConCommandArgs args)
         {
-            //if (NetworkServer.active && BepConfig.Enabled.Value)
-            //{
-            //    if (IsBossStageStarted(waveIndex) && ((InfiniteTowerRun)Run.instance).IsStageTransitionWave() && !bossStageCompleted)
-            //    {
-            //        self.secondsBeforeSuddenDeath *= 3f;
-            //        self.wavePeriodSeconds *= 3f / 2f;
-            //    }
-            //    else
-            //    {
-            //        self.wavePeriodSeconds *= 2f / 3f;
-            //    }
-            //}
-            orig(self, waveIndex, enemyInventory, spawnTarget);
-        }
-        
-        private void InfiniteTowerRun_RecalculateDifficultyCoefficentInternal(On.RoR2.InfiniteTowerRun.orig_RecalculateDifficultyCoefficentInternal orig, InfiniteTowerRun self)
-        {
-            orig(self);
-            //if (BepConfig.DifficultyMultiplier1StartWave.Value <= self.waveIndex && self.waveIndex <= BepConfig.DifficultyMultiplier1EndWave.Value)
-            //{
-            //    self.difficultyCoefficient *= BepConfig.DifficultyMultiplier1.Value;
-            //}
-        }
-        private void InfiniteTowerRun_AdvanceWave(On.RoR2.InfiniteTowerRun.orig_AdvanceWave orig, InfiniteTowerRun self)
-        {
-            orig(self);
-            if (!NetworkServer.active)
+            if (!NetworkServer.active) {
+                Log.LogError($"Events can only be started by the host.");
                 return;
-            //if (BepConfig.Artifact1.Value != ArtifactEnum.None)
-            //{
-            //    if (BepConfig.Artifact1StartWave.Value <= self.waveIndex && self.waveIndex <= BepConfig.Artifact1EndWave.Value)
-            //    {
-            //        RunArtifactManager.instance.SetArtifactEnabledServer(GetArtifactDef(BepConfig.Artifact1.Value), true);
-            //    }
-            //    else if (self.waveIndex == BepConfig.Artifact1EndWave.Value + 1)
-            //    {
-            //        RunArtifactManager.instance.SetArtifactEnabledServer(GetArtifactDef(BepConfig.Artifact1.Value), false);
-            //    }
-            //}
+            }
+            string name = args.GetArgString(0);
+            var ev = instance.FindEventByName(name);
+            if (ev != null)
+            {
+                ev.Prepare();
+                instance.m_activeEvents.Add(ev);
+                ev.Start(instance.m_activeEvents);
+                Log.LogInfo($"Event {ev.GetEventConfigName()} started.");
+                ChatHelper.Send($"<size=28px><style=cWorldEvent>{ev.GetAnnouncement()}</style></size>");
+            }
+            else
+            {
+                Log.LogError($"Can not find event named {name}.");
+            }
+        }
+
+        [ConCommand(commandName = "queue_event", flags = ConVarFlags.ExecuteOnServer, helpText = "Queues the given event. Provide internal event name.")]
+        private static void Command_QueueEvent(ConCommandArgs args)
+        {
+            if (!NetworkServer.active)
+            {
+                Log.LogError($"Events can only be started by the host.");
+                return;
+            }
+            string name = args.GetArgString(0);
+            var ev = instance.FindEventByName(name);
+            if (ev != null)
+            {
+                if(instance.m_upcomingEvents.Contains(ev))
+                {
+                    Log.LogInfo($"Event {ev.GetEventConfigName()} is already in queue.");
+                } else { 
+                    ev.Prepare();
+                    instance.m_upcomingEvents.Add(ev);
+                    Log.LogInfo($"Event {ev.GetEventConfigName()} queued.");
+                }
+            }
+            else
+            {
+                Log.LogError($"Can not find event named {name}.");
+            }
+        }
+
+        [ConCommand(commandName = "stop_event", flags = ConVarFlags.ExecuteOnServer, helpText = "Stop the given event. Keyword all for all currently active events.")]
+        private static void Command_StopEvent(ConCommandArgs args)
+        {
+            if (!NetworkServer.active)
+            {
+                Log.LogError($"Events can only be stopped by the host.");
+                return;
+            }
+            string name = args.GetArgString(0);
+            if(name.Equals("all", StringComparison.InvariantCultureIgnoreCase))
+            {
+                instance.StopAllActiveEvents();
+            } 
+            else
+            {
+                var ev = instance.FindEventByName(name);
+                if (ev != null)
+                {
+                    if (instance.m_activeEvents.Contains(ev))
+                    {
+                        ev.Stop();
+                        instance.m_activeEvents.Remove(ev);
+                        Log.LogInfo($"Event {ev.GetEventConfigName()} stopped.");
+                    }
+                    else
+                    {
+                        Log.LogInfo($"Event {ev.GetEventConfigName()} is not active.");
+                    }
+                }
+                else
+                {
+                    Log.LogError($"Can not find event named {name}.");
+                }
+            }
+        }
+
+
+        public static void WriteRandomEventsMarkdownFile()
+        {
+#if DEBUG
+            string filePath = $"{RandomEvents.PluginName}.md";
+
+            // This will write it next to the RiskOfRain2.exe file
+            using (System.IO.StreamWriter writer = new System.IO.StreamWriter(filePath))
+            {
+                writer.WriteLine("## Random Events");
+                writer.WriteLine("| Event Name | Announcement | Description | Condition |");
+                writer.WriteLine("|------------|--------------|-------------|-----------|");
+                foreach (var ev in RandomEvents.instance.m_allEventsIncludingNotLoadedOnes)
+                {
+                    writer.WriteLine($"| {ev.GetEventConfigName()} | {ev.GetAnnouncement()} | {ev.GetDescription()} | {ev.GetConditionDescription()} |");
+                }
+            }
+#endif
+        }
+
+        private AbstractEvent FindEventByName(string eventName)
+        {
+            foreach (var ev in m_loadedEvents)
+            {
+                if (ev.GetEventConfigName().Equals(eventName, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return ev;
+                }
+            }
+            return null;
         }
     }
 }
