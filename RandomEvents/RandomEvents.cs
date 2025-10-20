@@ -35,7 +35,7 @@ namespace RandomEvents
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "RandomEvents";
-        public const string PluginVersion = "1.0.0";
+        public const string PluginVersion = "1.0.1";
 
         public List<AbstractEvent> m_allEventsIncludingNotLoadedOnes = new List<AbstractEvent>();
         public List<AbstractEvent> m_loadedEvents = new List<AbstractEvent>();

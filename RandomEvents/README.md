@@ -2,7 +2,10 @@
 
 **server-side mod** - only the host needs it installed.
 
-Makes random events happen.
+Makes random events happen. 
+
+- **Compatiblity with other Mods**
+  - [InLobbyConfig](https://thunderstore.io/package/KingEnderBrine/InLobbyConfig/)
 
 ## Random Events
 
