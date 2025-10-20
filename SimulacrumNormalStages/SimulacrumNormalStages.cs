@@ -14,9 +14,9 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements.UIR;
 using static RoR2.SceneCollection;
-using static SimulacrumNormalStages.EnumCollection;
 
 namespace SimulacrumNormalStages
 {
@@ -304,12 +304,16 @@ namespace SimulacrumNormalStages
             });
         }
 
+        private bool IsCurrentMapInBazaar()
+        {
+            return SceneManager.GetActiveScene().name == "bazaar";
+        }
+
         private void InfiniteTowerRun_OnPrePopulateSceneServer(ILContext il)
         {
             ReturnImmediately(il, (InfiniteTowerRun self) =>
             {
-                SceneDef sceneDefForCurrentScene = SceneCatalog.GetSceneDefForCurrentScene();
-                if (sceneDefForCurrentScene.baseSceneName == GetStageName(StageEnum.Bazaar))
+                if (IsCurrentMapInBazaar())
                 {
                     self.PerformStageCleanUp();
                     return true;
