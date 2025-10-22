@@ -124,7 +124,10 @@ namespace RandomEvents
 
         public override void Stop()
         {
-            ClassicStageInfo.instance.RebuildCards();
+            if (ClassicStageInfo.instance != null)
+            {
+                ClassicStageInfo.instance.RebuildCards();
+            }
         }
     }
 }

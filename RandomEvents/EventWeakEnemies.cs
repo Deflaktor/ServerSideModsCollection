@@ -99,7 +99,10 @@ namespace RandomEvents
         public override void Stop()
         {
             // ModCompatibilityServerSideTweaks.ResetOverridePowerBias();
-            ClassicStageInfo.instance.RebuildCards();
+            if (ClassicStageInfo.instance != null)
+            {
+                ClassicStageInfo.instance.RebuildCards();
+            }
         }
     }
 }

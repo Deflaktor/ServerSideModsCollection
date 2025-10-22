@@ -54,7 +54,8 @@
         "ANNOUNCE_EVENT_ZOMBIES": "The dead refuse to rest",
         "ANNOUNCE_EVENT_RANDOM_TEAMS": "Enemies turn against each other",
         "ANNOUNCE_EVENT_EQUIPMENT_ONLY": "Equipment-exclusive combat",
-        "ANNOUNCE_EVENT_FUEL_ARRAY": "Stay above 50% health or face disaster"
-
+        "ANNOUNCE_EVENT_FUEL_ARRAY": "Stay above 50% health or face disaster",
+        "ANNOUNCE_EVENT_MONSTER_TRANSFORM": "Players embrace their monstrous forms"
+        
     }
 }

@@ -35,7 +35,7 @@ namespace RandomEvents
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "RandomEvents";
-        public const string PluginVersion = "1.0.1";
+        public const string PluginVersion = "1.1.0";
 
         public List<AbstractEvent> m_allEventsIncludingNotLoadedOnes = new List<AbstractEvent>();
         public List<AbstractEvent> m_loadedEvents = new List<AbstractEvent>();
@@ -52,30 +52,34 @@ namespace RandomEvents
             PInfo = Info;
             instance = this;
             Log.Init(Logger);
-
             ChatHelper.RegisterLanguageTokens();
 
-            TemporaryInventory.Hook();
-            TemporaryEquipment.Hook();
+            BodyCatalog.availability.CallWhenAvailable(() =>
+            {
+                Helper.InitDropTables();
+                TemporaryInventory.Hook();
+                TemporaryEquipment.Hook();
 
-            ModConfig.Init();
-            InitAndHookEvent(new EventBulletHell());
-            InitAndHookEvent(new EventCasinoItem());
-            InitAndHookEvent(new EventEquipmentOnly());
-            InitAndHookEvent(new EventExplodingCorpses());
-            InitAndHookEvent(new EventFallingEnemies());
-            InitAndHookEvent(new EventFuelArray());
-            InitAndHookEvent(new EventGhosts());
-            InitAndHookEvent(new EventHaste());
-            InitAndHookEvent(new EventItemZone());
-            InitAndHookEvent(new EventRandomArtifact());
-            InitAndHookEvent(new EventRandomTeams());
-            InitAndHookEvent(new EventSkillsOnly());
-            InitAndHookEvent(new EventSmallArena());
-            InitAndHookEvent(new EventStrongEnemies());
-            InitAndHookEvent(new EventWeakEnemies());
-            InitAndHookEvent(new EventZombies());
-            ModConfig.InLobbyConfig();
+                ModConfig.Init();
+                InitAndHookEvent(new EventBulletHell());
+                InitAndHookEvent(new EventCasinoItem());
+                InitAndHookEvent(new EventEquipmentOnly());
+                InitAndHookEvent(new EventExplodingCorpses());
+                InitAndHookEvent(new EventFallingEnemies());
+                InitAndHookEvent(new EventFuelArray());
+                InitAndHookEvent(new EventGhosts());
+                InitAndHookEvent(new EventHaste());
+                InitAndHookEvent(new EventItemZone());
+                InitAndHookEvent(new EventMonsterTransform());
+                InitAndHookEvent(new EventRandomArtifact());
+                InitAndHookEvent(new EventRandomTeams());
+                InitAndHookEvent(new EventSkillsOnly());
+                InitAndHookEvent(new EventSmallArena());
+                InitAndHookEvent(new EventStrongEnemies());
+                InitAndHookEvent(new EventWeakEnemies());
+                InitAndHookEvent(new EventZombies());
+                ModConfig.InLobbyConfig();
+            });
 
             someMonster = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/MajorAndMinorConstruct/cscMinorConstruct.asset");
             someMonster2 = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/Wisp/cscLesserWisp.asset");
@@ -247,7 +251,7 @@ namespace RandomEvents
 
         private void InfiniteTowerRun_CleanUpCurrentWave(On.RoR2.InfiniteTowerRun.orig_CleanUpCurrentWave orig, InfiniteTowerRun self)
         {
-            if (ModConfig.Enabled.Value && NetworkServer.active)
+            if (ModConfig.Enabled.Value && NetworkServer.active && m_activeEvents.Count > 0)
             {
                 ChatHelper.AnnounceEventConclusion();
                 StopAllActiveEvents();
@@ -512,6 +516,45 @@ namespace RandomEvents
                 }
             }
             return null;
+        }
+
+
+        private static int currentMonsterIndex = 0;
+        [ConCommand(commandName = "transform_next_monster", flags = ConVarFlags.ExecuteOnServer, helpText = "Transforms into the next body from the body list.")]
+        private static void Command_TransformNextMonster(ConCommandArgs args)
+        {
+            if (!NetworkServer.active)
+            {
+                Log.LogError($"Only the host can transform players into monsters.");
+                return;
+            }
+            if(args.Count == 1) { 
+                string index = args.GetArgString(0);
+                if (index != null)
+                {
+                    currentMonsterIndex = int.Parse(index);
+                }
+            }
+
+            var ev = instance.FindEventByName("MonsterTransform");
+            if (ev != null)
+            {
+                var monsterTransformEvent = (EventMonsterTransform)ev;
+                if (currentMonsterIndex >= monsterTransformEvent.validBodyPrefabs.Count)
+                {
+                    currentMonsterIndex = 0;
+                }
+                var target = monsterTransformEvent.validBodyPrefabs[currentMonsterIndex];
+                Log.LogInfo($"Transform into {target.name}");
+                foreach(var pc in PlayerCharacterMasterController.instances)
+                {
+                    if(pc.isConnected)
+                    {
+                        monsterTransformEvent.TransformInto(pc, target);
+                    }
+                }
+            }
+            currentMonsterIndex++;
         }
     }
 }

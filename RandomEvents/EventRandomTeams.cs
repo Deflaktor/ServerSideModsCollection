@@ -41,6 +41,7 @@ namespace RandomEvents
         }
         protected override void AddConfig(ConfigFile config)
         {
+            
         }
 
         public override void Preload()
@@ -88,9 +89,9 @@ namespace RandomEvents
                     List<TeamIndex> candidates = new List<TeamIndex>();
                     //candidates.Add(TeamIndex.Player);
                     candidates.Add(TeamIndex.Void);
-                    candidates.Add(TeamIndex.Neutral);
+                    //candidates.Add(TeamIndex.Neutral);
                     candidates.Add(TeamIndex.Monster);
-                    candidates.Add(TeamIndex.None);
+                    //candidates.Add(TeamIndex.None);
                     originalTeam.Add(body.gameObject, body.teamComponent.teamIndex);
                     body.teamComponent.teamIndex = candidates.OrderBy(x => UnityEngine.Random.Range(0f, 1f)).ToList().First();
                 }

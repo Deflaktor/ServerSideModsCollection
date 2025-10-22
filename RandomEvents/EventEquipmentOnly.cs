@@ -27,6 +27,11 @@ namespace RandomEvents
         }
         public override bool Condition(List<AbstractEvent> activeOtherEvents)
         {
+            var enigmaArtifactActive = RunArtifactManager.enabledArtifactsEnumerable.Any(e => e == RoR2Content.Artifacts.Enigma);
+            if (enigmaArtifactActive)
+            {
+                return false;
+            }
             return !activeOtherEvents.Any(e => e.GetEventConfigName().Equals("SkillsOnly", StringComparison.InvariantCultureIgnoreCase)
                                             || e.GetEventConfigName().Equals("FuelArray", StringComparison.InvariantCultureIgnoreCase));
         }
@@ -44,7 +49,7 @@ namespace RandomEvents
         }
         public override string GetConditionDescription()
         {
-            return "Events \"SkillsOnly\", \"FuelArray\" inactive.";
+            return "Events \"SkillsOnly\", \"FuelArray\" inactive. Artifact of Enigma inactive.";
         }
         protected override void AddConfig(ConfigFile config)
         {

@@ -17,7 +17,7 @@ namespace RandomEvents
 {
     public class TemporaryInventory : MonoBehaviour
     {
-        private Dictionary<ItemIndex, int> temporaryItems = new Dictionary<ItemIndex, int>();
+        public Dictionary<ItemIndex, int> temporaryItems = new Dictionary<ItemIndex, int>();
 
         public static void Hook()
         {

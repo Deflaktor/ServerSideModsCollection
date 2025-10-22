@@ -32,7 +32,8 @@ namespace RandomEvents
                 }
             }
             var artifactCandidates = new List<ArtifactDef>(ArtifactCatalog.artifactDefs);
-            if (atLeastOneCharacterHasAutoCastEquipment)
+            var equipmentOnlyActive = activeOtherEvents.Any(e => e.GetEventConfigName().Equals("EquipmentOnly", StringComparison.InvariantCultureIgnoreCase));
+            if (atLeastOneCharacterHasAutoCastEquipment || equipmentOnlyActive)
             {
                 artifactCandidates.Remove(RoR2Content.Artifacts.Enigma);
             }

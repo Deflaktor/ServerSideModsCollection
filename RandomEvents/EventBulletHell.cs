@@ -104,14 +104,16 @@ namespace RandomEvents
                     {
                         inventory = gameObject.AddComponent<TemporaryInventory>();
                     }
-                    var bulletHellFactor = 10f;
+                    var bulletHellFactor = 3f;
                     var tonicAfflictions = Mathf.RoundToInt(Mathf.Log(bulletHellFactor) / Mathf.Log(0.95f));
                     var hpFactor = 1f / (1f + 0.1f * tonicAfflictions);
                     var otherAttributesFactor = Mathf.Pow(0.95f, tonicAfflictions);
+                    var alienHeadAmount = Mathf.RoundToInt(-Mathf.Log(bulletHellFactor, 0.75f));
                     inventory.GiveTemporaryItem(RoR2Content.Items.TonicAffliction.itemIndex, tonicAfflictions);
                     inventory.GiveTemporaryItem(RoR2Content.Items.BoostHp.itemIndex, Mathf.RoundToInt(10 / hpFactor));
                     inventory.GiveTemporaryItem(RoR2Content.Items.Hoof.itemIndex, Mathf.RoundToInt(14 / otherAttributesFactor));
                     inventory.GiveTemporaryItem(RoR2Content.Items.BoostAttackSpeed.itemIndex, Mathf.RoundToInt(bulletHellFactor * 10 / otherAttributesFactor));
+                    inventory.GiveTemporaryItem(RoR2Content.Items.AlienHead.itemIndex, alienHeadAmount);
                 }
             }
 
