@@ -11,7 +11,7 @@ namespace RandomEvents
     {
         public override bool LoadCondition()
         {
-            return ModCompatibilityServerSideTweaks.enabled;
+            return true;
         }
         public override bool Condition(List<AbstractEvent> activeOtherEvents)
         {

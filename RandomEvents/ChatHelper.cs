@@ -1,5 +1,4 @@
-﻿using R2API;
-using RoR2;
+﻿using RoR2;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,43 +10,6 @@ namespace RandomEvents
 {
     class ChatHelper
     {
-        internal static string LanguageRoot
-        {
-            get
-            {
-                return System.IO.Path.Combine(AssemblyDir, "Language");
-            }
-        }
-
-        internal static string AssemblyDir
-        {
-            get
-            {
-                return System.IO.Path.GetDirectoryName(RandomEvents.PInfo.Location);
-            }
-        }
-        public static void RegisterLanguageTokens()
-        {
-            On.RoR2.Language.SetFolders += Language_SetFolders;
-        }
-
-        private static void Language_SetFolders(On.RoR2.Language.orig_SetFolders orig, Language self, IEnumerable<string> newFolders)
-        {
-            if (Directory.Exists(LanguageRoot))
-            {
-                IEnumerable<string> second = Directory.EnumerateDirectories(System.IO.Path.Combine(new string[]
-                {
-                    LanguageRoot
-                }), self.name);
-                orig(self, newFolders.Union(second));
-            }
-            else
-            {
-                orig(self, newFolders);
-            }
-        }
-
-
         private static System.Random rand = new System.Random();
 
         private const string GrayColor = "7e91af";

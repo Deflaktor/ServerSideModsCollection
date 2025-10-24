@@ -2,10 +2,8 @@ using BepInEx;
 using HarmonyLib;
 using MonoMod.Cil;
 using Newtonsoft.Json.Linq;
-using R2API;
 using R2API.Utils;
 using RoR2;
-using ServerSideTweaks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -22,9 +20,9 @@ using static Rewired.UI.ControlMapper.ControlMapper;
 
 namespace RandomEvents
 {
-    [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("Def.ServerSideTweaks", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(R2API.R2API.PluginGUID)]
+    [BepInDependency(R2API.LanguageAPI.PluginGUID)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class RandomEvents : BaseUnityPlugin
@@ -52,7 +50,6 @@ namespace RandomEvents
             PInfo = Info;
             instance = this;
             Log.Init(Logger);
-            ChatHelper.RegisterLanguageTokens();
 
             BodyCatalog.availability.CallWhenAvailable(() =>
             {
@@ -177,9 +174,9 @@ namespace RandomEvents
             {
                 return;
             }
-            int eventDuration = (int)Math.Round(60 * ModConfig.EventDuration.Value);
-            int eventFrequency = (int)Math.Round(60 * ModConfig.EventFrequency.Value);
-            int stopWatch = (int)Math.Round(self.GetRunStopwatch() * 60);
+            int eventDuration = Mathf.RoundToInt(60 * ModConfig.EventDuration.Value);
+            int eventFrequency = Mathf.RoundToInt(60 * ModConfig.EventFrequency.Value);
+            int stopWatch = Mathf.RoundToInt(self.GetRunStopwatch() * 60);
             int oneSecond = 60 * 1;
             int sixSeconds = 60 * 6;
             if(m_activeEvents.Count > 0)
@@ -347,7 +344,7 @@ namespace RandomEvents
             {
                 var spawnResult = result.spawnedInstance.GetComponent<CharacterMaster>();
                 spawnResult.inventory.GiveItem(RoR2Content.Items.InvadingDoppelganger);
-                spawnResult.inventory.GiveItem(RoR2Content.Items.Ghost);
+                spawnResult.inventory.GiveItem(RoR2Content.Items.HealthDecay);
             });
             var result = spawnCard.DoSpawn(directorSpawnRequest.placementRule.position, UnityEngine.Quaternion.identity, directorSpawnRequest).spawnedInstance;
             return result.GetComponent<CharacterMaster>();

@@ -1,6 +1,5 @@
 ﻿using BepInEx.Configuration;
 using EntityStates.InfiniteTowerSafeWard;
-using R2API;
 using RoR2;
 using System;
 using System.Collections.Generic;

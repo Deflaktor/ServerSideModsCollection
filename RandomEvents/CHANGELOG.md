@@ -1,3 +1,11 @@
+# 1.1.1
+
+- Fix language tokens missing
+- Fix dependencies
+- Remove ServerSideTweaks as a soft dependency
+- Fix invincible wisp spawning on each event
+- Reset cooldown of equipment when `EquipmentOnly` event starts
+
 # 1.1.0
 
 - Update Icon

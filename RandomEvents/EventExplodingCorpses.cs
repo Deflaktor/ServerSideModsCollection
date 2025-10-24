@@ -1,6 +1,5 @@
 ﻿using BepInEx.Configuration;
 using HG;
-using R2API;
 using RoR2;
 using RoR2.Projectile;
 using RoR2.Skills;

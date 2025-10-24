@@ -104,16 +104,27 @@ namespace RandomEvents
                     {
                         inventory = gameObject.AddComponent<TemporaryInventory>();
                     }
-                    var bulletHellFactor = 3f;
-                    var tonicAfflictions = Mathf.RoundToInt(Mathf.Log(bulletHellFactor) / Mathf.Log(0.95f));
-                    var hpFactor = 1f / (1f + 0.1f * tonicAfflictions);
-                    var otherAttributesFactor = Mathf.Pow(0.95f, tonicAfflictions);
-                    var alienHeadAmount = Mathf.RoundToInt(-Mathf.Log(bulletHellFactor, 0.75f));
-                    inventory.GiveTemporaryItem(RoR2Content.Items.TonicAffliction.itemIndex, tonicAfflictions);
-                    inventory.GiveTemporaryItem(RoR2Content.Items.BoostHp.itemIndex, Mathf.RoundToInt(10 / hpFactor));
-                    inventory.GiveTemporaryItem(RoR2Content.Items.Hoof.itemIndex, Mathf.RoundToInt(14 / otherAttributesFactor));
-                    inventory.GiveTemporaryItem(RoR2Content.Items.BoostAttackSpeed.itemIndex, Mathf.RoundToInt(bulletHellFactor * 10 / otherAttributesFactor));
-                    inventory.GiveTemporaryItem(RoR2Content.Items.AlienHead.itemIndex, alienHeadAmount);
+                    // originalGame:
+                    // num97 = Mathf.Pow(0.95f, tonicAfflictions)
+                    // attackSpeed *= num97;
+                    // moveSpeed *= num97;
+                    // damage *= num97;
+                    // regen *= num97;
+                    // cursePenalty = 1f + 0.1f * tonicAfflictions;
+                    // maxHealth *= 1f + 0.1f * BoostHP
+                    // maxHealth /= cursePenalty;
+                    var attackSpeedFactor = 4f;
+                    var damageFactor = 0.1f;
+                    var alienHeadAmount = Mathf.RoundToInt(-Mathf.Log(attackSpeedFactor, 0.75f));
+                    var tonicAfflictionAmount = Mathf.RoundToInt(Mathf.Log(damageFactor) / Mathf.Log(0.95f));
+                    inventory.GiveTemporaryItem(RoR2Content.Items.TonicAffliction.itemIndex, tonicAfflictionAmount);
+                    inventory.GiveTemporaryItem(RoR2Content.Items.BoostHp.itemIndex, Mathf.RoundToInt(10f * 0.10f * tonicAfflictionAmount));
+                    inventory.GiveTemporaryItem(RoR2Content.Items.Hoof.itemIndex, Mathf.RoundToInt(10 * 0.14f * tonicAfflictionAmount));
+                    inventory.GiveTemporaryItem(RoR2Content.Items.BoostAttackSpeed.itemIndex, Mathf.RoundToInt(attackSpeedFactor * 10 * 0.1f * tonicAfflictionAmount));
+                    // VoidJailer perma stunning is not fun
+                    if (!body.name.Equals("VoidJailerBody")) {
+                        inventory.GiveTemporaryItem(RoR2Content.Items.AlienHead.itemIndex, alienHeadAmount);
+                    }
                 }
             }
 
