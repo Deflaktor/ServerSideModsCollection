@@ -1,3 +1,7 @@
+# 2.0.1
+
+- Fix readme.md markup issues
+
 # 2.0.0
 
 - Item lists are now loaded dynamically from what is available

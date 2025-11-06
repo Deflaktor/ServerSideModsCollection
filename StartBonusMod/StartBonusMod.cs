@@ -27,7 +27,7 @@ namespace StartBonusMod
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "StartBonusMod";
-        public const string PluginVersion = "2.0.0";
+        public const string PluginVersion = "2.0.1";
 
         private List<PlayerCharacterMasterController> itemGivenTo = new List<PlayerCharacterMasterController>();
 

@@ -1,4 +1,4 @@
-﻿# StartBonusMod
+# StartBonusMod
 
 This mod gives every player a configurable set of items and starting cash at the beginning of a run. 
 I made it so that I can use [StartInBazaar](https://thunderstore.io/package/MagnusMagnuson/StartInBazaar/) in combination with [BiggerBazaar](https://thunderstore.io/package/MagnusMagnuson/BiggerBazaar/) and/or [BazaarIsMyHaven](https://thunderstore.io/package/Def/BazaarIsMyHaven/).
@@ -62,14 +62,14 @@ Each entry in the itemlist shall follow the format: `<repeat>x<itemkey>*<multipl
 
 ### Summary Table
 
-| Operator | Symbol | Description                                                                             | Example                           |
-|----------|--------|-----------------------------------------------------------------------------------------|-----------------------------------|
-| And      | `&`    | All items, together                                                                     | `A & B`                           |
-| Or       | `|`    | Only one item, random (optional weight via `:`)                                         | `A | B:0.7 | C:0.3`               |
-| Weight   | `:`    | Specifies probability weight for options when using `|`                                 | `A:0.6 | B:0.4`                   |
-| Repeat   | `x`    | Repeats the following item/group N times                                                | `5xA` or `3x{A | B}`              |
-| Multiply | `*`    | Multiplies the amount of granted items in the group by N                                | `{A & B}*4`                       |
-| Grouping | `{}`   | Groups items/expressions to control operation order                                     | `{A & 2xB}`                       |
+| Operator | Symbol | Description                                               | Example                           |
+|----------|--------|-----------------------------------------------------------|-----------------------------------|
+| And      | `&`    | All items, together                                       | `A & B`                           |
+| Or       | `\|`   | Only one item, random (optional weight via `:`)           | `A \| B:0.7 \| C:0.3`             |
+| Weight   | `:`    | Specifies probability weight for options when using `\|`  | `A:0.6 \| B:0.4`                  |
+| Repeat   | `x`    | Repeats the following item/group N times                  | `5xA` or `3x{A \| B}`             |
+| Multiply | `*`    | Multiplies the amount of granted items in the group by N  | `{A & B}*4`                       |
+| Grouping | `{}`   | Groups items/expressions to control operation order       | `{A & 2xB}`                       |
 
 ### Examples
 
@@ -109,7 +109,7 @@ The player shall get 5 copies of two random whites or 4 copies of a random green
 ItemList = 2xTier1*5 | Tier2*4
 ```
 
-The player shall get either 5 Bison Steaks and 5 Hooves or with 1 Infusion and 1 Feather:
+The player shall get either 5 Bison Steaks and 5 Hooves or 1 Infusion and 1 Feather:
 ```
 ItemList = { 5xFlatHealth & 5xHoof } | { Infusion & Feather }
 ```
