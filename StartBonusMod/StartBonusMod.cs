@@ -1,14 +1,16 @@
 using BepInEx;
+using MonoMod.Cil;
 using R2API;
 using R2API.Utils;
 using RoR2;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using MonoMod.Cil;
-using System;
-using System.Reflection;
 using UnityEngine.Networking;
-using static StartBonusMod.EnumCollection;
 using UnityEngine.UIElements;
 
 namespace StartBonusMod
@@ -25,24 +27,41 @@ namespace StartBonusMod
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "StartBonusMod";
-        public const string PluginVersion = "1.1.0";
+        public const string PluginVersion = "2.0.0";
+
+        private List<PlayerCharacterMasterController> itemGivenTo = new List<PlayerCharacterMasterController>();
 
         public void Awake()
         {
             PInfo = Info;
             instance = this;
             Log.Init(Logger);
-            BepConfig.Init();
+            RoR2.Language.onCurrentLanguageChanged += () =>
+            {
+                ItemCatalog.availability.CallWhenAvailable(() =>
+                {
+                    EquipmentCatalog.availability.CallWhenAvailable(() =>
+                    {
+                        BepConfig.Init();
+                    });
+                });
+            };
+
         }
+
         private void OnEnable()
         {
             IL.RoR2.Run.SetupUserCharacterMaster += Run_SetupUserCharacterMaster;
+            On.RoR2.Run.OnServerCharacterBodySpawned += Run_OnServerCharacterBodySpawned;
+            On.RoR2.Run.Start += Run_Start;
             //RoR2.NetworkUser.onPostNetworkUserStart += NetworkUser_onPostNetworkUserStart;
         }
 
         private void OnDisable()
         {
             IL.RoR2.Run.SetupUserCharacterMaster -= Run_SetupUserCharacterMaster;
+            On.RoR2.Run.OnServerCharacterBodySpawned -= Run_OnServerCharacterBodySpawned;
+            On.RoR2.Run.Start -= Run_Start;
             //RoR2.NetworkUser.onPostNetworkUserStart -= NetworkUser_onPostNetworkUserStart;
         }
 
@@ -60,7 +79,7 @@ namespace StartBonusMod
             c.Remove();
             c.EmitDelegate((CharacterMaster characterMaster, uint startingMoney) =>
             {
-                if (BepConfig.StartingCash.Value > 0)
+                if (BepConfig.StartingCash.Value > 0 && BepConfig.Enabled.Value)
                 {
                     if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.MagnusMagnuson.StartInBazaar"))
                     {
@@ -75,9 +94,75 @@ namespace StartBonusMod
                 {
                     characterMaster.GiveMoney(startingMoney);
                 }
-                GiveStartingItems(characterMaster.inventory);
             });
         }
+
+        private void Run_Start(On.RoR2.Run.orig_Start orig, Run self)
+        {
+            instance.itemGivenTo.Clear();
+            orig(self);
+        }
+
+        private void Run_OnServerCharacterBodySpawned(On.RoR2.Run.orig_OnServerCharacterBodySpawned orig, Run self, CharacterBody characterBody)
+        {
+            orig(self, characterBody);
+            if (NetworkServer.active && BepConfig.Enabled.Value)
+            {
+                var master = characterBody.master;
+                if (master != null)
+                {
+                    if (master.playerCharacterMasterController != null)
+                    {
+                        if (!instance.itemGivenTo.Contains(master.playerCharacterMasterController))
+                        {
+                            if (BepConfig.SimpleEnabled.Value)
+                                GiveStartingItems(master.inventory);
+                            if (BepConfig.AdvancedEnabled.Value)
+                                GiveStartingItemsAdvanced(master.inventory);
+                            instance.itemGivenTo.Add(master.playerCharacterMasterController);
+                        }
+                    }
+                }
+            }
+        }
+
+
+        private void GiveStartingItemsAdvanced(Inventory inventory)
+        {
+            Dictionary<PickupIndex, int> itemsToGive = new Dictionary<PickupIndex, int>();
+            List<PickupIndex> blacklist = new List<PickupIndex>();
+            foreach(var blacklistEntry in BepConfig.AdvancedBlackList.Value.Split(','))
+            {
+                var blacklistPickupIndex = PickupCatalog.FindPickupIndex(blacklistEntry);
+                if(blacklistPickupIndex != PickupIndex.none)
+                {
+                    blacklist.Add(blacklistPickupIndex);
+                }
+            }
+            Helper.ParseItemStringReward(BepConfig.AdvancedItemList.Value, itemsToGive, blacklist);
+            foreach (var item in itemsToGive)
+            {
+                var itemIndex = PickupCatalog.GetPickupDef(item.Key).itemIndex;
+                var itemAmount = item.Value;
+                if (itemIndex != ItemIndex.None && itemAmount > 0)
+                {
+                    inventory.GiveItem(itemIndex, itemAmount);
+                }
+            }
+            itemsToGive.Clear();
+            Helper.ParseItemStringReward(BepConfig.AdvancedEquipmentList.Value, itemsToGive, blacklist);
+            foreach (var item in itemsToGive)
+            {
+                var equipmentIndex = PickupCatalog.GetPickupDef(item.Key).equipmentIndex;
+                var itemAmount = item.Value;
+                if (equipmentIndex != EquipmentIndex.None && itemAmount > 0)
+                {
+                    inventory.SetEquipmentIndex(equipmentIndex);
+                    break;
+                }
+            }
+        }
+
         //private void NetworkUser_onPostNetworkUserStart(NetworkUser networkUser)
         //{
         //    if (NetworkServer.active && Run.instance != null && networkUser.master == null)
@@ -89,46 +174,51 @@ namespace StartBonusMod
 
         private void GiveStartingItems(Inventory inventory)
         {
-            ItemDef itemDef = ToItemDef(BepConfig.StartingItemWhite.Value);
-            int count = BepConfig.StartingItemWhiteCount.Value;
-            if (itemDef && count > 0)
+            foreach(var (itemTier, configEnglishName) in BepConfig.StartingItemByTier)
             {
-                inventory.GiveItem(itemDef, count);
+                var amount = BepConfig.StartingItemByTierAmount[itemTier].Value;
+                if (amount <= 0)
+                    continue;
+                if (configEnglishName.Value.Equals("Random"))
+                {
+                    Dictionary<PickupIndex, int> itemsToGive = new Dictionary<PickupIndex, int>();
+                    Helper.ResolveItemKey(itemTier.ToString(), amount, itemsToGive);
+                    foreach (var item in itemsToGive)
+                    {
+                        var itemIndex = PickupCatalog.GetPickupDef(item.Key).itemIndex;
+                        var itemAmount = item.Value;
+                        if (itemIndex != ItemIndex.None && itemAmount > 0)
+                        {
+                            inventory.GiveItem(itemIndex, itemAmount);
+                        }
+                    }
+                }
+                else
+                {
+                    ItemIndex itemIndex = ItemIndex.None;
+                    itemIndex = BepConfig.englishNameToItemIndex[configEnglishName.Value];
+                    if (itemIndex != ItemIndex.None)
+                    {
+                        inventory.GiveItem(itemIndex, amount);
+                    }
+                }
             }
-            itemDef = ToItemDef(BepConfig.StartingItemGreen.Value);
-            count = BepConfig.StartingItemGreenCount.Value;
-            if (itemDef && count > 0)
+            EquipmentIndex equipmentIndex = EquipmentIndex.None;
+            if(BepConfig.StartingEquipment.Value.Equals("Random"))
             {
-                inventory.GiveItem(itemDef, count);
+                var pickupIndex = Helper.GetRandom(Run.instance.availableEquipmentDropList, PickupIndex.none);
+                if(pickupIndex != PickupIndex.none)
+                {
+                    equipmentIndex = PickupCatalog.GetPickupDef(pickupIndex).equipmentIndex;
+                }
             }
-            itemDef = ToItemDef(BepConfig.StartingItemRed.Value);
-            count = BepConfig.StartingItemRedCount.Value;
-            if (itemDef && count > 0)
+            else
             {
-                inventory.GiveItem(itemDef, count);
+                equipmentIndex = BepConfig.englishNameToEquipmentIndex[BepConfig.StartingEquipment.Value];
             }
-            itemDef = ToItemDef(BepConfig.StartingItemBoss.Value);
-            count = BepConfig.StartingItemBossCount.Value;
-            if (itemDef && count > 0)
+            if (equipmentIndex != EquipmentIndex.None)
             {
-                inventory.GiveItem(itemDef, count);
-            }
-            itemDef = ToItemDef(BepConfig.StartingItemLunar.Value);
-            count = BepConfig.StartingItemLunarCount.Value;
-            if (itemDef && count > 0)
-            {
-                inventory.GiveItem(itemDef, count);
-            }
-            itemDef = ToItemDef(BepConfig.StartingItemVoid.Value);
-            count = BepConfig.StartingItemVoidCount.Value;
-            if (itemDef && count > 0)
-            {
-                inventory.GiveItem(itemDef, count);
-            }
-            var equipIndex = ToEquipIndex(BepConfig.StartingItemEquip.Value);
-            if (equipIndex != EquipmentIndex.None)
-            {
-                inventory.SetEquipmentIndex(equipIndex);
+                inventory.SetEquipmentIndex(equipmentIndex);
             }
         }
     }
