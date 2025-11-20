@@ -4,8 +4,7 @@
 	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
 	"description": "SimulacrumBossStageMod",
 	"dependencies": [
-		"bbepis-BepInExPack-5.4.9",
-		"RiskofThunder-HookGenPatcher-1.2.1",
+		"RiskofThunder-R2API_Core-5.1.7",
 		"Def-SimulacrumNormalStages-1.0.2"
 	]
 }

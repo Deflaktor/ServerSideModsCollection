@@ -53,7 +53,6 @@ namespace RandomEvents
 
             BodyCatalog.availability.CallWhenAvailable(() =>
             {
-                Helper.InitDropTables();
                 TemporaryInventory.Hook();
                 TemporaryEquipment.Hook();
 

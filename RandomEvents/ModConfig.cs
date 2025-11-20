@@ -21,18 +21,18 @@ namespace RandomEvents
         {
             var config = RandomEvents.instance.Config;
 
-            Enabled = config.Bind("Main", "Enabled", true, "Enable Mod");
-            EventProbability = config.Bind("Main", "Event Probability", 0.20f, "Probability for an event to occur.");
-            EventProbabilityIncrease = config.Bind("Main", "Event Probability Increase", 0.20f, "Increases the probability each time an event does NOT occur. Until an event occurs, at which point the probability is reset.");
-            SingleEventWeight = config.Bind("Main", "Single Event Weight", 0.60f, "Weight for a single event to occur.");
-            DoubleEventWeight = config.Bind("Main", "Double Event Weight", 0.30f, "Weight for a double event to occur.");
-            TripleEventWeight = config.Bind("Main", "Triple Event Weight", 0.10f, "Weight for a triple event to occur.");
-            EventFrequency = config.Bind("Main", "Event Timer", 60f, "Only Main Mode: Do an event check every x seconds. Minimum is 5 seconds.");
+            Enabled = config.Bind("00 Main", "Enabled", true, "Enable Mod");
+            EventProbability = config.Bind("00 Main", "Event Probability", 0.20f, "Probability for an event to occur.");
+            EventProbabilityIncrease = config.Bind("00 Main", "Event Probability Increase", 0.20f, "Increases the probability each time an event does NOT occur. Until an event occurs, at which point the probability is reset.");
+            SingleEventWeight = config.Bind("00 Main", "Single Event Weight", 0.60f, "Weight for a single event to occur.");
+            DoubleEventWeight = config.Bind("00 Main", "Double Event Weight", 0.30f, "Weight for a double event to occur.");
+            TripleEventWeight = config.Bind("00 Main", "Triple Event Weight", 0.10f, "Weight for a triple event to occur.");
+            EventFrequency = config.Bind("00 Main", "Event Timer", 60f, "Only Main Mode: Do an event check every x seconds. Minimum is 5 seconds.");
             if(EventFrequency.Value < 5f)
             {
                 EventFrequency.Value = 5f;
             }
-            EventDuration = config.Bind("Main", "Event Duration", 45f, "Only Main Mode: How long the event lasts. In seconds.");
+            EventDuration = config.Bind("00 Main", "Event Duration", 45f, "Only Main Mode: How long the event lasts. In seconds.");
         }
 
         public static void InLobbyConfig()

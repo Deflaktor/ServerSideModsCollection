@@ -51,7 +51,7 @@ namespace ServerSideItems
             On.RoR2.VoidMegaCrabItemBehavior.FixedUpdate += VoidMegaCrabItemBehavior_FixedUpdate;
             On.RoR2.CharacterMaster.OnBodyDeath += CharacterMaster_OnBodyDeath;
             RoR2.Stage.onServerStageBegin += Stage_onServerStageBegin;
-            On.RoR2.HealthComponent.TakeDamageProcess += HealthComponent_TakeDamageProcess;
+            //On.RoR2.HealthComponent.TakeDamageProcess += HealthComponent_TakeDamageProcess;
         }
 
         public void Unhook()
@@ -92,8 +92,18 @@ namespace ServerSideItems
                     crit = body.RollCrit()
                 };
                 ProjectileManager.instance.FireProjectile(fireProjectileInfo);
+                ServerSideItems.instance.StartCoroutine(DelayDestroyBody(self));
             }
             orig(self, body);
+            if (self.inventory.GetItemCount(DLC1Content.Items.VoidMegaCrabItem) > 0 && NetworkServer.active && BepConfig.Enabled.Value && BepConfig.NewlyHatchedZoeaRework.Value)
+            {
+                self.DestroyBody();
+            }
+        }
+        IEnumerator DelayDestroyBody(CharacterMaster self)
+        {
+            yield return new WaitForSeconds(0.5f);
+            self.DestroyBody();
         }
 
         public static int GetBombCount(int stackCount)

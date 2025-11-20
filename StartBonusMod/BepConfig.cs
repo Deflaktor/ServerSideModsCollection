@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Configuration;
 using R2API;
 using RoR2;
@@ -22,8 +22,6 @@ namespace StartBonusMod
 
         public static ConfigEntry<bool> AdvancedEnabled;
         public static ConfigEntry<string> AdvancedItemList;
-        public static ConfigEntry<string> AdvancedEquipmentList;
-        public static ConfigEntry<string> AdvancedBlackList;
 
         public static Dictionary<string, ItemIndex> englishNameToItemIndex = new Dictionary<string, ItemIndex>();
         public static Dictionary<string, EquipmentIndex> englishNameToEquipmentIndex = new Dictionary<string, EquipmentIndex>();
@@ -65,11 +63,11 @@ namespace StartBonusMod
                 englishNameToEquipmentIndex.Add(englishName, equipmentDef.equipmentIndex);
             }
             // --- Start Bonus ---
-            Enabled = config.Bind("Main", "Enabled", true, "Enable Mod");
-            StartingCash = config.Bind("Main", "Cash", 500, new ConfigDescription("How much starting cash each player receives."));
+            Enabled = config.Bind("00 Main", "Enabled", true, "Enable Mod");
+            StartingCash = config.Bind("00 Main", "Cash", -1, new ConfigDescription("How much starting cash each player receives. Negative value is default."));
 
             // --- Simple Item List ---
-            SimpleEnabled = config.Bind("Simple Item List", "SectionEnabled", false, new ConfigDescription("Whether to enable Simple Start Bonus Item List"));
+            SimpleEnabled = config.Bind("01 Simple Item List", "SectionEnabled", false, new ConfigDescription("Whether to enable Simple Start Bonus Item List"));
 
             var sortedEquipmentList = englishNameToEquipmentIndex.Keys.ToList();
             sortedEquipmentList.Remove("None");
@@ -77,23 +75,21 @@ namespace StartBonusMod
             sortedEquipmentList.Insert(0, "None");
             sortedEquipmentList.Insert(1, "Random");
             AcceptableValueList<string> acceptableEquipmentList = new AcceptableValueList<string>(sortedEquipmentList.ToArray());
-            StartingEquipment = config.Bind("Simple Item List", "Equipment", "None", new ConfigDescription("Which equipment each player shall receive at the start.", acceptableEquipmentList));
+            StartingEquipment = config.Bind("01 Simple Item List", "Equipment", "None", new ConfigDescription("Which equipment each player shall receive at the start.", acceptableEquipmentList));
 
             foreach (var tierDef in ItemTierCatalog.allItemTierDefs)
             {
                 AcceptableValueList<string> acceptableItemList = new AcceptableValueList<string>(itemTierToItemEnglishNames[tierDef.tier].ToArray());
-                StartingItemByTier[tierDef.tier] = config.Bind("Simple Item List", $"{tierDef.tier.ToString()} Item", "None", new ConfigDescription($"Which {tierDef.tier.ToString()} item each player shall receive at the start.", acceptableItemList));
-                StartingItemByTierAmount[tierDef.tier] = config.Bind("Simple Item List", $"{tierDef.tier.ToString()} Amount", 0, new ConfigDescription($"How many of the {tierDef.tier.ToString()} item each player shall receive."));
+                StartingItemByTier[tierDef.tier] = config.Bind("01 Simple Item List", $"{tierDef.tier.ToString()} Item", "None", new ConfigDescription($"Which {tierDef.tier.ToString()} item each player shall receive at the start.", acceptableItemList));
+                StartingItemByTierAmount[tierDef.tier] = config.Bind("01 Simple Item List", $"{tierDef.tier.ToString()} Amount", 0, new ConfigDescription($"How many of the {tierDef.tier.ToString()} item each player shall receive."));
             }
 
             // --- Advanced Item List ---
-            AdvancedEnabled = config.Bind("Advanced Item List", "SectionEnabled", false, new ConfigDescription("Whether to enable Advanced Start Bonus Item List"));
+            AdvancedEnabled = config.Bind("02 Advanced Item List", "SectionEnabled", false, new ConfigDescription("Whether to enable Advanced Start Bonus Item List"));
             var items = "2xHealWhileSafe & Tier3 & 2xLunar & 4xdtChest2";
             var itemTiersString = "Tier1, Tier2, Tier3, Lunar, Boss, VoidTier1, VoidTier2, VoidTier3, VoidBoss";
             var itemKeyWordsExplanation = $"Can use:\n - internal item names(see https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Items-and-Equipments-Data/)\n- item tier keywords ({itemTiersString})\n- droptable names (see README.md)\nExample: {items}";
-            AdvancedItemList = config.Bind("Advanced Item List", "ItemList", "2xdtChest1 & Tier2", $"List of items in the format <amount1>x<item1> & <amount2>x<item2>. See README.md for more detailed description. {itemKeyWordsExplanation}");
-            AdvancedEquipmentList = config.Bind("Advanced Item List", "EquipmentList", "EliteFireEquipment: 0.1 | Recycle: 0.9", $"List of equipments in the format <equip1>:<weight> | <equip2>:<weight>. Amount has no effect, only the first resolved equipment is used. See README.md for more detailed description. {itemKeyWordsExplanation}");
-            AdvancedBlackList = config.Bind("Advanced Item List", "BlackList", "LunarBadLuck, GoldOnHit", $"Comma-separated list of internal item names. Items listed here will not be resolved from item tiers or droptables. The blacklist has no effect on listed concrete item names.");
+            AdvancedItemList = config.Bind("02 Advanced Item List", "ItemList", "2xdtChest1 & Tier2", $"List of items in the format <amount1>x<item1> & <amount2>x<item2>. See README.md for more detailed description. {itemKeyWordsExplanation}");
 
             // --- InLobbyConfig ---
             if (ModCompatibilityInLobbyConfig.enabled)

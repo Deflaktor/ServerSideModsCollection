@@ -4,7 +4,6 @@
 	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
 	"description": "Assortment of server-side tweaks",
 	"dependencies": [
-		"bbepis-BepInExPack-5.4.9",
-		"RiskofThunder-HookGenPatcher-1.2.1"
+		"RiskofThunder-R2API_Core-5.1.7"
 	]
 }

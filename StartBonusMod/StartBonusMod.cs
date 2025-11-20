@@ -27,7 +27,7 @@ namespace StartBonusMod
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "StartBonusMod";
-        public const string PluginVersion = "2.0.1";
+        public const string PluginVersion = "3.0.0";
 
         private List<PlayerCharacterMasterController> itemGivenTo = new List<PlayerCharacterMasterController>();
 
@@ -118,7 +118,7 @@ namespace StartBonusMod
                             if (BepConfig.SimpleEnabled.Value)
                                 GiveStartingItems(master.inventory);
                             if (BepConfig.AdvancedEnabled.Value)
-                                GiveStartingItemsAdvanced(master.inventory);
+                                GiveStartingItemsAdvanced(master);
                             instance.itemGivenTo.Add(master.playerCharacterMasterController);
                         }
                     }
@@ -127,38 +127,28 @@ namespace StartBonusMod
         }
 
 
-        private void GiveStartingItemsAdvanced(Inventory inventory)
+        private void GiveStartingItemsAdvanced(CharacterMaster master)
         {
+            var inventory = master.inventory;
             Dictionary<PickupIndex, int> itemsToGive = new Dictionary<PickupIndex, int>();
-            List<PickupIndex> blacklist = new List<PickupIndex>();
-            foreach(var blacklistEntry in BepConfig.AdvancedBlackList.Value.Split(','))
-            {
-                var blacklistPickupIndex = PickupCatalog.FindPickupIndex(blacklistEntry);
-                if(blacklistPickupIndex != PickupIndex.none)
-                {
-                    blacklist.Add(blacklistPickupIndex);
-                }
-            }
-            Helper.ParseItemStringReward(BepConfig.AdvancedItemList.Value, itemsToGive, blacklist);
+            ItemStringParser.ParseItemStringReward(BepConfig.AdvancedItemList.Value, itemsToGive);
+            uint equipmentStateSlotIndex = 0;
+            int maxEquipmentSlots = master.bodyPrefab.name == "ToolbotBody"? 2 : 1;
             foreach (var item in itemsToGive)
             {
-                var itemIndex = PickupCatalog.GetPickupDef(item.Key).itemIndex;
+                var pickupDef = PickupCatalog.GetPickupDef(item.Key);
+                var itemIndex = pickupDef.itemIndex;
+                var equipmentIndex = pickupDef.equipmentIndex;
                 var itemAmount = item.Value;
                 if (itemIndex != ItemIndex.None && itemAmount > 0)
                 {
                     inventory.GiveItem(itemIndex, itemAmount);
                 }
-            }
-            itemsToGive.Clear();
-            Helper.ParseItemStringReward(BepConfig.AdvancedEquipmentList.Value, itemsToGive, blacklist);
-            foreach (var item in itemsToGive)
-            {
-                var equipmentIndex = PickupCatalog.GetPickupDef(item.Key).equipmentIndex;
-                var itemAmount = item.Value;
-                if (equipmentIndex != EquipmentIndex.None && itemAmount > 0)
+                while (equipmentIndex != EquipmentIndex.None && itemAmount > 0 && equipmentStateSlotIndex < maxEquipmentSlots)
                 {
-                    inventory.SetEquipmentIndex(equipmentIndex);
-                    break;
+                    inventory.SetEquipmentIndexForSlot(equipmentIndex, equipmentStateSlotIndex);
+                    itemAmount--;
+                    equipmentStateSlotIndex++;
                 }
             }
         }
@@ -182,7 +172,7 @@ namespace StartBonusMod
                 if (configEnglishName.Value.Equals("Random"))
                 {
                     Dictionary<PickupIndex, int> itemsToGive = new Dictionary<PickupIndex, int>();
-                    Helper.ResolveItemKey(itemTier.ToString(), amount, itemsToGive);
+                    ItemStringParser.ResolveItemKey(itemTier.ToString(), amount, itemsToGive);
                     foreach (var item in itemsToGive)
                     {
                         var itemIndex = PickupCatalog.GetPickupDef(item.Key).itemIndex;
@@ -206,7 +196,7 @@ namespace StartBonusMod
             EquipmentIndex equipmentIndex = EquipmentIndex.None;
             if(BepConfig.StartingEquipment.Value.Equals("Random"))
             {
-                var pickupIndex = Helper.GetRandom(Run.instance.availableEquipmentDropList, PickupIndex.none);
+                var pickupIndex = ItemStringParser.GetRandom(Run.instance.availableEquipmentDropList, PickupIndex.none);
                 if(pickupIndex != PickupIndex.none)
                 {
                     equipmentIndex = PickupCatalog.GetPickupDef(pickupIndex).equipmentIndex;

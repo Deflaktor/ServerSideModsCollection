@@ -35,43 +35,43 @@ namespace RandomEvents
 
         private static Dictionary<string, string> BodyBonusItemsDict = new Dictionary<string, string>
             {
-                { "All", "Hoof=5, BoostAttackSpeed=10, BoostDamage=10, Knurl=10" },
-                { "ClayBossBody",        "AlienHead=5, BoostDamage=10, SiphonOnLowHealth" },
-                { "GravekeeperBody",     "AlienHead=5, BoostDamage=30, SprintWisp" },
-                { "ImpBossBody",         "AlienHead=5" },
-                { "MegaConstructBody",   "AlienHead=5, Hoof=-5, Behemoth=10, MinorConstructOnKill" },
-                { "RoboBallBossBody",    "AlienHead=5, BoostDamage=20, RoboBallBuddy" },
-                { "TitanBody",           "AlienHead=5, BoostDamage=80, Hoof=5, Knurl=10" },
-                { "VagrantBody",         "AlienHead=2, BoostDamage=10, Hoof=5" },
-                { "VoidMegaCrabBody",    "AlienHead=2" },
-                { "BeetleGuardBody",     "AlienHead=5, SprintWisp, BoostAttackSpeed=10, Hoof=-5, Feather=3, NearbyDamageBonus=10" },
-                { "BellBody",            "AlienHead=5, BoostDamage=30, BoostAttackSpeed=10, Hoof=5" },
-                { "BisonBody",           "AlienHead=5, SprintWisp, SprintBonus=15, BoostHp=10, NearbyDamageBonus=100, Hoof=5" },
-                { "ClayBruiserBody",     "AlienHead=5" },
-                { "ClayGrenadierBody",   "AlienHead=10, BoostAttackSpeed=10" },
-                { "GolemBody",           "AlienHead=10, NearbyDamageBonus=10, BoostDamage=50, BoostAttackSpeed=10, Knurl=10" },
-                { "GreaterWispBody",     "AlienHead=5, BoostDamage=50, BoostAttackSpeed=20, Hoof=5" },
-                { "GupBody",             "AlienHead=5, NearbyDamageBonus=10, BoostDamage=10, Feather=4, FallBoots, DrizzlePlayerHelper " },
-                { "LemurianBruiserBody", "AlienHead=3, Behemoth=3" },
-                { "LunarGolemBody",      "AlienHead=5, BoostAttackSpeed=20, Behemoth=2, Hoof=-5" },
-                { "LunarWispBody",       "AlienHead=10, BoostDamage=50, BoostAttackSpeed=10, Behemoth=10, Hoof=5" },
-                { "NullifierBody",       "AlienHead=5, BoostDamage=10, Hoof=5, SprintWisp, ShockNearby" },
-                { "ParentBody",          "AlienHead=5, NearbyDamageBonus=20, SprintWisp" },
-                { "VoidJailerBody",      "AlienHead=5" },
-                { "HalcyoniteBody",      "Knurl=10, BoostDamage=30" },
-                { "BeetleBody",          "AlienHead=5, BoostDamage=10, NearbyDamageBonus=50, SprintWisp, Hoof=5, Feather=5, LunarSecondaryReplacement" },
-                { "FlyingVerminBody",    "AlienHead=5, BoostDamage=40, BounceNearby=10, Hoof=5" },
-                { "ImpBody",             "AlienHead=5, NearbyDamageBonus=10, SprintWisp" },
-                { "JellyfishBody",       "NearbyDamageBonus=100, Hoof=5, BoostAttackSpeed=-10, BoostDamage=-10, Knurl=-10" },
-                { "LemurianBody",        "AlienHead=5, BoostDamage=50, Feather=1, Behemoth=1, LunarSecondaryReplacement" },
-                { "WispBody",            "AlienHead=10, BoostDamage=100, BoostAttackSpeed=10, Hoof=25, Behemoth=3" },
-                { "LunarExploderBody",   "AlienHead=10, ChainLightning=5, BoostDamage=50, Feather=1" },
-                { "MiniMushroomBody",    "AlienHead=10, Mushroom=10, BoostAttackSpeed=30, BoostDamage=20, Feather=3, SprintWisp, FireballsOnHit" },
-                { "RoboBallMiniBody",    "AlienHead=5, ChainLightning=5, BoostDamage=50, Hoof=10, Behemoth=4" },
-                { "VerminBody",          "AlienHead=5, NearbyDamageBonus=30, SprintWisp, Seed=50" },
-                { "VultureBody",         "AlienHead=5, BoostDamage=50, BoostAttackSpeed=20, LightningStrikeOnHit, ChainLightning" },
-                { "ChildBody",           "AlienHead=5, BoostDamage=70, PrimarySkillShuriken, BoostAttackSpeed=-10, Behemoth=5, FireballsOnHit, Feather" },
-                { "ITBrotherBody",       "AlienHead=5, Hoof=-5" },
+                { "All", "" },
+                { "ClayBossBody",        " 5xHoof &   5xAlienHead &  20xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & SiphonOnLowHealth" },
+                { "GravekeeperBody",     " 5xHoof &   5xAlienHead &  40xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & SprintWisp" },
+                { "ImpBossBody",         " 5xHoof &   5xAlienHead &  10xBoostDamage & 10xBoostAttackSpeed & 10xKnurl" },
+                { "MegaConstructBody",   " 0xHoof &   5xAlienHead &  10xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & 10xBehemoth & MinorConstructOnKill" },
+                { "RoboBallBossBody",    " 5xHoof &   5xAlienHead &  30xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & RoboBallBuddy" },
+                { "TitanBody",           "10xHoof &   5xAlienHead &  90xBoostDamage & 10xBoostAttackSpeed & 20xKnurl" },
+                { "VagrantBody",         "10xHoof &   2xAlienHead &  20xBoostDamage & 10xBoostAttackSpeed & 10xKnurl" },
+                { "VoidMegaCrabBody",    " 5xHoof &   2xAlienHead &  10xBoostDamage & 10xBoostAttackSpeed & 10xKnurl" },
+                { "BeetleGuardBody",     " 0xHoof &   5xAlienHead &  10xBoostDamage & 20xBoostAttackSpeed & 10xKnurl & SprintWisp & 3xFeather & 10xNearbyDamageBonus" },
+                { "BellBody",            "10xHoof &   5xAlienHead &  40xBoostDamage & 20xBoostAttackSpeed & 10xKnurl" },
+                { "BisonBody",           "10xHoof &   5xAlienHead &  10xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & SprintWisp & 15xSprintBonus & 10xBoostHp & 100xNearbyDamageBonus" },
+                { "ClayBruiserBody",     " 5xHoof &   5xAlienHead &  10xBoostDamage & 10xBoostAttackSpeed & 10xKnurl" },
+                { "ClayGrenadierBody",   " 5xHoof &  10xAlienHead &  10xBoostDamage & 20xBoostAttackSpeed & 10xKnurl" },
+                { "GolemBody",           " 5xHoof &  10xAlienHead &  60xBoostDamage & 20xBoostAttackSpeed & 20xKnurl & 10xNearbyDamageBonus" },
+                { "GreaterWispBody",     " 0xHoof &   5xAlienHead &  60xBoostDamage & 30xBoostAttackSpeed & 10xKnurl" },
+                { "GupBody",             " 5xHoof &   5xAlienHead &  20xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & 10xNearbyDamageBonus & 4xFeather & FallBoots & DrizzlePlayerHelper" },
+                { "LemurianBruiserBody", " 5xHoof &   3xAlienHead &  10xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & 3xBehemoth" },
+                { "LunarGolemBody",      " 0xHoof &   5xAlienHead &  10xBoostDamage & 30xBoostAttackSpeed & 10xKnurl & 2xBehemoth" },
+                { "LunarWispBody",       " 0xHoof &  10xAlienHead &  60xBoostDamage & 20xBoostAttackSpeed & 10xKnurl & 10xBehemoth" },
+                { "NullifierBody",       " 0xHoof &   5xAlienHead &  20xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & SprintWisp & ShockNearby" },
+                { "ParentBody",          " 5xHoof &   5xAlienHead &  10xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & 20xNearbyDamageBonus & SprintWisp" },
+                { "VoidJailerBody",      " 5xHoof &   5xAlienHead &  10xBoostDamage & 10xBoostAttackSpeed & 10xKnurl" },
+                { "HalcyoniteBody",      " 5xHoof &   0xAlienHead &  40xBoostDamage & 10xBoostAttackSpeed & 20xKnurl" },
+                { "BeetleBody",          "10xHoof &   5xAlienHead &  20xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & 50xNearbyDamageBonus & SprintWisp & 5xFeather & LunarSecondaryReplacement" },
+                { "FlyingVerminBody",    "10xHoof &   5xAlienHead &  50xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & 10xBounceNearby" },
+                { "ImpBody",             " 5xHoof &   5xAlienHead &  10xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & 10xNearbyDamageBonus & SprintWisp" },
+                { "JellyfishBody",       "10xHoof &   0xAlienHead &   0xBoostDamage &  0xBoostAttackSpeed &  0xKnurl & 100xNearbyDamageBonus" },
+                { "LemurianBody",        " 5xHoof &   5xAlienHead &  60xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & Feather & Behemoth & LunarSecondaryReplacement" },
+                { "WispBody",            " 5xHoof &  10xAlienHead & 110xBoostDamage & 20xBoostAttackSpeed & 10xKnurl & 25xHoof & 3xBehemoth" },
+                { "LunarExploderBody",   " 5xHoof &  10xAlienHead &  60xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & 5xChainLightning & Feather" },
+                { "MiniMushroomBody",    " 5xHoof &  10xAlienHead &  30xBoostDamage & 40xBoostAttackSpeed & 10xKnurl & 10xMushroom & 3xFeather & SprintWisp & FireballsOnHit" },
+                { "RoboBallMiniBody",    "15xHoof &   5xAlienHead &  60xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & 5xChainLightning & 4xBehemoth" },
+                { "VerminBody",          " 5xHoof &   5xAlienHead &  10xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & 30xNearbyDamageBonus & SprintWisp & 50xSeed" },
+                { "VultureBody",         " 5xHoof &   5xAlienHead &  60xBoostDamage & 30xBoostAttackSpeed & 10xKnurl & LightningStrikeOnHit & ChainLightning" },
+                { "ChildBody",           " 5xHoof &   5xAlienHead &  80xBoostDamage &  0xBoostAttackSpeed & 10xKnurl & PrimarySkillShuriken & 5xBehemoth & FireballsOnHit & Feather" },
+                { "ITBrotherBody",       " 0xHoof &   5xAlienHead &  10xBoostDamage &  0xBoostAttackSpeed & 10xKnurl" },
             };
 
         public override bool LoadCondition()
@@ -361,7 +361,7 @@ namespace RandomEvents
 
         public class MonsterTransformComponent : MonoBehaviour
         {
-            TemporaryInventory inventory = null;
+            TemporaryInventory temporaryInventory = null;
             private CharacterBody monster = null;
 
             private void FixedUpdate()
@@ -387,32 +387,21 @@ namespace RandomEvents
                 if (preferredCharacterBody == null)
                     return;
 
-                var myBodyInventory = TemporaryInventory.Find(body.gameObject, inventory);
+                var myBodyInventory = TemporaryInventory.Find(body.gameObject, temporaryInventory);
                 if (myBodyInventory == null)
                 {
-                    if (inventory != null)
+                    if (temporaryInventory != null)
                     {
-                        Destroy(inventory);
-                        inventory = null;
+                        Destroy(temporaryInventory);
+                        temporaryInventory = null;
                     }
 
                     var level = (int)TeamManager.instance.GetTeamLevel(master.teamIndex);
-                    inventory = body.gameObject.AddComponent<TemporaryInventory>();
+                    temporaryInventory = body.gameObject.AddComponent<TemporaryInventory>();
 
                     Dictionary<PickupIndex, int> resolvedItems = new Dictionary<PickupIndex, int>();
-                    var bodyBonusItemsList = GetBodyBonusItemAllList().Split(',').ToList();
-                    for (int i = 0; i < bodyBonusItemsList.Count; i++)
-                    {
-                        Helper.AddItemsToDictionaryFromStringList(resolvedItems, bodyBonusItemsList, i);
-                    }
-                    var list = GetBodyBonusItemList(body.bodyIndex);
-                    if(!list.IsNullOrWhiteSpace()) { 
-                        bodyBonusItemsList = list.Split(",").ToList();
-                        for (int i = 0; i < bodyBonusItemsList.Count; i++)
-                        {
-                            Helper.AddItemsToDictionaryFromStringList(resolvedItems, bodyBonusItemsList, i);
-                        }
-                    }
+                    ItemStringParser.ParseItemStringReward(GetBodyBonusItemAllList(), resolvedItems);
+                    ItemStringParser.ParseItemStringReward(GetBodyBonusItemList(body.bodyIndex), resolvedItems);
 
                     foreach (var item in resolvedItems)
                     {
@@ -439,7 +428,7 @@ namespace RandomEvents
                             {
                                 continue;
                             }
-                            inventory.GiveTemporaryItem(itemIndex, itemAmount);
+                            temporaryInventory.GiveTemporaryItem(itemIndex, itemAmount);
                             PurchaseInteraction.CreateItemTakenOrb(body.transform.position, body.gameObject, itemIndex);
                         }
                     }
@@ -458,8 +447,8 @@ namespace RandomEvents
                 if(master.playerCharacterMasterController != null) { 
                     master.playerCharacterMasterController.SetBodyPrefabToPreference();
                 }
-                if (inventory != null) {
-                    Destroy(inventory);
+                if (temporaryInventory != null) {
+                    Destroy(temporaryInventory);
                 }
             }
         }

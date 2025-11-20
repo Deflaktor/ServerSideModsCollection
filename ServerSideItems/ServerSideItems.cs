@@ -16,8 +16,9 @@ using System.Collections;
 
 namespace ServerSideItems
 {
-    [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
+    [BepInDependency(R2API.R2API.PluginGUID)]
+    [BepInDependency(R2API.LanguageAPI.PluginGUID)]
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("droppod.lookingglass", BepInDependency.DependencyFlags.SoftDependency)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
@@ -29,7 +30,7 @@ namespace ServerSideItems
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "ServerSideItems";
-        public const string PluginVersion = "1.0.0";
+        public const string PluginVersion = "1.0.1";
 
         private readonly BeyondTheLimits beyondTheLimits = new BeyondTheLimits();
         private readonly NewlyHatchedZoea newlyHatchedZoea = new NewlyHatchedZoea();

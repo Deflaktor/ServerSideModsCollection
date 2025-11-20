@@ -1,9 +1,11 @@
-﻿using BepInEx.Configuration;
-using RoR2;
-using UnityEngine;
+﻿using BepInEx;
+using BepInEx.Configuration;
 using R2API;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using UnityEngine;
 
 namespace ServerSideItems
 {
@@ -13,6 +15,7 @@ namespace ServerSideItems
         public static ConfigEntry<bool> ShatterspleenWorksOnBaseHealth;
         public static ConfigEntry<bool> ImplementBeyondTheLimits;
         public static ConfigEntry<bool> NewlyHatchedZoeaRework;
+        private static LanguageAPI.LanguageOverlay NewlyHatchedZoeaReworkOverlay;
 
         public static void Init()
         {
@@ -23,8 +26,35 @@ namespace ServerSideItems
             ShatterspleenWorksOnBaseHealth = config.Bind("Main", "Shatterspleen: Works on Base Health instead of Combined Health", true, new ConfigDescription("Shatterspleen normally applies dmg based on the combined max health of enemies. This makes it super strong if enemies have health increasing items."));
             // --- NewlyHatchedZoeaRework ---
             NewlyHatchedZoeaRework = config.Bind("Main", "NewlyHatchedZoea: Instead of summoning void creature, you become a creature of the void.", true, new ConfigDescription("Every 5 (-25% per stack) seconds, fire 3 (+3 per stack) nullifying bombs which immobilize enemies and deal 380% damage. Auto-targets strongest grounded enemy. Corrupts all yellow items."));
+            NewlyHatchedZoeaRework.SettingChanged += SetLanguageOverlay;
+            SetLanguageOverlay();
             // --- Beyond The Limits ---
             // ImplementBeyondTheLimits = config.Bind("Beyond The Limits", "SectionEnabled", false, new ConfigDescription("Makes it so that the wearer of the unused 'Beyond The Limits' aspect gains a passive 50% movement speed bonus and relaxes for the wearer the requirement for activation of certain items from 'when sprinting' to 'when moving'."));
+
+            if (ModCompatibilityInLobbyConfig.enabled)
+            {
+                ModCompatibilityInLobbyConfig.CreateFromBepInExConfigFile(config, "Server-Side Items");
+            }
+        }
+
+
+
+        private static void SetLanguageOverlay(object sender = null, System.EventArgs e = null)
+        {
+            if (NewlyHatchedZoeaReworkOverlay != null)
+            {
+                if (!NewlyHatchedZoeaRework.Value)
+                {
+                    NewlyHatchedZoeaReworkOverlay.Remove();
+                }
+            }
+            else
+            {
+                if (NewlyHatchedZoeaRework.Value)   
+                {
+                    NewlyHatchedZoeaReworkOverlay = LanguageAPI.AddOverlayPath(Path.Combine(Path.GetDirectoryName(ServerSideItems.PInfo.Location), "NewlyHatchedZoea.json"));
+                }
+            }
         }
     }
 }

@@ -1,3 +1,10 @@
+# 3.0.0
+
+- Remove Blacklist setting
+- Add `!`-Operator. Blacklist entries can now be given inside the itemlist.
+- Rename config sections so they are sorted.
+- Remove Equipment setting from Advanced List. It is now merged with the itemlist.
+
 # 2.0.1
 
 - Fix readme.md markup issues

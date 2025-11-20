@@ -1,3 +1,7 @@
+# 2.1.2
+
+- Update R2API dependencies
+
 # 2.1.1
 
 - Fix possible NullPointerException
