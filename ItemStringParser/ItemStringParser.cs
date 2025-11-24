@@ -1,78 +1,97 @@
 ﻿using BepInEx;
+using BepInEx.Logging;
+using R2API.Utils;
 using RoR2;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
+using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-namespace StartBonusMod
+namespace ItemStringParser
 {
-    public class ItemStringParser
+    [BepInDependency(R2API.R2API.PluginGUID)]
+    [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
+    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
+    public class ItemStringParser : BaseUnityPlugin
     {
+        public static PluginInfo PInfo { get; private set; }
+        public const string PluginGUID = PluginAuthor + "." + PluginName;
+        public const string PluginAuthor = "Def";
+        public const string PluginName = "ItemStringParser";
+        public const string PluginVersion = "1.0.1";
+
         private static readonly Regex tokenPattern = new Regex(@"(?:(\d+)\s*x\s*)?(\w+)", RegexOptions.IgnoreCase);
 
         private static Dictionary<string, AsyncOperationHandle<BasicPickupDropTable>> loadedDropTables = new Dictionary<string, AsyncOperationHandle<BasicPickupDropTable>>();
-        public static readonly Dictionary<string, string> dropTables = InitDropTables();
+        private static readonly Dictionary<string, string> dropTables = InitDropTables();
 
-        public static BasicPickupDropTable GetDroptable(string droptable)
+        private static BasicPickupDropTable GetDroptable(string droptable)
         {
             loadedDropTables[droptable] = loadedDropTables.GetValueOrDefault(droptable, Addressables.LoadAssetAsync<BasicPickupDropTable>(dropTables[droptable]));
             var dropTable = loadedDropTables[droptable].WaitForCompletion();
             return dropTable;
         }
-
         private static Dictionary<string, string> InitDropTables()
         {
-            var dropTables = new Dictionary<string, string>();
-            dropTables.Add("dtMonsterTeamTier1Item", "RoR2/Base/MonsterTeamGainsItems/dtMonsterTeamTier1Item.asset");
-            dropTables.Add("dtMonsterTeamTier2Item", "RoR2/Base/MonsterTeamGainsItems/dtMonsterTeamTier2Item.asset");
-            dropTables.Add("dtMonsterTeamTier3Item", "RoR2/Base/MonsterTeamGainsItems/dtMonsterTeamTier3Item.asset");
-            dropTables.Add("dtSacrificeArtifact", "RoR2/Base/Sacrifice/dtSacrificeArtifact.asset");
-            dropTables.Add("dtAISafeTier1Item", "RoR2/Base/Common/dtAISafeTier1Item.asset");
-            dropTables.Add("dtAISafeTier2Item", "RoR2/Base/Common/dtAISafeTier2Item.asset");
-            dropTables.Add("dtAISafeTier3Item", "RoR2/Base/Common/dtAISafeTier3Item.asset");
-            dropTables.Add("dtEquipment", "RoR2/Base/Common/dtEquipment.asset");
-            dropTables.Add("dtTier1Item", "RoR2/Base/Common/dtTier1Item.asset");
-            dropTables.Add("dtTier2Item", "RoR2/Base/Common/dtTier2Item.asset");
-            dropTables.Add("dtTier3Item", "RoR2/Base/Common/dtTier3Item.asset");
-            dropTables.Add("dtVoidChest", "RoR2/Base/Common/dtVoidChest.asset");
-            dropTables.Add("dtCasinoChest", "RoR2/Base/CasinoChest/dtCasinoChest.asset");
-            dropTables.Add("dtSmallChestDamage", "RoR2/Base/CategoryChest/dtSmallChestDamage.asset");
-            dropTables.Add("dtSmallChestHealing", "RoR2/Base/CategoryChest/dtSmallChestHealing.asset");
-            dropTables.Add("dtSmallChestUtility", "RoR2/Base/CategoryChest/dtSmallChestUtility.asset");
-            dropTables.Add("dtChest1", "RoR2/Base/Chest1/dtChest1.asset");
-            dropTables.Add("dtChest2", "RoR2/Base/Chest2/dtChest2.asset");
-            dropTables.Add("dtDuplicatorTier1", "RoR2/Base/Duplicator/dtDuplicatorTier1.asset");
-            dropTables.Add("dtDuplicatorTier2", "RoR2/Base/DuplicatorLarge/dtDuplicatorTier2.asset");
-            dropTables.Add("dtDuplicatorTier3", "RoR2/Base/DuplicatorMilitary/dtDuplicatorTier3.asset");
-            dropTables.Add("dtDuplicatorWild", "RoR2/Base/DuplicatorWild/dtDuplicatorWild.asset");
-            dropTables.Add("dtGoldChest", "RoR2/Base/GoldChest/dtGoldChest.asset");
-            dropTables.Add("dtLunarChest", "RoR2/Base/LunarChest/dtLunarChest.asset");
-            dropTables.Add("dtShrineChance", "RoR2/Base/ShrineChance/dtShrineChance.asset");
-            dropTables.Add("dtLockbox", "RoR2/Base/TreasureCache/dtLockbox.asset");
-            dropTables.Add("dtITBossWave", "RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/dtITBossWave.asset");
-            dropTables.Add("dtITDefaultWave", "RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/dtITDefaultWave.asset");
-            dropTables.Add("dtITLunar", "RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/dtITLunar.asset");
-            dropTables.Add("dtITSpecialBossWave", "RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/dtITSpecialBossWave.asset");
-            dropTables.Add("dtITVoid", "RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/dtITVoid.asset");
-            dropTables.Add("dtCategoryChest2Damage", "RoR2/DLC1/CategoryChest2/dtCategoryChest2Damage.asset");
-            dropTables.Add("dtCategoryChest2Healing", "RoR2/DLC1/CategoryChest2/dtCategoryChest2Healing.asset");
-            dropTables.Add("dtCategoryChest2Utility", "RoR2/DLC1/CategoryChest2/dtCategoryChest2Utility.asset");
-            dropTables.Add("dtVoidCamp", "RoR2/DLC1/VoidCamp/dtVoidCamp.asset");
-            dropTables.Add("dtVoidTriple", "RoR2/DLC1/VoidTriple/dtVoidTriple.asset");
-            dropTables.Add("dtVoidLockbox", "RoR2/DLC1/TreasureCacheVoid/dtVoidLockbox.asset");
-            dropTables.Add("AurelioniteHeartPickupDropTable", "RoR2/DLC2/AurelioniteHeartPickupDropTable.asset");
-            dropTables.Add("GeodeRewardDropTable", "RoR2/DLC2/GeodeRewardDropTable.asset");
-            dropTables.Add("dtShrineHalcyoniteTier1", "RoR2/DLC2/dtShrineHalcyoniteTier1.asset");
-            dropTables.Add("dtShrineHalcyoniteTier2", "RoR2/DLC2/dtShrineHalcyoniteTier2.asset");
-            dropTables.Add("dtShrineHalcyoniteTier3", "RoR2/DLC2/dtShrineHalcyoniteTier3.asset");
-            dropTables.Add("dtChanceDoll", "RoR2/DLC2/Items/ExtraShrineItem/dtChanceDoll.asset");
-            dropTables.Add("dtSonorousEcho", "RoR2/DLC2/Items/ItemDropChanceOnKill/dtSonorousEcho.asset");
-            dropTables.Add("dtCommandChest", "RoR2/CommandChest/dtCommandChest.asset");
+            Dictionary<string, string> dropTables = new Dictionary<string, string>();
+            void Add(string path)
+            {
+                var fileName = System.IO.Path.GetFileNameWithoutExtension(path);
+                dropTables.Add(fileName, path);
+            }
+            Add("RoR2/Base/CasinoChest/dtCasinoChest.asset");
+            Add("RoR2/Base/CategoryChest/dtSmallChestDamage.asset");
+            Add("RoR2/Base/CategoryChest/dtSmallChestHealing.asset");
+            Add("RoR2/Base/CategoryChest/dtSmallChestUtility.asset");
+            Add("RoR2/Base/Chest1/dtChest1.asset");
+            Add("RoR2/Base/Chest2/dtChest2.asset");
+            Add("RoR2/Base/Common/dtAISafeTier1Item.asset");
+            Add("RoR2/Base/Common/dtAISafeTier2Item.asset");
+            Add("RoR2/Base/Common/dtAISafeTier3Item.asset");
+            Add("RoR2/Base/Common/dtEquipment.asset");
+            Add("RoR2/Base/Common/dtTier1Item.asset");
+            Add("RoR2/Base/Common/dtTier2Item.asset");
+            Add("RoR2/Base/Common/dtTier3Item.asset");
+            Add("RoR2/Base/Common/dtVoidChest.asset");
+            Add("RoR2/Base/Duplicator/dtDuplicatorTier1.asset");
+            Add("RoR2/Base/DuplicatorLarge/dtDuplicatorTier2.asset");
+            Add("RoR2/Base/DuplicatorMilitary/dtDuplicatorTier3.asset");
+            Add("RoR2/Base/DuplicatorWild/dtDuplicatorWild.asset");
+            Add("RoR2/Base/GoldChest/dtGoldChest.asset");
+            Add("RoR2/Base/LunarChest/dtLunarChest.asset");
+            Add("RoR2/Base/MonsterTeamGainsItems/dtMonsterTeamTier1Item.asset");
+            Add("RoR2/Base/MonsterTeamGainsItems/dtMonsterTeamTier2Item.asset");
+            Add("RoR2/Base/MonsterTeamGainsItems/dtMonsterTeamTier3Item.asset");
+            Add("RoR2/Base/Sacrifice/dtSacrificeArtifact.asset");
+            Add("RoR2/Base/ShrineChance/dtShrineChance.asset");
+            Add("RoR2/Base/TreasureCache/dtLockbox.asset");
+            Add("RoR2/CommandChest/dtCommandChest.asset");
+            Add("RoR2/DLC1/CategoryChest2/dtCategoryChest2Damage.asset");
+            Add("RoR2/DLC1/CategoryChest2/dtCategoryChest2Healing.asset");
+            Add("RoR2/DLC1/CategoryChest2/dtCategoryChest2Utility.asset");
+            Add("RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/dtITBossWave.asset");
+            Add("RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/dtITDefaultWave.asset");
+            Add("RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/dtITLunar.asset");
+            Add("RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/dtITSpecialBossWave.asset");
+            Add("RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/dtITVoid.asset");
+            Add("RoR2/DLC1/TreasureCacheVoid/dtVoidLockbox.asset");
+            Add("RoR2/DLC1/VoidCamp/dtVoidCamp.asset");
+            Add("RoR2/DLC1/VoidTriple/dtVoidTriple.asset");
+            Add("RoR2/DLC2/AurelioniteHeartPickupDropTable.asset");
+            Add("RoR2/DLC2/dtShrineHalcyoniteTier1.asset");
+            Add("RoR2/DLC2/dtShrineHalcyoniteTier2.asset");
+            Add("RoR2/DLC2/dtShrineHalcyoniteTier3.asset");
+            Add("RoR2/DLC2/GeodeRewardDropTable.asset");
+            Add("RoR2/DLC2/Items/ExtraShrineItem/dtChanceDoll.asset");
+            Add("RoR2/DLC2/Items/ItemDropChanceOnKill/dtSonorousEcho.asset");
+            Add("RoR2/DLC3/Drifter/dtSalvage.asset");
+            Add("RoR2/DLC3/DrifterBagChest/dtDrifterBagChest.asset");
+            Add("RoR2/DLC3/Drones/dtJunkDrone.asset");
+            Add("RoR2/DLC3/SolusHeart/dtSolusHeart.asset");
+            Add("RoR2/DLC3/TemporaryItemsDistributor/dtTemporaryItemsDistributor.asset");
             return dropTables;
         }
         public static T GetRandom<T>(List<T> list, T defaultValue)
@@ -97,7 +116,7 @@ namespace StartBonusMod
         }
 
         // Parses input, replaces outer curly braces with random strings, returns transformed string and dict mapping random strings to originals
-        public static (string replacedString, Dictionary<string, string> replacements) ReplaceOuterBraces(string input)
+        private static (string replacedString, Dictionary<string, string> replacements) ReplaceOuterBraces(string input)
         {
             var sb = new StringBuilder();
             int depth = 0;
@@ -148,7 +167,15 @@ namespace StartBonusMod
             return (sb.ToString(), replacements);
         }
 
-        public static bool ResolveItemKey(string itemkey, int repeat, Dictionary<PickupIndex, int> resolvedItems)
+        /// <summary>
+        /// This method resolves an item key string into actual items and adds them to the resolvedItems dictionary. It supports parsing item keys that represent item tiers, drop tables, concrete items, or concrete equipment. It also supports blacklisting certain items from selection.
+        /// </summary>
+        /// <param name="itemkey"></param>
+        /// <param name="repeat"></param>
+        /// <param name="resolvedItems"></param>
+        /// <param name="log"></param>
+        /// <returns>Whether the resolving was successful</returns>
+        public static bool ResolveItemKey(string itemkey, int repeat, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log)
         {
             List<PickupIndex> itemBlackList = [];
             var blacklistedItems = itemkey.Split("!");
@@ -163,7 +190,7 @@ namespace StartBonusMod
                 }
                 else
                 {
-                    Log.LogWarning($"ResolveItemKey: Could not get pickup from blacklisted item: {blacklistedItem}, skipping it.");
+                    log.LogWarning($"ResolveItemKey: Could not get pickup from blacklisted item: {blacklistedItem}, skipping it.");
                 }
             }
 
@@ -197,6 +224,9 @@ namespace StartBonusMod
                 case "voidboss":
                     candidates = Run.instance.availableVoidBossDropList.Except(itemBlackList).ToList();
                     break;
+                case "foodtier":
+                    candidates = Run.instance.availableFoodTierDropList.Except(itemBlackList).ToList();
+                    break;
             }
             if (candidates != null) {
                 while (repeat > 0)
@@ -204,7 +234,7 @@ namespace StartBonusMod
                     var pickupIndex = GetRandom(candidates, PickupIndex.none);
                     if (pickupIndex == PickupIndex.none)
                     {
-                        Log.LogWarning($"ResolveItemKey: Could not get pickup from item tier: {itemkey}, skipping it.");
+                        log.LogWarning($"ResolveItemKey: Could not get pickup from item tier: {itemkey}, skipping it.");
                         return false;
                     }
                     resolvedItems[pickupIndex] = resolvedItems.GetValueOrDefault(pickupIndex) + 1;
@@ -215,23 +245,23 @@ namespace StartBonusMod
             if (dropTables.ContainsKey(itemkey))
             {
                 var dropTable = GetDroptable(itemkey);
-                WeightedSelection<PickupIndex> selection = new WeightedSelection<PickupIndex>();
+                WeightedSelection<UniquePickup> selection = new WeightedSelection<UniquePickup>();
                 foreach (var choice in dropTable.selector.choices)
                 {
-                    if (!itemBlackList.Contains(choice.value))
+                    if (!itemBlackList.Contains(choice.value.pickupIndex))
                     {
                         selection.AddChoice(choice);
                     }
                 }
                 while (repeat > 0)
                 {
-                    var pickupIndex = selection.Evaluate(UnityEngine.Random.Range(0, 1f));
-                    if (pickupIndex == PickupIndex.none)
+                    var uniquePickup = selection.Evaluate(UnityEngine.Random.Range(0, 1f));
+                    if (uniquePickup.Equals(UniquePickup.none))
                     {
-                        Log.LogWarning($"ResolveItemKey: Could not get pickup from droptable: {itemkey}, skipping it.");
+                        log.LogWarning($"ResolveItemKey: Could not get pickup from droptable: {itemkey}, skipping it.");
                         return false;
                     }
-                    resolvedItems[pickupIndex] = resolvedItems.GetValueOrDefault(pickupIndex) + 1;
+                    resolvedItems[uniquePickup.pickupIndex] = resolvedItems.GetValueOrDefault(uniquePickup.pickupIndex) + 1;
                     repeat--;
                 }
                 return true;
@@ -264,7 +294,7 @@ namespace StartBonusMod
                     }
                     else
                     {
-                        Log.LogError($"ResolveItemKey: Could not find item key: {itemkey}");
+                        log.LogError($"ResolveItemKey: Could not find item key: {itemkey}");
                         return false;
                     }
                 }
@@ -285,7 +315,7 @@ namespace StartBonusMod
             WEIGHTED_OR_ONLY
         }
 
-        public static bool ParseItemStringReward(string itemString, Dictionary<PickupIndex, int> resolvedItems, ItemStringFormat format = ItemStringFormat.DEFAULT, int index = -1, int repeat = 1)
+        private static bool ParseItemString(string itemString, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, int index, int repeat)
         {
             // "5 random whites or 3 large chest":
             // 5xRandom: 0.5, 3xdtChest2: 0.5
@@ -316,6 +346,8 @@ namespace StartBonusMod
 
             if (string.IsNullOrEmpty(itemString))
                 return true;
+            ItemStringFormat format = ItemStringFormat.DEFAULT;
+
             itemString = itemString.Trim();
             // step 1: Replace curly brackets with a random string -> will handle that later
             (itemString, var replacements) = ReplaceOuterBraces(itemString);
@@ -331,7 +363,7 @@ namespace StartBonusMod
             {
                 if (itemString.Contains("&") && itemString.Contains("|"))
                 {
-                    Log.LogError($"Cannot have & and | in the same group: '{itemString}'");
+                    log.LogError($"ParseItemStringReward: Cannot have & and | in the same group: '{itemString}'");
                     return false;
                 }
                 if (itemString.Contains("|"))
@@ -349,7 +381,7 @@ namespace StartBonusMod
             WeightedSelection<ItemStringEntry> selection = new WeightedSelection<ItemStringEntry>();
             List<ItemStringEntry> selectionList = new List<ItemStringEntry>();
 
-            for(var i=0; i<parts.Length; i++)
+            for (var i = 0; i < parts.Length; i++)
             {
                 var entry = new ItemStringEntry();
 
@@ -361,12 +393,12 @@ namespace StartBonusMod
                 if (tokenParts.Length > 1)
                     entry.weight = float.Parse(tokenParts[1].Trim());
 
-                if(format == ItemStringFormat.WEIGHTED_OR_ONLY)
+                if (format == ItemStringFormat.WEIGHTED_OR_ONLY)
                 {
                     entry.itemKey = token;
                 }
                 else
-                { 
+                {
                     tokenParts = token.Split("*", 2);
                     token = tokenParts[0].Trim();
                     if (tokenParts.Length > 1)
@@ -375,7 +407,7 @@ namespace StartBonusMod
                     var match = tokenPattern.Match(token);
                     if (!match.Success)
                     {
-                        Log.LogError($"Cannot parse segment '{part.Trim()}'");
+                        log.LogError($"Cannot parse segment '{part.Trim()}'");
                         return false;
                     }
 
@@ -386,7 +418,7 @@ namespace StartBonusMod
                         entry.itemKey = match.Groups[2].Value;
                     else
                     {
-                        Log.LogError($"Cannot parse segment '{part.Trim()}'");
+                        log.LogError($"Cannot parse segment '{part.Trim()}'");
                         return false;
                     }
                 }
@@ -396,19 +428,19 @@ namespace StartBonusMod
             }
             while (repeat > 0)
             {
-                if(and)
+                if (and)
                 {
-                    foreach(var entry in selectionList)
+                    foreach (var entry in selectionList)
                     {
                         bool success;
                         Dictionary<PickupIndex, int> subResolvedItems = new Dictionary<PickupIndex, int>();
                         if (replacements.ContainsKey(entry.itemKey))
                         {
-                            success = ParseItemStringReward(replacements[entry.itemKey], subResolvedItems, format, -1, entry.repeat);
+                            success = ParseItemString(replacements[entry.itemKey], subResolvedItems, log, -1, entry.repeat);
                         }
                         else
                         {
-                            success = ResolveItemKey(entry.itemKey, entry.repeat, subResolvedItems);
+                            success = ResolveItemKey(entry.itemKey, entry.repeat, subResolvedItems, log);
                         }
                         if (success)
                         {
@@ -429,7 +461,7 @@ namespace StartBonusMod
                         attempts--;
                         if (attempts == 0)
                         {
-                            Log.LogError($"Could not resolve to item rewards: {itemString}");
+                            log.LogError($"Could not resolve to item rewards: {itemString}");
                             return false;
                         }
                         ItemStringEntry entry;
@@ -446,11 +478,11 @@ namespace StartBonusMod
                         Dictionary<PickupIndex, int> subResolvedItems = new Dictionary<PickupIndex, int>();
                         if (replacements.ContainsKey(entry.itemKey))
                         {
-                            success = ParseItemStringReward(replacements[entry.itemKey], subResolvedItems, format, -1, entry.repeat);
+                            success = ParseItemString(replacements[entry.itemKey], subResolvedItems, log, -1, entry.repeat);
                         }
                         else
                         {
-                            success = ResolveItemKey(entry.itemKey, entry.repeat, subResolvedItems);
+                            success = ResolveItemKey(entry.itemKey, entry.repeat, subResolvedItems, log);
                         }
                         if (success)
                         {
@@ -470,11 +502,23 @@ namespace StartBonusMod
             return true;
         }
 
-
-        public static void WriteDropTablesMarkdownFile()
+        /// <summary>
+        /// This method interprets an item string, applying repetitions and other formatting rules, to build a collection of items/equipments with their amounts.
+        /// </summary>
+        /// <param name="itemString">The input string containing item definitions to parse. It includes items, operators, and formatting syntax.</param>
+        /// <param name="resolvedItems">A dictionary to which parsed item entries and their amounts will be added or updated.</param>
+        /// <param name="log">For logging in case the provided itemString contains syntax errors.</param>
+        /// <param name="index">Specifies if a certain entry of the top-level or-group shall be taken or if it should be picked at random. -1 is default and means random.</param>
+        /// <returns>Whether the item string was resolved successfully</returns>
+        public static bool ParseItemString(string itemString, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, int index = -1)
         {
-#if DEBUG
-            string filePath = $"{StartBonusMod.PluginName}_droptables.md";
+            return ParseItemString(itemString, resolvedItems, log, index, 1);
+        }
+
+
+        public static void WriteDropTablesMarkdownFile(string filePath)
+        {
+            // string filePath = $"{StartBonusMod.PluginName}_droptables.md";
 
             // This will write it next to the RiskOfRain2.exe file
             using (System.IO.StreamWriter writer = new System.IO.StreamWriter(filePath))
@@ -493,12 +537,12 @@ namespace StartBonusMod
                 }
                 string dropTableNamesEBNF = "";
                 writer.WriteLine("# DropTables");
-                writer.WriteLine("|                                 | canDropBeReplaced | requiredItemTags | bannedItemTags | tier1Weight | tier2Weight | tier3Weight | bossWeight | lunarEquipmentWeight | lunarItemWeight | lunarCombinedWeight | equipmentWeight | voidTier1Weight | voidTier2Weight | voidTier3Weight | voidBossWeight |");
-                writer.WriteLine("|---------------------------------|-------------------|------------------|----------------|-------------|-------------|-------------|------------|----------------------|-----------------|---------------------|-----------------|-----------------|-----------------|-----------------|----------------|");
+                writer.WriteLine("| Drop Table Name                  | tier1 | tier2 | tier3 | boss | lunarEquipment | lunarItem | lunarCombined | equipment | voidTier1 | voidTier2 | voidTier3 | voidBoss | foodTier | powerShapes | canDropBeReplaced | requiredItemTags | bannedItemTags |");
+                writer.WriteLine("|----------------------------------|-------|-------|-------|------|----------------|-----------|---------------|-----------|-----------|-----------|-----------|----------|----------|-------------|-------------------|------------------|----------------|");
                 foreach (var entry in dropTables)
                 {
                     var dropTableName = entry.Key;
-                    if(dropTableNamesEBNF.IsNullOrWhiteSpace())
+                    if(string.IsNullOrWhiteSpace(dropTableNamesEBNF))
                     {
                         dropTableNamesEBNF = $"\"{dropTableName}\"";
                     }
@@ -522,18 +566,20 @@ namespace StartBonusMod
                     string voidTier2Weight = dropTable.voidTier2Weight.ToString();
                     string voidTier3Weight = dropTable.voidTier3Weight.ToString();
                     string voidBossWeight = dropTable.voidBossWeight.ToString();
-                    writer.WriteLine($"| {dropTableName} | {canDropBeReplaced} | {requiredItemTags} | {bannedItemTags} | {tier1Weight} | {tier2Weight} | {tier3Weight} | {bossWeight} | {lunarEquipmentWeight} | {lunarItemWeight} | {lunarCombinedWeight} | {equipmentWeight} | {voidTier1Weight} | {voidTier2Weight} | {voidTier3Weight} | {voidBossWeight} |");
+                    string foodTierWeight = dropTable.foodTierWeight.ToString();
+                    string powerShapesWeight = dropTable.powerShapesWeight.ToString();
+                    writer.WriteLine($"| {dropTableName,-32} | {tier1Weight} | {tier2Weight} | {tier3Weight} | {bossWeight} | {lunarEquipmentWeight} | {lunarItemWeight} | {lunarCombinedWeight} | {equipmentWeight} | {voidTier1Weight} | {voidTier2Weight} | {voidTier3Weight} | {voidBossWeight} | {foodTierWeight} | {powerShapesWeight} | {canDropBeReplaced} | {requiredItemTags} | {bannedItemTags} |");
                 }
                 string itemNamesEBNF = "";
                 ItemIndex itemIndex = ItemIndex.Count;
                 for (ItemIndex itemCount = (ItemIndex)ItemCatalog.itemCount; itemIndex < itemCount; itemIndex++)
                 {
-                    if (Run.instance.availableItems.Contains(itemIndex))
+                    ItemDef itemDef = ItemCatalog.GetItemDef(itemIndex);
+                    if (!itemDef.tags.Contains(ItemTag.IgnoreForDropList))
                     {
-                        ItemDef itemDef = ItemCatalog.GetItemDef(itemIndex);
                         if (itemDef.DoesNotContainTag(ItemTag.WorldUnique))
                         {
-                            if (itemNamesEBNF.IsNullOrWhiteSpace())
+                            if (string.IsNullOrWhiteSpace(itemNamesEBNF))
                             {
                                 itemNamesEBNF = $"\"{itemDef.name}\"";
                             }
@@ -544,14 +590,28 @@ namespace StartBonusMod
                         }
                     }
                 }
+                EquipmentIndex equipmentIndex = (EquipmentIndex)0;
+                for (EquipmentIndex equipmentCount = (EquipmentIndex)EquipmentCatalog.equipmentCount; equipmentIndex < equipmentCount; equipmentIndex++)
+                {
+                    EquipmentDef equipmentDef = EquipmentCatalog.GetEquipmentDef(equipmentIndex);
+                    if (equipmentDef.canDrop)
+                    {
+                        if (string.IsNullOrWhiteSpace(itemNamesEBNF))
+                        {
+                            itemNamesEBNF = $"\"{equipmentDef.name}\"";
+                        }
+                        else
+                        {
+                            itemNamesEBNF += $" | \"{equipmentDef.name}\"";
+                        }
+                    }
+                }
                 writer.WriteLine("# EBNF");
                 writer.WriteLine("```");
                 writer.WriteLine($"<itemname>  ::= {itemNamesEBNF}");
                 writer.WriteLine($"<droptable> ::= {dropTableNamesEBNF}");
                 writer.WriteLine("```");
             }
-#endif
         }
-
     }
 }
