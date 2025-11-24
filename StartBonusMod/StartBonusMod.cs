@@ -12,11 +12,13 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using UnityEngine.UIElements;
+using ItemStringParser;
 
 namespace StartBonusMod
 {
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(ItemStringParser.ItemStringParser.PluginGUID)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class StartBonusMod : BaseUnityPlugin
@@ -79,7 +81,7 @@ namespace StartBonusMod
             c.Remove();
             c.EmitDelegate((CharacterMaster characterMaster, uint startingMoney) =>
             {
-                if (BepConfig.StartingCash.Value > 0 && BepConfig.Enabled.Value)
+                if (BepConfig.Enabled.Value && BepConfig.StartingCashEnabled.Value)
                 {
                     if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.MagnusMagnuson.StartInBazaar"))
                     {
@@ -131,24 +133,28 @@ namespace StartBonusMod
         {
             var inventory = master.inventory;
             Dictionary<PickupIndex, int> itemsToGive = new Dictionary<PickupIndex, int>();
-            ItemStringParser.ParseItemStringReward(BepConfig.AdvancedItemList.Value, itemsToGive);
-            uint equipmentStateSlotIndex = 0;
-            int maxEquipmentSlots = master.bodyPrefab.name == "ToolbotBody"? 2 : 1;
-            foreach (var item in itemsToGive)
+            ItemStringParser.ItemStringParser.ParseItemString(BepConfig.AdvancedItemList.Value, itemsToGive, instance.Logger);
+            uint equipIndex = 0;
+            foreach (var (pickupIndex, itemAmount) in itemsToGive)
             {
-                var pickupDef = PickupCatalog.GetPickupDef(item.Key);
+                var pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
                 var itemIndex = pickupDef.itemIndex;
                 var equipmentIndex = pickupDef.equipmentIndex;
-                var itemAmount = item.Value;
                 if (itemIndex != ItemIndex.None && itemAmount > 0)
                 {
-                    inventory.GiveItem(itemIndex, itemAmount);
+                    inventory.GiveItemPermanent(itemIndex, itemAmount);
                 }
-                while (equipmentIndex != EquipmentIndex.None && itemAmount > 0 && equipmentStateSlotIndex < maxEquipmentSlots)
+                int maxEquipmentSlots = master.bodyPrefab.name == "ToolbotBody" ? 2 : 1;
+                int maxEquipmentSets = master.inventory.GetItemCountEffective(DLC3Content.Items.ExtraEquipment.itemIndex) + 1;
+                int maxEquipmentCount = maxEquipmentSlots * maxEquipmentSets;
+                var equipmentCount = itemAmount;
+                while (equipmentIndex != EquipmentIndex.None && equipmentCount > 0 && equipIndex < maxEquipmentCount)
                 {
-                    inventory.SetEquipmentIndexForSlot(equipmentIndex, equipmentStateSlotIndex);
-                    itemAmount--;
-                    equipmentStateSlotIndex++;
+                    uint slot = (uint) (equipIndex % maxEquipmentSlots);
+                    uint set = (uint) (equipIndex / maxEquipmentSlots);
+                    inventory.SetEquipmentIndexForSlot(equipmentIndex, slot, set);
+                    equipmentCount--;
+                    equipIndex++;
                 }
             }
         }
@@ -172,14 +178,14 @@ namespace StartBonusMod
                 if (configEnglishName.Value.Equals("Random"))
                 {
                     Dictionary<PickupIndex, int> itemsToGive = new Dictionary<PickupIndex, int>();
-                    ItemStringParser.ResolveItemKey(itemTier.ToString(), amount, itemsToGive);
+                    ItemStringParser.ItemStringParser.ResolveItemKey(itemTier.ToString(), amount, itemsToGive, instance.Logger);
                     foreach (var item in itemsToGive)
                     {
                         var itemIndex = PickupCatalog.GetPickupDef(item.Key).itemIndex;
                         var itemAmount = item.Value;
                         if (itemIndex != ItemIndex.None && itemAmount > 0)
                         {
-                            inventory.GiveItem(itemIndex, itemAmount);
+                            inventory.GiveItemPermanent(itemIndex, itemAmount);
                         }
                     }
                 }
@@ -189,14 +195,14 @@ namespace StartBonusMod
                     itemIndex = BepConfig.englishNameToItemIndex[configEnglishName.Value];
                     if (itemIndex != ItemIndex.None)
                     {
-                        inventory.GiveItem(itemIndex, amount);
+                        inventory.GiveItemPermanent(itemIndex, amount);
                     }
                 }
             }
             EquipmentIndex equipmentIndex = EquipmentIndex.None;
             if(BepConfig.StartingEquipment.Value.Equals("Random"))
             {
-                var pickupIndex = ItemStringParser.GetRandom(Run.instance.availableEquipmentDropList, PickupIndex.none);
+                var pickupIndex = ItemStringParser.ItemStringParser.GetRandom(Run.instance.availableEquipmentDropList, PickupIndex.none);
                 if(pickupIndex != PickupIndex.none)
                 {
                     equipmentIndex = PickupCatalog.GetPickupDef(pickupIndex).equipmentIndex;
@@ -208,7 +214,7 @@ namespace StartBonusMod
             }
             if (equipmentIndex != EquipmentIndex.None)
             {
-                inventory.SetEquipmentIndex(equipmentIndex);
+                inventory.SetEquipmentIndex(equipmentIndex, isRemovingEquipment: false);
             }
         }
     }

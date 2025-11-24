@@ -1,9 +1,13 @@
 # 3.0.0
 
+- Updated for Alloyed Collective
+- Add FoodTier
 - Remove Blacklist setting
-- Add `!`-Operator. Blacklist entries can now be given inside the itemlist.
+- Add `!`-Operator. Blacklist entries can now be given inside the itemstring.
 - Rename config sections so they are sorted.
-- Remove Equipment setting from Advanced List. It is now merged with the itemlist.
+- Remove Equipment setting from Advanced List. It is now merged with the itemstring.
+- Now also possible to give multiple equipments to the player.
+- ItemStringParser extracted to its own library mod.
 
 # 2.0.1
 
