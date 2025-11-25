@@ -103,7 +103,7 @@ namespace ServerSideTweaks
 
             //IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer    += CommandArtifactManager_OnDropletHitGroundServer;
             // On.RoR2.Run.PickNextStageScene                                       += Run_PickNextStageScene;
-            On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement            += RandomlyLunarUtils_CheckForLunarReplacement;
+            On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus += RandomlyLunarUtils_CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray += RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
             On.RoR2.InfiniteTowerWaveController.Initialize                       += InfiniteTowerWaveController_Initialize;
             
@@ -697,14 +697,15 @@ namespace ServerSideTweaks
         {
             return SceneManager.GetActiveScene().name == "moon" || SceneManager.GetActiveScene().name == "moon2" || SceneManager.GetActiveScene().name == "itmoon";
         }
-        private PickupIndex RandomlyLunarUtils_CheckForLunarReplacement(On.RoR2.Items.RandomlyLunarUtils.orig_CheckForLunarReplacement orig, PickupIndex pickupIndex, Xoroshiro128Plus rng)
+
+        private UniquePickup RandomlyLunarUtils_CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus(On.RoR2.Items.RandomlyLunarUtils.orig_CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus orig, UniquePickup uniquePickup, Xoroshiro128Plus rng)
         {
-            pickupIndex = orig(pickupIndex, rng);
-            if(!BepConfig.Enabled.Value || pickupIndex == PickupIndex.none)
+            uniquePickup = orig(uniquePickup, rng);
+            if(!BepConfig.Enabled.Value || uniquePickup.Equals(UniquePickup.none))
             {
-                return pickupIndex;
+                return uniquePickup;
             }
-            PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
+            PickupDef pickupDef = PickupCatalog.GetPickupDef(uniquePickup.pickupIndex);
             if(pickupDef != null && pickupDef.isLunar)
             {
                 if(!BepConfig.NoPearlsInBazaar.Value || !IsCurrentMapInBazaar())
@@ -712,16 +713,16 @@ namespace ServerSideTweaks
                     float randomNumber = rng.nextNormalizedFloat;
                     if (randomNumber < BepConfig.IrradiantPearlReplacesLunarItemChance.Value)
                     {
-                        pickupIndex = PickupCatalog.FindPickupIndex(ItemCatalog.FindItemIndex("ShinyPearl"));
+                        uniquePickup = new UniquePickup(PickupCatalog.FindPickupIndex(ItemCatalog.FindItemIndex("ShinyPearl")));
                     } 
                     else if (randomNumber < BepConfig.IrradiantPearlReplacesLunarItemChance.Value + BepConfig.PearlReplacesLunarItemChance.Value)
                     {
-                        pickupIndex = PickupCatalog.FindPickupIndex(ItemCatalog.FindItemIndex("Pearl"));
+                        uniquePickup = new UniquePickup(PickupCatalog.FindPickupIndex(ItemCatalog.FindItemIndex("Pearl")));
                     }
-                    return pickupIndex;
+                    return uniquePickup;
                 }
             }
-            return pickupIndex;
+            return uniquePickup;
         }
 
 
