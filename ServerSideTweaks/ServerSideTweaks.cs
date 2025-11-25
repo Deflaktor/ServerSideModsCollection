@@ -58,7 +58,6 @@ namespace ServerSideTweaks
             BepConfig.ChildReducedTeleportRange.SettingChanged += ChildReducedTeleportRange_SettingChanged;
             ChildReducedTeleportRange_SettingChanged(null, null);
             FastSimulacrumVrab.Setup();
-            simulacrumLootTweaks.Init();
         }
 
         private void ChildReducedTeleportRange_SettingChanged(object sender, EventArgs e)
@@ -81,11 +80,8 @@ namespace ServerSideTweaks
             IL.RoR2.CombatDirector.AttemptSpawnOnTarget                          += CombatDirector_AttemptSpawnOnTarget;
             On.RoR2.Run.FixedUpdate                                              += Run_FixedUpdate;
 
-
-            //IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer    += CommandArtifactManager_OnDropletHitGroundServer;
-            // On.RoR2.Run.PickNextStageScene                                       += Run_PickNextStageScene;
-            On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus += RandomlyLunarUtils_CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray += RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
+            On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus += RandomlyLunarUtils_CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus;
             On.RoR2.InfiniteTowerWaveController.Initialize                       += InfiniteTowerWaveController_Initialize;
             
             On.RoR2.ChildMonsterController.RegisterTeleport += ChildMonsterController_RegisterTeleport;
@@ -102,8 +98,6 @@ namespace ServerSideTweaks
             IL.RoR2.CombatDirector.AttemptSpawnOnTarget                          -= CombatDirector_AttemptSpawnOnTarget;
             On.RoR2.Run.FixedUpdate                                              -= Run_FixedUpdate;
 
-            //IL.RoR2.Artifacts.CommandArtifactManager.OnDropletHitGroundServer    -= CommandArtifactManager_OnDropletHitGroundServer;
-            // On.RoR2.Run.PickNextStageScene                                       -= Run_PickNextStageScene;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus -= RandomlyLunarUtils_CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray -= RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
             On.RoR2.InfiniteTowerWaveController.Initialize                       -= InfiniteTowerWaveController_Initialize;
@@ -221,8 +215,6 @@ namespace ServerSideTweaks
             }
 #endif
         }
-
-        #region PowerBias
         private bool SkipWithPowerBias(float costMultipliedByMaximumNumberToSpawnBeforeSkipping, CombatDirector combatDirector, float powerBias)
         {
             float cost = costMultipliedByMaximumNumberToSpawnBeforeSkipping / combatDirector.maximumNumberToSpawnBeforeSkipping;
@@ -302,8 +294,6 @@ namespace ServerSideTweaks
             );
             c.MarkLabel(label);
         }
-        #endregion
-        #region ArtifactOfHonor
         private void InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer(On.RoR2.InfiniteTowerRun.orig_OnWaveAllEnemiesDefeatedServer orig, InfiniteTowerRun self, InfiniteTowerWaveController wc)
         {
             orig(self, wc);
@@ -335,7 +325,6 @@ namespace ServerSideTweaks
                 }
             }
         }
-        #endregion
         private bool IsCurrentMapInBazaar()
         {
             return SceneManager.GetActiveScene().name == "bazaar";
