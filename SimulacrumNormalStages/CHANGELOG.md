@@ -1,3 +1,7 @@
+# 1.1.0
+
+- Update for Alloyed Collective
+
 # 1.0.3
 
 - Fix regression related to first stage

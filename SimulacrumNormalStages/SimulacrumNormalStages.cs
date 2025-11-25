@@ -29,7 +29,7 @@ namespace SimulacrumNormalStages
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "SimulacrumNormalStages";
-        public const string PluginVersion = "1.0.3";
+        public const string PluginVersion = "1.1.0";
 
         public static SimulacrumNormalStages instance;
         public static SceneCollection realityDestinations = ScriptableObject.CreateInstance<SceneCollection>();
@@ -60,6 +60,9 @@ namespace SimulacrumNormalStages
             //On.RoR2.SceneCatalog.GetSceneDefForCurrentScene   += SceneCatalog_GetSceneDefForCurrentScene;
             On.RoR2.PortalStatueBehavior.GrantPortalEntry     += PortalStatueBehavior_GrantPortalEntry;
             On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer += InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
+            IL.RoR2.AccessCodesMissionController.OnStartServer += AccessCodesMissionController_OnStartServer;
+            IL.RoR2.ConduitCanyonController.DisableSector2 += ConduitCanyonController_DisableSector2;
+            On.RoR2.SceneDirector.PopulateScene += SceneDirector_PopulateScene;
 
             // stuff from SimulacrumAdditions
             On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer += RemoveSpawnPointsAndMonsters;
@@ -91,6 +94,9 @@ namespace SimulacrumNormalStages
             //On.RoR2.SceneCatalog.GetSceneDefForCurrentScene   -= SceneCatalog_GetSceneDefForCurrentScene;
             On.RoR2.PortalStatueBehavior.GrantPortalEntry     -= PortalStatueBehavior_GrantPortalEntry;
             On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer -= InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
+            IL.RoR2.AccessCodesMissionController.OnStartServer -= AccessCodesMissionController_OnStartServer;
+            IL.RoR2.ConduitCanyonController.DisableSector2 -= ConduitCanyonController_DisableSector2;
+            On.RoR2.SceneDirector.PopulateScene -= SceneDirector_PopulateScene;
 
             // stuff from SimulacrumAdditions
             if (Run.instance)
@@ -108,6 +114,90 @@ namespace SimulacrumNormalStages
             On.RoR2.ArenaMissionController.OnStartServer      -= ArenaMissionController_OnStartServer;
             On.RoR2.VoidStageMissionController.Start          -= VoidStageMissionController_Start;
         }
+
+        private void ConduitCanyonController_DisableSector2(ILContext il)
+        {
+            ReturnImmediately(il, (AccessCodesMissionController self) =>
+            {
+                if (Run.instance.GetType() == typeof(InfiniteTowerRun))
+                {
+                    self.enabled = false;
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        private void AccessCodesMissionController_OnStartServer(ILContext il)
+        {
+            ReturnImmediately(il, (AccessCodesMissionController self) =>
+            {
+                if (Run.instance.GetType() == typeof(InfiniteTowerRun))
+                {
+                    self.enabled = false;
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        private void SceneDirector_PopulateScene(On.RoR2.SceneDirector.orig_PopulateScene orig, SceneDirector self)
+        {
+            if (Run.instance.GetType() == typeof(InfiniteTowerRun))
+            {
+                var gameObjectsToDestroy = new List<GameObject>();
+                // remove ShrineCombatCollective
+                List<ShrineCombatTroopBehavior> shrineCombatTroopBehaviors = InstanceTracker.GetInstancesList<ShrineCombatTroopBehavior>();
+                foreach (ShrineCombatTroopBehavior item in shrineCombatTroopBehaviors)
+                {
+                    if (item != null && item.gameObject.name.StartsWith("ShrineCombatCollective"))
+                    {
+                        gameObjectsToDestroy.Add(item.gameObject);
+                    }
+                }
+                gameObjectsToDestroy.ForEach(GameObject.Destroy);
+            }
+            orig(self);
+            if (Run.instance.GetType() == typeof(InfiniteTowerRun))
+            {
+                var gameObjectsToDestroy = new List<GameObject>();
+                // disable all objectives
+                List<GenericObjectiveProvider> objectives = InstanceTracker.GetInstancesList<GenericObjectiveProvider>();
+                foreach (GenericObjectiveProvider item in objectives)
+                {
+                    if (item != null)
+                    {
+                        gameObjectsToDestroy.Add(item.gameObject);
+                    }
+                }
+
+                // complete all power pedestals
+                List<PowerPedestal> powerPedestals = InstanceTracker.GetInstancesList<PowerPedestal>();
+                foreach (PowerPedestal item in powerPedestals)
+                {
+                    if (item != null)
+                    {
+                        item.SetComplete(true);
+                        item.CallRpcInteractResult(true);
+
+                        // TODO place newt portal instead
+                        // RoR2/Base/NewtStatue/NewtStatue.prefab
+                    }
+                }
+
+                // remove the teleporter
+                List<TeleporterInteraction> teleporters = InstanceTracker.GetInstancesList<TeleporterInteraction>();
+                foreach (TeleporterInteraction item in teleporters)
+                {
+                    if (item != null)
+                    {
+                        gameObjectsToDestroy.Add(item.gameObject);
+                    }
+                }
+                gameObjectsToDestroy.ForEach(GameObject.Destroy);
+            }
+        }
+
 
         private void InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer(On.RoR2.InfiniteTowerRun.orig_OnWaveAllEnemiesDefeatedServer orig, InfiniteTowerRun self, InfiniteTowerWaveController wc)
         {
@@ -184,16 +274,7 @@ namespace SimulacrumNormalStages
         {
             ILCursor c = new ILCursor(il);
             var label = c.DefineLabel();
-            // IL_0023: ldloc.0
-            // IL_0024: ldfld valuetype RoR2.SceneType RoR2.SceneDef::sceneType
-            // IL_0029: ldc.i4.1
-            // IL_002a: beq.s IL_0035
-            c.GotoNext(
-            x => x.MatchLdloc(0),
-            x => x.MatchLdfld<SceneDef>("sceneType"),
-            x => x.MatchLdcI4(1)
-            // x => x.MatchBeq()
-            );
+            // right at the start
             c.EmitDelegate<Func<bool>>(() =>
             {
                 SceneDef sceneDefForCurrentScene = SceneCatalog.GetSceneDefForCurrentScene();
@@ -345,7 +426,7 @@ namespace SimulacrumNormalStages
             for (int i = 0; i < SceneCatalog.allStageSceneDefs.Length; i++)
             {
                 SceneDef def = SceneCatalog.allStageSceneDefs[i];
-                if (def.validForRandomSelection && def.hasAnyDestinations)
+                if (def.validForRandomSelection && def.hasAnyDestinations || def.cachedName == "conduitcanyon")
                 {
                     float weight = 1;
                     switch (def.cachedName)
@@ -360,6 +441,8 @@ namespace SimulacrumNormalStages
                         case "lakesnight":
                         case "village":
                         case "villagenight":
+                        case "ironalluvium":
+                        case "ironalluvium2":
                             weight = 0.5f;
                             break;
                     }
@@ -442,6 +525,21 @@ namespace SimulacrumNormalStages
                     }
                 }
             }
+
+            // the buttons to dial artifact code in the final stages
+            PortalDialerButtonController[] portalDialerButtonControllers = UnityEngine.Object.FindObjectsOfType(typeof(PortalDialerButtonController)) as PortalDialerButtonController[];
+            for (int i = 0; i < portalDialerButtonControllers.Length; i++)
+            {
+                PortalDialerButtonController item = portalDialerButtonControllers[i];
+                NetworkServer.Destroy(item.gameObject);
+            }
+            PortalDialerController[] portalDialerControllers = UnityEngine.Object.FindObjectsOfType(typeof(PortalDialerController)) as PortalDialerController[];
+            for (int i = 0; i < portalDialerControllers.Length; i++)
+            {
+                PortalDialerController item = portalDialerControllers[i];
+                NetworkServer.Destroy(item.gameObject);
+            }
+
             if (NetworkServer.active)
             {
                 Run.instance.PickNextStageScene(null);
