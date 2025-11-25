@@ -1,3 +1,7 @@
+# 2.2.1
+
+- Fix error being thrown in console
+
 # 2.2.0
 
 - Update for Alloyed Collective

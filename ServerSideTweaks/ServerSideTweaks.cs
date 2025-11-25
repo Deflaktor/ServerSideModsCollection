@@ -47,7 +47,7 @@ namespace ServerSideTweaks
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "ServerSideTweaks";
-        public const string PluginVersion = "2.2.0";
+        public const string PluginVersion = "2.2.1";
 
         public void Awake()
         {
