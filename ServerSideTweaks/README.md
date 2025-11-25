@@ -4,8 +4,7 @@ A small list of server-side configurable tweaks:
 
 ## General Tweaks
 
-- Chance to have Lunar Items be replaced by Pearls
-- Add elite aspects to item pool during bazaar stage (useful in combination with BazaarIsMyHome)
+- Chance to have Lunar Items be replaced by Pearls or Irradiant Pearls
 - Reduce the teleport range of child
 - Remove teleport invincibility of child
 
@@ -16,6 +15,8 @@ A small list of server-side configurable tweaks:
 - An option for having a chance for the Artifact of Dissonance to be activated each wave when in the commencement stage to increase enemy variety.
 - Slider for the combat director to have a bias towards many, weak enemies or few, strong enemies.
 - Configure the Max Squad Size
+- Configure how long a wave is
+- Simulacrum Vrab picks up speed the more waves are beaten.
 
 ## Normal Run Tweaks
 

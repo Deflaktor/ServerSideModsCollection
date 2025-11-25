@@ -1,3 +1,8 @@
+# 2.2.0
+
+- Update for Alloyed Collective
+- Rename from DefsServerSideTweaks to ServerSideTweaks
+
 # 2.1.2
 
 - Update R2API dependencies
