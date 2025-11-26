@@ -1,10 +1,10 @@
 ﻿{
 	"name": "ServerSideItems",
-	"version_number": "1.0.1",
+	"version_number": "1.1.0",
 	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
 	"description": "ServerSideItems",
 	"dependencies": [
 		"RiskofThunder-R2API_Core-5.1.7",
-		"RiskofThunder-R2API_Language-1.0.1"
+		"RiskofThunder-R2API_Language-1.1.0"
 	]
 }

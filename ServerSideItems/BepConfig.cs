@@ -1,11 +1,13 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using R2API;
+using RoR2;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using Path = System.IO.Path;
 
 namespace ServerSideItems
 {
@@ -16,6 +18,7 @@ namespace ServerSideItems
         public static ConfigEntry<bool> ImplementBeyondTheLimits;
         public static ConfigEntry<bool> NewlyHatchedZoeaRework;
         private static LanguageAPI.LanguageOverlay NewlyHatchedZoeaReworkOverlay;
+        private static ItemTag[] originalItemTags = null;
 
         public static void Init()
         {
@@ -41,19 +44,41 @@ namespace ServerSideItems
 
         private static void SetLanguageOverlay(object sender = null, System.EventArgs e = null)
         {
-            if (NewlyHatchedZoeaReworkOverlay != null)
-            {
-                if (!NewlyHatchedZoeaRework.Value)
+            var updateAction = delegate () {
+                var itemIndex = DLC1Content.Items.VoidMegaCrabItem.itemIndex;
+                var itemDef = ItemCatalog.GetItemDef(DLC1Content.Items.VoidMegaCrabItem.itemIndex);
+                if (NewlyHatchedZoeaRework.Value)
                 {
-                    NewlyHatchedZoeaReworkOverlay.Remove();
+                    // update item tag
+                    originalItemTags = itemDef.tags;
+                    itemDef.tags = itemDef.tags.Where(s => s != ItemTag.CannotCopy).ToArray();
+                    // update description
+                    var path = Path.Combine(Path.GetDirectoryName(ServerSideItems.PInfo.Location), "NewlyHatchedZoea.json");
+                    NewlyHatchedZoeaReworkOverlay = LanguageAPI.AddOverlayPath(path);
                 }
+                else
+                {
+                    if(originalItemTags != null)
+                    {
+                        itemDef.tags = originalItemTags;
+                    }
+                    if (NewlyHatchedZoeaReworkOverlay != null)
+                    {
+                        NewlyHatchedZoeaReworkOverlay.Remove();
+                    }
+                }
+                if (ModCompatibilityLookingGlass.enabled)
+                {
+                    ModCompatibilityLookingGlass.UpdateNewlyHatchedZoeaDescription(NewlyHatchedZoeaRework.Value);
+                }
+            };
+            if (ServerSideItems.instance.canUpdateItemDescriptions)
+            {
+                updateAction.Invoke();
             }
             else
             {
-                if (NewlyHatchedZoeaRework.Value)   
-                {
-                    NewlyHatchedZoeaReworkOverlay = LanguageAPI.AddOverlayPath(Path.Combine(Path.GetDirectoryName(ServerSideItems.PInfo.Location), "NewlyHatchedZoea.json"));
-                }
+                ServerSideItems.instance.newlyHatchedZoeaUpdate = updateAction;
             }
         }
     }

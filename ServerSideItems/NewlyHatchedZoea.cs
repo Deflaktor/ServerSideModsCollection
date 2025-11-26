@@ -69,7 +69,7 @@ namespace ServerSideItems
         private void HealthComponent_TakeDamageProcess(On.RoR2.HealthComponent.orig_TakeDamageProcess orig, HealthComponent self, DamageInfo damageInfo)
         {
             orig(self, damageInfo);
-            if (self.body?.inventory?.GetItemCount(DLC1Content.Items.VoidMegaCrabItem) > 0 && NetworkServer.active && BepConfig.Enabled.Value && BepConfig.NewlyHatchedZoeaRework.Value)
+            if (self.body?.inventory?.GetItemCountEffective(DLC1Content.Items.VoidMegaCrabItem) > 0 && NetworkServer.active && BepConfig.Enabled.Value && BepConfig.NewlyHatchedZoeaRework.Value)
             {
                 //if (!self.alive)
                 //{
@@ -80,7 +80,7 @@ namespace ServerSideItems
 
         private void CharacterMaster_OnBodyDeath(On.RoR2.CharacterMaster.orig_OnBodyDeath orig, CharacterMaster self, CharacterBody body)
         {
-            if (self.inventory.GetItemCount(DLC1Content.Items.VoidMegaCrabItem) > 0 && NetworkServer.active && BepConfig.Enabled.Value && BepConfig.NewlyHatchedZoeaRework.Value)
+            if (self.inventory.GetItemCountEffective(DLC1Content.Items.VoidMegaCrabItem) > 0 && NetworkServer.active && BepConfig.Enabled.Value && BepConfig.NewlyHatchedZoeaRework.Value)
             {
                 FireProjectileInfo fireProjectileInfo = new FireProjectileInfo
                 {
@@ -95,7 +95,7 @@ namespace ServerSideItems
                 ServerSideItems.instance.StartCoroutine(DelayDestroyBody(self));
             }
             orig(self, body);
-            if (self.inventory.GetItemCount(DLC1Content.Items.VoidMegaCrabItem) > 0 && NetworkServer.active && BepConfig.Enabled.Value && BepConfig.NewlyHatchedZoeaRework.Value)
+            if (self.inventory.GetItemCountEffective(DLC1Content.Items.VoidMegaCrabItem) > 0 && NetworkServer.active && BepConfig.Enabled.Value && BepConfig.NewlyHatchedZoeaRework.Value)
             {
                 self.DestroyBody();
             }
@@ -108,7 +108,7 @@ namespace ServerSideItems
 
         public static int GetBombCount(int stackCount)
         {
-            return 3 * stackCount;
+            return 3 + 2 * stackCount;
         }
 
         public static float GetRechargeDuration(int stackCount)
@@ -164,7 +164,8 @@ namespace ServerSideItems
                         bullseyeSearch.searchOrigin = self.body.transform.position;
                         bullseyeSearch.searchDirection = self.body.transform.position;
                         bullseyeSearch.maxDistanceFilter = maxDistance;
-                        bullseyeSearch.teamMaskFilter = TeamMask.GetEnemyTeams(TeamComponent.GetObjectTeam(self.body.gameObject));
+                        bullseyeSearch.teamMaskFilter = TeamMask.allButNeutral;
+                        bullseyeSearch.teamMaskFilter.RemoveTeam(TeamComponent.GetObjectTeam(self.body.gameObject));
                         bullseyeSearch.sortMode = BullseyeSearch.SortMode.Distance;
                         bullseyeSearch.RefreshCandidates();
                         var highestHealthTargets = bullseyeSearch.GetResults().OrderByDescending(result => result.healthComponent.fullCombinedHealth).ToList();
@@ -201,7 +202,7 @@ namespace ServerSideItems
                         position = position,
                         rotation = Quaternion.identity,
                         owner = self.body.gameObject,
-                        damage = self.body.damage * 3.8f,
+                        damage = self.body.damage * 3f,
                         force = 0,
                         crit = self.body.RollCrit(),
                     };
@@ -228,7 +229,7 @@ namespace ServerSideItems
         {
             if (NetworkServer.active && BepConfig.Enabled.Value && BepConfig.NewlyHatchedZoeaRework.Value)
             {
-                var stackSize = obj.inventory.GetItemCount(DLC1Content.Items.VoidMegaCrabItem);
+                var stackSize = obj.inventory.GetItemCountEffective(DLC1Content.Items.VoidMegaCrabItem);
                 if (stackSize > 0)
                 {
                     obj.SetBuffCount(DLC1Content.Buffs.EliteVoid.buffIndex, 1);

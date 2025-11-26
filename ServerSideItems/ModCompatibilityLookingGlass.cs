@@ -23,25 +23,38 @@ namespace ServerSideItems
                 return (bool)_enabled;
             }
         }
-        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        public static void UpdateNewlyHatchedZoeaDescription()
-        {
-            var itemStat = new ItemStatsDef();
-            itemStat.descriptions.Add("Bombs: ");
-            itemStat.valueTypes.Add(ItemStatsDef.ValueType.Utility);
-            itemStat.measurementUnits.Add(ItemStatsDef.MeasurementUnits.Number);
+        private static object backupItemStatsDefinition = null;
 
-            itemStat.descriptions.Add("Recharge Time: ");
-            itemStat.valueTypes.Add(ItemStatsDef.ValueType.Utility);
-            itemStat.measurementUnits.Add(ItemStatsDef.MeasurementUnits.Seconds);
-            itemStat.calculateValuesNew = (luck, stackCount, procChance) =>
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void UpdateNewlyHatchedZoeaDescription(bool enabled)
+        {
+            if(enabled)
             {
-                List<float> values = new();
-                values.Add(NewlyHatchedZoea.GetBombCount(stackCount));
-                values.Add(NewlyHatchedZoea.GetRechargeDuration(stackCount));
-                return values;
-            };
-            LookingGlass.ItemStatsNameSpace.ItemDefinitions.allItemDefinitions[(int)DLC1Content.Items.VoidMegaCrabItem.itemIndex] = itemStat;
+                var itemStat = new ItemStatsDef();
+                itemStat.descriptions.Add("Bombs: ");
+                itemStat.valueTypes.Add(ItemStatsDef.ValueType.Utility);
+                itemStat.measurementUnits.Add(ItemStatsDef.MeasurementUnits.Number);
+
+                itemStat.descriptions.Add("Recharge Time: ");
+                itemStat.valueTypes.Add(ItemStatsDef.ValueType.Utility);
+                itemStat.measurementUnits.Add(ItemStatsDef.MeasurementUnits.Seconds);
+                itemStat.calculateValuesNew = (luck, stackCount, procChance) =>
+                {
+                    List<float> values = new();
+                    values.Add(NewlyHatchedZoea.GetBombCount(stackCount));
+                    values.Add(NewlyHatchedZoea.GetRechargeDuration(stackCount));
+                    return values;
+                };
+                backupItemStatsDefinition = LookingGlass.ItemStatsNameSpace.ItemDefinitions.allItemDefinitions[(int)DLC1Content.Items.VoidMegaCrabItem.itemIndex];
+                LookingGlass.ItemStatsNameSpace.ItemDefinitions.allItemDefinitions[(int)DLC1Content.Items.VoidMegaCrabItem.itemIndex] = itemStat;
+            }
+            else
+            {
+                if (backupItemStatsDefinition != null)
+                {
+                    LookingGlass.ItemStatsNameSpace.ItemDefinitions.allItemDefinitions[(int)DLC1Content.Items.VoidMegaCrabItem.itemIndex] = (ItemStatsDef)backupItemStatsDefinition;
+                }
+            }
         }
     }
 }

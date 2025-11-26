@@ -30,11 +30,13 @@ namespace ServerSideItems
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "ServerSideItems";
-        public const string PluginVersion = "1.0.1";
+        public const string PluginVersion = "1.1.0";
 
         private readonly BeyondTheLimits beyondTheLimits = new BeyondTheLimits();
         private readonly NewlyHatchedZoea newlyHatchedZoea = new NewlyHatchedZoea();
         private readonly ShatterSpleenTweak shatterSpleenTweak = new ShatterSpleenTweak();
+        public bool canUpdateItemDescriptions = false;
+        public Action newlyHatchedZoeaUpdate = null;
 
         public void Awake()
         {
@@ -54,13 +56,12 @@ namespace ServerSideItems
 
         IEnumerator DelayUpdatingItemDescriptions()
         {
+            // delay to make sure this is loaded after LookingGlass
             yield return new WaitForSeconds(1.0f);
-            var itemIndex = DLC1Content.Items.VoidMegaCrabItem.itemIndex;
-            var itemDef = ItemCatalog.GetItemDef(DLC1Content.Items.VoidMegaCrabItem.itemIndex);
-            itemDef.tags = itemDef.tags.Where(s => s != ItemTag.CannotCopy).ToArray();
-            if (ModCompatibilityLookingGlass.enabled)
+            canUpdateItemDescriptions = true;
+            if(newlyHatchedZoeaUpdate != null)
             {
-                ModCompatibilityLookingGlass.UpdateNewlyHatchedZoeaDescription();
+                newlyHatchedZoeaUpdate.Invoke();
             }
         }
 

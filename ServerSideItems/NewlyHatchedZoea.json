@@ -1,10 +1,10 @@
 {
   "strings": {
-    "ITEM_VOIDMEGACRABITEM_PICKUP": "Become a creature of the <style=cIsVoid>Void</style>. <style=cIsVoid>Corrupts all </style><style=cIsTierBoss>yellow items</style><style=cIsVoid></style>.",
-	"ITEM_VOIDMEGACRABITEM_DESC": "Become a creature of the <style=cIsVoid>Void</style>. Every <style=cIsUtility>5</style> <style=cStack>(-25% per stack)</style> seconds, fire <style=cIsUtility>3</style> <style=cStack>(+3 per stack)</style> nullifying bombs which immobilize enemies and deal <style=cIsDamage>380%</style> damage. Auto-targets strongest grounded enemy. <style=cIsVoid>Corrupts all </style><style=cIsTierBoss>yellow items</style><style=cIsVoid></style>.",
+    "ITEM_VOIDMEGACRABITEM_PICKUP": "Become <style=cIsVoid>Voidtouched</style>. <style=cIsVoid>Corrupts all </style><style=cIsTierBoss>yellow items</style><style=cIsVoid></style>.",
+	"ITEM_VOIDMEGACRABITEM_DESC": "Become <style=cIsVoid>Voidtouched</style>. Every <style=cIsUtility>5</style> <style=cStack>(-25% per stack)</style> seconds, fire <style=cIsUtility>3</style> <style=cStack>(+2 per stack)</style> nullifying bombs which immobilize enemies and deal <style=cIsDamage>300%</style> damage. Auto-targets strongest grounded enemy. <style=cIsVoid>Corrupts all </style><style=cIsTierBoss>yellow items</style><style=cIsVoid></style>.",
   },
   "en": {
-    "ITEM_VOIDMEGACRABITEM_PICKUP": "Become a creature of the <style=cIsVoid>Void</style>. <style=cIsVoid>Corrupts all </style><style=cIsTierBoss>yellow items</style><style=cIsVoid></style>.",
-	"ITEM_VOIDMEGACRABITEM_DESC": "Become a creature of the <style=cIsVoid>Void</style>. Every <style=cIsUtility>5</style> <style=cStack>(-25% per stack)</style> seconds, fire <style=cIsUtility>3</style> <style=cStack>(+3 per stack)</style> nullifying bombs which immobilize enemies and deal <style=cIsDamage>380%</style> damage. Auto-targets strongest grounded enemy. <style=cIsVoid>Corrupts all </style><style=cIsTierBoss>yellow items</style><style=cIsVoid></style>.",
+    "ITEM_VOIDMEGACRABITEM_PICKUP": "Become <style=cIsVoid>Voidtouched</style>. <style=cIsVoid>Corrupts all </style><style=cIsTierBoss>yellow items</style><style=cIsVoid></style>.",
+	"ITEM_VOIDMEGACRABITEM_DESC": "Become <style=cIsVoid>Voidtouched</style>. Every <style=cIsUtility>5</style> <style=cStack>(-25% per stack)</style> seconds, fire <style=cIsUtility>3</style> <style=cStack>(+2 per stack)</style> nullifying bombs which immobilize enemies and deal <style=cIsDamage>300%</style> damage. Auto-targets strongest grounded enemy. <style=cIsVoid>Corrupts all </style><style=cIsTierBoss>yellow items</style><style=cIsVoid></style>.",
   }
 }
