@@ -1,3 +1,7 @@
+# 3.0.1
+
+- Fix "An item with the same key has already been added" which can happen in combination with item mods
+
 # 3.0.0
 
 - Updated for Alloyed Collective

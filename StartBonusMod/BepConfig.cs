@@ -24,7 +24,6 @@ namespace StartBonusMod
         public static Dictionary<string, ItemIndex> englishNameToItemIndex = new Dictionary<string, ItemIndex>();
         public static Dictionary<string, EquipmentIndex> englishNameToEquipmentIndex = new Dictionary<string, EquipmentIndex>();
         public static Dictionary<ItemTier, List<string>> itemTierToItemEnglishNames = new Dictionary<ItemTier, List<string>>();
-        public static Dictionary<string, ItemIndex> englishNameToDropTable = new Dictionary<string, ItemIndex>();
 
         private static bool initialized = false;
 
@@ -40,7 +39,11 @@ namespace StartBonusMod
                 var englishName = Language.GetString(itemDef.nameToken, "en");
                 if(englishName.IsNullOrWhiteSpace() || englishName.Equals(itemDef.nameToken))
                 {
-                    englishName = itemDef.name;
+                    englishName = $"{(int)itemDef.itemIndex}: {itemDef.name}";
+                }
+                else
+                {
+                    englishName = $"{englishName} ({(int)itemDef.itemIndex}: {itemDef.name})";
                 }
                 englishNameToItemIndex.Add(englishName, itemDef.itemIndex);
                 if (!itemTierToItemEnglishNames.TryGetValue(itemDef.tier, out var list))
@@ -61,7 +64,11 @@ namespace StartBonusMod
                 var englishName = Language.GetString(equipmentDef.nameToken, "en");
                 if (englishName.IsNullOrWhiteSpace() || englishName.Equals(equipmentDef.nameToken))
                 {
-                    englishName = equipmentDef.name;
+                    englishName = $"{(int)equipmentDef.equipmentIndex}: {equipmentDef.name}";
+                }
+                else
+                {
+                    englishName = $"{englishName} ({(int)equipmentDef.equipmentIndex}: {equipmentDef.name})";
                 }
                 englishNameToEquipmentIndex.Add(englishName, equipmentDef.equipmentIndex);
             }

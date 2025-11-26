@@ -29,7 +29,7 @@ namespace StartBonusMod
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "StartBonusMod";
-        public const string PluginVersion = "3.0.0";
+        public const string PluginVersion = "3.0.1";
 
         private List<PlayerCharacterMasterController> itemGivenTo = new List<PlayerCharacterMasterController>();
 
@@ -81,20 +81,23 @@ namespace StartBonusMod
             c.Remove();
             c.EmitDelegate((CharacterMaster characterMaster, uint startingMoney) =>
             {
-                if (BepConfig.Enabled.Value && BepConfig.StartingCashEnabled.Value)
+                if (characterMaster != null)
                 {
-                    if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.MagnusMagnuson.StartInBazaar"))
+                    if (BepConfig.Enabled.Value && BepConfig.StartingCashEnabled.Value)
                     {
-                        characterMaster.GiveMoney((uint)Run.instance.GetDifficultyScaledCost(BepConfig.StartingCash.Value) + startingMoney);
+                        if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.MagnusMagnuson.StartInBazaar"))
+                        {
+                            characterMaster.GiveMoney((uint)Run.instance.GetDifficultyScaledCost(BepConfig.StartingCash.Value) + startingMoney);
+                        }
+                        else
+                        {
+                            characterMaster.GiveMoney((uint)Run.instance.GetDifficultyScaledCost(BepConfig.StartingCash.Value));
+                        }
                     }
                     else
                     {
-                        characterMaster.GiveMoney((uint)Run.instance.GetDifficultyScaledCost(BepConfig.StartingCash.Value));
+                        characterMaster.GiveMoney(startingMoney);
                     }
-                }
-                else
-                {
-                    characterMaster.GiveMoney(startingMoney);
                 }
             });
         }
