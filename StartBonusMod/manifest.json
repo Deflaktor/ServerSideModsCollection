@@ -1,10 +1,10 @@
 ﻿{
 	"name": "StartBonusMod",
-	"version_number": "3.0.1",
+	"version_number": "3.0.2",
 	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
 	"description": "Gives each player a configurable set of items and starting gold at the beginning of a run.",
 	"dependencies": [
 		"RiskofThunder-R2API_Core-5.1.7",
-		"Def-ItemStringParser-1.0.0"
+		"Def-ItemStringParser-2.0.0"
 	]
 }

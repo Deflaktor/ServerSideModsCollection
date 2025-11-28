@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefaultProfilePath>C:\Users\xXBenutzerNameXx\AppData\Roaming\r2modmanPlus-local\RiskOfRain2\profiles\Default</DefaultProfilePath>
+	<DefaultProfilePath>C:\Users\xXBenutzerNameXx\AppData\Roaming\com.kesomannen.gale\riskofrain2\profiles\VanillaMyModsDev</DefaultProfilePath>
     <ProfilePath>$(DefaultProfilePath)</ProfilePath>
   </PropertyGroup>
 
@@ -29,9 +29,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServerSideTweaks\ServerSideTweaks.csproj">
-      <Private>False</Private>
-    </ProjectReference>
+	<ProjectReference Include="..\SimulacrumNormalStages\SimulacrumNormalStages.csproj">
+	  <Private>False</Private>
+	</ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+	<ProjectReference Include="..\ServerSideTweaks\ServerSideTweaks.csproj">
+	  <Private>False</Private>
+	</ProjectReference>
   </ItemGroup>
 
   <ItemGroup>

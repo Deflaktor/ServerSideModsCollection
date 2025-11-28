@@ -13,6 +13,8 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using UnityEngine.UIElements;
 using ItemStringParser;
+using RoR2BepInExPack.GameAssetPaths;
+using RoR2.EntitlementManagement;
 
 namespace StartBonusMod
 {
@@ -29,7 +31,7 @@ namespace StartBonusMod
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "StartBonusMod";
-        public const string PluginVersion = "3.0.1";
+        public const string PluginVersion = "3.0.2";
 
         private List<PlayerCharacterMasterController> itemGivenTo = new List<PlayerCharacterMasterController>();
 
@@ -111,7 +113,7 @@ namespace StartBonusMod
         private void Run_OnServerCharacterBodySpawned(On.RoR2.Run.orig_OnServerCharacterBodySpawned orig, Run self, CharacterBody characterBody)
         {
             orig(self, characterBody);
-            if (NetworkServer.active && BepConfig.Enabled.Value)
+            if (NetworkServer.active && BepConfig.Enabled.Value && characterBody != null)
             {
                 var master = characterBody.master;
                 if (master != null)
@@ -121,7 +123,7 @@ namespace StartBonusMod
                         if (!instance.itemGivenTo.Contains(master.playerCharacterMasterController))
                         {
                             if (BepConfig.SimpleEnabled.Value)
-                                GiveStartingItems(master.inventory);
+                                GiveStartingItemsSimple(master.inventory);
                             if (BepConfig.AdvancedEnabled.Value)
                                 GiveStartingItemsAdvanced(master);
                             instance.itemGivenTo.Add(master.playerCharacterMasterController);
@@ -136,17 +138,19 @@ namespace StartBonusMod
         {
             var inventory = master.inventory;
             Dictionary<PickupIndex, int> itemsToGive = new Dictionary<PickupIndex, int>();
-            ItemStringParser.ItemStringParser.ParseItemString(BepConfig.AdvancedItemList.Value, itemsToGive, instance.Logger);
+            ItemStringParser.ItemStringParser.ParseItemString(BepConfig.AdvancedItemList.Value, itemsToGive, instance.Logger, false);
             uint equipIndex = 0;
             foreach (var (pickupIndex, itemAmount) in itemsToGive)
             {
                 var pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
+                // handle items
                 var itemIndex = pickupDef.itemIndex;
                 var equipmentIndex = pickupDef.equipmentIndex;
                 if (itemIndex != ItemIndex.None && itemAmount > 0)
                 {
                     inventory.GiveItemPermanent(itemIndex, itemAmount);
                 }
+                // handle equipments
                 int maxEquipmentSlots = master.bodyPrefab.name == "ToolbotBody" ? 2 : 1;
                 int maxEquipmentSets = master.inventory.GetItemCountEffective(DLC3Content.Items.ExtraEquipment.itemIndex) + 1;
                 int maxEquipmentCount = maxEquipmentSlots * maxEquipmentSets;
@@ -162,16 +166,7 @@ namespace StartBonusMod
             }
         }
 
-        //private void NetworkUser_onPostNetworkUserStart(NetworkUser networkUser)
-        //{
-        //    if (NetworkServer.active && Run.instance != null && networkUser.master == null)
-        //    {
-        //        networkUser.master.GiveMoney((uint)BepConfig.StartingCash.Value);
-        //        GiveStartingItems(networkUser.master.inventory);
-        //    }
-        //}
-
-        private void GiveStartingItems(Inventory inventory)
+        private void GiveStartingItemsSimple(Inventory inventory)
         {
             foreach(var (itemTier, configEnglishName) in BepConfig.StartingItemByTier)
             {
@@ -180,16 +175,11 @@ namespace StartBonusMod
                     continue;
                 if (configEnglishName.Value.Equals("Random"))
                 {
-                    Dictionary<PickupIndex, int> itemsToGive = new Dictionary<PickupIndex, int>();
-                    ItemStringParser.ItemStringParser.ResolveItemKey(itemTier.ToString(), amount, itemsToGive, instance.Logger);
-                    foreach (var item in itemsToGive)
+                    var pickupIndex = ItemStringParser.ItemStringParser.ResolveItemKey(itemTier.ToString());
+                    var itemIndex = PickupCatalog.GetPickupDef(pickupIndex).itemIndex;
+                    if (itemIndex != ItemIndex.None)
                     {
-                        var itemIndex = PickupCatalog.GetPickupDef(item.Key).itemIndex;
-                        var itemAmount = item.Value;
-                        if (itemIndex != ItemIndex.None && itemAmount > 0)
-                        {
-                            inventory.GiveItemPermanent(itemIndex, itemAmount);
-                        }
+                        inventory.GiveItemPermanent(itemIndex, amount);
                     }
                 }
                 else
