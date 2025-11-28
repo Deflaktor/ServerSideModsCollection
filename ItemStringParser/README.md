@@ -289,7 +289,7 @@ This is the main method you will want to use. This method interprets an item str
 #### Signature
 
 ```c#
-bool ItemStringParser.ItemStringParser.ParseItemString(string itemString, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, int index = -1)
+bool ItemStringParser.ItemStringParser.ParseItemString(string itemString, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, bool availableOnly = true, int index = -1)
 ```
 
 `itemString (string):` The input string containing item definitions to parse. It includes items, operators, and formatting syntax.
@@ -297,6 +297,8 @@ bool ItemStringParser.ItemStringParser.ParseItemString(string itemString, Dictio
 `resolvedItems (Dictionary<PickupIndex, int>)`: A dictionary to which parsed item entries and their amounts will be added or updated.
 
 `log (ManualLogSource)`: For logging in case the provided itemString contains syntax errors.
+
+`availableOnly (bool, optional)`: If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked.
 
 `index (int, optional)`: Specifies if a certain entry of the top-level or-group shall be taken or if it should be picked at random. -1 is default and means random.
 
@@ -364,7 +366,7 @@ ItemStringParser.ItemStringParser.ParseItemString("Hoof | AlienHead", resolvedIt
 
 ### ResolveItemKey
 
-This method resolves a single item key string into actual items and adds them to the resolvedItems dictionary. It supports parsing item keys that represent item tiers, drop tables, concrete items, or concrete equipment. It also supports blacklisting certain items from selection. As such this method only supports the `!`-operator, but no other operator.
+This method resolves a single item key string into a pickup index. It supports parsing item keys that represent item tiers, drop tables, concrete items, or concrete equipment. It also supports blacklisting certain items from selection. As such this method only supports the `!`-operator, but no other operator.
 
 #### Signature
 
@@ -374,29 +376,22 @@ bool ItemStringParser.ItemStringParser.ResolveItemKey(string itemkey, int repeat
 
 `itemkey (string)`: The identifier string for the item or group of items to resolve. May exclude items from droptables or tiers with with `!`.
 
-`repeat (int)`: How many times to add the resolved items.
+`availableOnly (bool, optional)`: If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked.
 
-`resolvedItems (Dictionary<PickupIndex, int>)`: Dictionary where resolved items and their counts will be added or updated.
+`Return Value`: The resolved pickupIndex.
 
-`log (ManualLogSource)`: For logging in case of errors in the item string.
-
-`Return Value`: Whether it was successful.
+`ArgumentException`: Thrown when itemkey can not be resolved to an item name, droptable or tier or when any of the blacklisted item names could not be resolved.
 
 #### Usage Example
 
 ```c#
-var resolvedItems = new Dictionary<PickupIndex, int>();
-ManualLogSource log = new ManualLogSource();
-
-bool success = ItemStringParser.ResolveItemKey(
-    "Tier1!Crowbar", // Tier1 items excluding Crowbar
-    3,               // Add 3 items from this tier
-    resolvedItems,
-    Logger
-);
-
-if (success)
+try
 {
-    // Use resolvedItems as needed
+    var pickupIndex = ItemStringParser.ResolveItemKey("Tier1!Crowbar"); // Tier1 items excluding Crowbar
+}
+catch(ArgumentException e)
+{
+    Logger.LogError(e.Message);
 }
 ```
+

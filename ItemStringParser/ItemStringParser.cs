@@ -2,10 +2,12 @@
 using BepInEx.Logging;
 using R2API.Utils;
 using RoR2;
+using RoR2.EntitlementManagement;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -21,7 +23,7 @@ namespace ItemStringParser
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "ItemStringParser";
-        public const string PluginVersion = "1.0.1";
+        public const string PluginVersion = "2.0.0";
 
         private static readonly Regex tokenPattern = new Regex(@"(?:(\d+)\s*x\s*)?(\w+)", RegexOptions.IgnoreCase);
 
@@ -92,6 +94,7 @@ namespace ItemStringParser
             Add("RoR2/DLC3/Drones/dtJunkDrone.asset");
             Add("RoR2/DLC3/SolusHeart/dtSolusHeart.asset");
             Add("RoR2/DLC3/TemporaryItemsDistributor/dtTemporaryItemsDistributor.asset");
+
             return dropTables;
         }
         public static T GetRandom<T>(List<T> list, T defaultValue)
@@ -168,14 +171,27 @@ namespace ItemStringParser
         }
 
         /// <summary>
-        /// This method resolves an item key string into actual items and adds them to the resolvedItems dictionary. It supports parsing item keys that represent item tiers, drop tables, concrete items, or concrete equipment. It also supports blacklisting certain items from selection.
+        /// This method resolves a single item key into an pickup index. It supports parsing item keys that represent item tiers, drop tables, concrete items, or concrete equipment. It also supports blacklisting certain items from selection.
         /// </summary>
-        /// <param name="itemkey"></param>
-        /// <param name="repeat"></param>
-        /// <param name="resolvedItems"></param>
-        /// <param name="log"></param>
-        /// <returns>Whether the resolving was successful</returns>
-        public static bool ResolveItemKey(string itemkey, int repeat, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log)
+        /// <param name="itemkey">A concrete item internal name or a drop table with possible not-operators or a tier with possible not-operators.</param>
+        /// <param name="availableOnly">If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked.</param>
+        /// <returns>The resolved pickup index</returns>
+        /// <exception cref="ArgumentException">Thrown when itemkey can not be resolved to an concrete item name, droptable or tier or when any of the blacklisted item names could not be resolved.<exception>
+        public static PickupIndex ResolveItemKey(string itemkey, bool availableOnly = true)
+        {
+            var resolvedItems = new Dictionary<PickupIndex, int>();
+            ResolveItemKey(itemkey, 1, resolvedItems, null, availableOnly);
+            foreach (var (pickupIndex, amount) in resolvedItems)
+            {
+                if (amount > 0 && pickupIndex != PickupIndex.none)
+                {
+                    return pickupIndex;
+                }
+            }
+            return PickupIndex.none;
+        }
+
+        private static bool ResolveItemKey(string itemkey, int repeat, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, bool availableOnly)
         {
             List<PickupIndex> itemBlackList = [];
             var blacklistedItems = itemkey.Split("!");
@@ -190,10 +206,9 @@ namespace ItemStringParser
                 }
                 else
                 {
-                    log.LogWarning($"ResolveItemKey: Could not get pickup from blacklisted item: {blacklistedItem}, skipping it.");
+                    HandleWarning(log, $"ResolveItemKey: Could not get pickup from blacklisted item: {blacklistedItem}");
                 }
             }
-
             List<PickupIndex> candidates = null;
             switch (itemkey.ToLower())
             {
@@ -234,7 +249,7 @@ namespace ItemStringParser
                     var pickupIndex = GetRandom(candidates, PickupIndex.none);
                     if (pickupIndex == PickupIndex.none)
                     {
-                        log.LogWarning($"ResolveItemKey: Could not get pickup from item tier: {itemkey}, skipping it.");
+                        HandleWarning(log, $"ResolveItemKey: Could not get pickup from item tier: {itemkey}, as all candidates are either disabled or locked behind expansion");
                         return false;
                     }
                     resolvedItems[pickupIndex] = resolvedItems.GetValueOrDefault(pickupIndex) + 1;
@@ -248,17 +263,22 @@ namespace ItemStringParser
                 WeightedSelection<UniquePickup> selection = new WeightedSelection<UniquePickup>();
                 foreach (var choice in dropTable.selector.choices)
                 {
-                    if (!itemBlackList.Contains(choice.value.pickupIndex))
+                    var pickupIndex = choice.value.pickupIndex;
+                    if (!itemBlackList.Contains(pickupIndex) && Run.instance.IsPickupAvailable(pickupIndex))
                     {
                         selection.AddChoice(choice);
                     }
+                }
+                if (selection.Count == 0) {
+                    HandleWarning(log, $"ResolveItemKey: Could not get pickup from droptable: {itemkey}, as all candidates are either disabled or locked behind expansion");
+                    return false;
                 }
                 while (repeat > 0)
                 {
                     var uniquePickup = selection.Evaluate(UnityEngine.Random.Range(0, 1f));
                     if (uniquePickup.Equals(UniquePickup.none))
                     {
-                        log.LogWarning($"ResolveItemKey: Could not get pickup from droptable: {itemkey}, skipping it.");
+                        HandleWarning(log, $"ResolveItemKey: Could not get pickup from droptable: {itemkey}");
                         return false;
                     }
                     resolvedItems[uniquePickup.pickupIndex] = resolvedItems.GetValueOrDefault(uniquePickup.pickupIndex) + 1;
@@ -271,12 +291,13 @@ namespace ItemStringParser
                 ItemIndex itemIndex = ItemCatalog.FindItemIndex(itemkey);
                 if (itemIndex != ItemIndex.None)
                 {
-                    var pickupIndex = PickupCatalog.FindPickupIndex(itemIndex);
-                    while (repeat > 0)
+                    if (availableOnly && !Run.instance.IsItemAvailable(itemIndex))
                     {
-                        resolvedItems[pickupIndex] = resolvedItems.GetValueOrDefault(pickupIndex) + 1;
-                        repeat--;
+                        HandleWarning(log, $"ResolveItemKey: {itemkey} cannot be resolved as it is disabled in this run.");
+                        return false;
                     }
+                    var pickupIndex = PickupCatalog.FindPickupIndex(itemIndex);
+                    resolvedItems[pickupIndex] = resolvedItems.GetValueOrDefault(pickupIndex) + repeat;
                     return true;
                 }
                 else
@@ -284,17 +305,18 @@ namespace ItemStringParser
                     EquipmentIndex equipmentIndex = EquipmentCatalog.FindEquipmentIndex(itemkey);
                     if (equipmentIndex != EquipmentIndex.None)
                     {
-                        var pickupIndex = PickupCatalog.FindPickupIndex(equipmentIndex);
-                        while (repeat > 0)
+                        if (availableOnly && !Run.instance.IsEquipmentAvailable(equipmentIndex))
                         {
-                            resolvedItems[pickupIndex] = resolvedItems.GetValueOrDefault(pickupIndex) + 1;
-                            repeat--;
+                            HandleWarning(log, $"ResolveItemKey: {itemkey} cannot be resolved as it is disabled in this run.");
+                            return false;
                         }
+                        var pickupIndex = PickupCatalog.FindPickupIndex(equipmentIndex);
+                        resolvedItems[pickupIndex] = resolvedItems.GetValueOrDefault(pickupIndex) + repeat;
                         return true;
                     }
                     else
                     {
-                        log.LogError($"ResolveItemKey: Could not find item key: {itemkey}");
+                        HandleWarning(log, $"ResolveItemKey: Could not find item key: {itemkey}");
                         return false;
                     }
                 }
@@ -315,7 +337,19 @@ namespace ItemStringParser
             WEIGHTED_OR_ONLY
         }
 
-        private static bool ParseItemString(string itemString, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, int index, int repeat)
+        private static void HandleWarning(ManualLogSource log, string message)
+        {
+            if(log == null)
+            {
+                throw new ArgumentException(message);
+            }
+            else
+            {
+                log.LogWarning(message);
+            }
+        }
+
+        private static bool ParseItemString(string itemString, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, bool availableOnly, int index, int repeat)
         {
             // "5 random whites or 3 large chest":
             // 5xRandom: 0.5, 3xdtChest2: 0.5
@@ -363,7 +397,7 @@ namespace ItemStringParser
             {
                 if (itemString.Contains("&") && itemString.Contains("|"))
                 {
-                    log.LogError($"ParseItemStringReward: Cannot have & and | in the same group: '{itemString}'");
+                    HandleWarning(log, $"ParseItemStringReward: Cannot have & and | in the same group: '{itemString}'");
                     return false;
                 }
                 if (itemString.Contains("|"))
@@ -407,7 +441,7 @@ namespace ItemStringParser
                     var match = tokenPattern.Match(token);
                     if (!match.Success)
                     {
-                        log.LogError($"Cannot parse segment '{part.Trim()}'");
+                        HandleWarning(log, $"Cannot parse segment '{part.Trim()}'");
                         return false;
                     }
 
@@ -418,7 +452,7 @@ namespace ItemStringParser
                         entry.itemKey = match.Groups[2].Value;
                     else
                     {
-                        log.LogError($"Cannot parse segment '{part.Trim()}'");
+                        HandleWarning(log, $"Cannot parse segment '{part.Trim()}'");
                         return false;
                     }
                 }
@@ -436,11 +470,11 @@ namespace ItemStringParser
                         Dictionary<PickupIndex, int> subResolvedItems = new Dictionary<PickupIndex, int>();
                         if (replacements.ContainsKey(entry.itemKey))
                         {
-                            success = ParseItemString(replacements[entry.itemKey], subResolvedItems, log, -1, entry.repeat);
+                            success = ParseItemString(replacements[entry.itemKey], subResolvedItems, log, availableOnly, -1, entry.repeat);
                         }
                         else
                         {
-                            success = ResolveItemKey(entry.itemKey, entry.repeat, subResolvedItems, log);
+                            success = ResolveItemKey(entry.itemKey, entry.repeat, subResolvedItems, log, availableOnly);
                         }
                         if (success)
                         {
@@ -461,7 +495,7 @@ namespace ItemStringParser
                         attempts--;
                         if (attempts == 0)
                         {
-                            log.LogError($"Could not resolve to item rewards: {itemString}");
+                            HandleWarning(log, $"Could not resolve to item rewards: {itemString}");
                             return false;
                         }
                         ItemStringEntry entry;
@@ -478,11 +512,11 @@ namespace ItemStringParser
                         Dictionary<PickupIndex, int> subResolvedItems = new Dictionary<PickupIndex, int>();
                         if (replacements.ContainsKey(entry.itemKey))
                         {
-                            success = ParseItemString(replacements[entry.itemKey], subResolvedItems, log, -1, entry.repeat);
+                            success = ParseItemString(replacements[entry.itemKey], subResolvedItems, log, availableOnly, -1, entry.repeat);
                         }
                         else
                         {
-                            success = ResolveItemKey(entry.itemKey, entry.repeat, subResolvedItems, log);
+                            success = ResolveItemKey(entry.itemKey, entry.repeat, subResolvedItems, log, availableOnly);
                         }
                         if (success)
                         {
@@ -503,23 +537,34 @@ namespace ItemStringParser
         }
 
         /// <summary>
+        /// This method interprets an item string, applying repetitions and other formatting rules, to build a collection of items/equipments with their amounts. Any error in the syntax will lead to an Argum
+        /// </summary>
+        /// <param name="itemString">The input string containing item definitions to parse. It includes items, operators, and formatting syntax.</param>
+        /// <param name="resolvedItems">A dictionary to which parsed item entries and their amounts will be added or updated.</param>
+        /// <param name="availableOnly">If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked.</param>
+        /// <param name="index">Specifies if a certain entry of the top-level or-group shall be taken or if it should be picked at random. -1 is default and means random.</param>
+        /// <exception cref="ArgumentException">Thrown when input can not be properly resolved for any reason, be it syntax errors or a concrete item name which does not exist or the user has not the required dlc, etc.<exception>
+        public static void ParseItemStringStrict(string itemString, Dictionary<PickupIndex, int> resolvedItems, bool availableOnly = true, int index = -1)
+        {
+            ParseItemString(itemString, resolvedItems, null, availableOnly, index, 1);
+        }
+
+        /// <summary>
         /// This method interprets an item string, applying repetitions and other formatting rules, to build a collection of items/equipments with their amounts.
         /// </summary>
         /// <param name="itemString">The input string containing item definitions to parse. It includes items, operators, and formatting syntax.</param>
         /// <param name="resolvedItems">A dictionary to which parsed item entries and their amounts will be added or updated.</param>
         /// <param name="log">For logging in case the provided itemString contains syntax errors.</param>
+        /// <param name="availableOnly">If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked.</param>
         /// <param name="index">Specifies if a certain entry of the top-level or-group shall be taken or if it should be picked at random. -1 is default and means random.</param>
-        /// <returns>Whether the item string was resolved successfully</returns>
-        public static bool ParseItemString(string itemString, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, int index = -1)
+        /// <returns>Whether the item string was resolved successfully. A failure case can be when the input string had syntax error or a concrete item was selected for which the user does not have the required dlc or a droptable or tier not having enough candidates.</returns>
+        public static bool ParseItemString(string itemString, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, bool availableOnly = true, int index = -1)
         {
-            return ParseItemString(itemString, resolvedItems, log, index, 1);
+            return ParseItemString(itemString, resolvedItems, log, availableOnly, index, 1);
         }
-
 
         public static void WriteDropTablesMarkdownFile(string filePath)
         {
-            // string filePath = $"{StartBonusMod.PluginName}_droptables.md";
-
             // This will write it next to the RiskOfRain2.exe file
             using (System.IO.StreamWriter writer = new System.IO.StreamWriter(filePath))
             {
