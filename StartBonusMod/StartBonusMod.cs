@@ -31,7 +31,7 @@ namespace StartBonusMod
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "StartBonusMod";
-        public const string PluginVersion = "3.0.2";
+        public const string PluginVersion = "3.0.3";
 
         private List<PlayerCharacterMasterController> itemGivenTo = new List<PlayerCharacterMasterController>();
 
@@ -46,13 +46,17 @@ namespace StartBonusMod
                 {
                     EquipmentCatalog.availability.CallWhenAvailable(() =>
                     {
-                        BepConfig.Init();
+                        StartCoroutine(DelayInitBepConfig());
+                        
                     });
                 });
             };
-
         }
-
+        IEnumerator DelayInitBepConfig()
+        {
+            yield return new WaitForSeconds(2.0f);
+            BepConfig.Init();
+        }
         private void OnEnable()
         {
             IL.RoR2.Run.SetupUserCharacterMaster += Run_SetupUserCharacterMaster;

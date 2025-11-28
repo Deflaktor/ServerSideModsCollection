@@ -1,3 +1,7 @@
+# 3.0.3
+
+- Improve robustness in combination with modded items
+
 # 3.0.2
 
 - Fix dependency with ItemStringParser

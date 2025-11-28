@@ -1,6 +1,6 @@
 ﻿{
 	"name": "StartBonusMod",
-	"version_number": "3.0.2",
+	"version_number": "3.0.3",
 	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
 	"description": "Gives each player a configurable set of items and starting gold at the beginning of a run.",
 	"dependencies": [

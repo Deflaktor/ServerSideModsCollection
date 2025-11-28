@@ -36,8 +36,9 @@ namespace StartBonusMod
             englishNameToItemIndex.Add("None", ItemIndex.None);
             foreach (var itemDef in ItemCatalog.allItemDefs)
             {
+                if (itemDef == null || itemDef.nameToken == null) continue;
                 var englishName = Language.GetString(itemDef.nameToken, "en");
-                if(englishName.IsNullOrWhiteSpace() || englishName.Equals(itemDef.nameToken))
+                if(string.IsNullOrWhiteSpace(englishName) || englishName.Equals(itemDef.nameToken))
                 {
                     englishName = $"{(int)itemDef.itemIndex}: {itemDef.name}";
                 }
@@ -61,8 +62,9 @@ namespace StartBonusMod
             englishNameToEquipmentIndex.Add("None", EquipmentIndex.None);
             foreach (var equipmentDef in EquipmentCatalog.equipmentDefs)
             {
+                if (equipmentDef == null || equipmentDef.nameToken == null) continue;
                 var englishName = Language.GetString(equipmentDef.nameToken, "en");
-                if (englishName.IsNullOrWhiteSpace() || englishName.Equals(equipmentDef.nameToken))
+                if (string.IsNullOrWhiteSpace(englishName) || englishName.Equals(equipmentDef.nameToken))
                 {
                     englishName = $"{(int)equipmentDef.equipmentIndex}: {equipmentDef.name}";
                 }
