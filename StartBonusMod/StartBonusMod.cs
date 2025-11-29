@@ -155,7 +155,7 @@ namespace StartBonusMod
                     inventory.GiveItemPermanent(itemIndex, itemAmount);
                 }
                 // handle equipments
-                int maxEquipmentSlots = master.bodyPrefab.name == "ToolbotBody" ? 2 : 1;
+                int maxEquipmentSlots = Helper.IsToolbotWithSwapSkill(master) ? 2 : 1;
                 int maxEquipmentSets = master.inventory.GetItemCountEffective(DLC3Content.Items.ExtraEquipment.itemIndex) + 1;
                 int maxEquipmentCount = maxEquipmentSlots * maxEquipmentSets;
                 var equipmentCount = itemAmount;
