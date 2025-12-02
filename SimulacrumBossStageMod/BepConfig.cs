@@ -67,10 +67,10 @@ namespace SimulacrumBossStageMod
                 BossStage = config.Bind("Boss Stage", "Boss Stage", StageEnum.VoidLocus, new ConfigDescription("To which stage to warp."));
                 BossStageStartWave = config.Bind("Boss Stage", "Boss Stage Warp Wave", 40, new ConfigDescription("At which wave to warp to this stage. Must be multiple of 10."));
                 BossStageTier2Elite = config.Bind("Boss Stage", "Malachite Elites", true, new ConfigDescription("Enables Malachite elites once the boss stage has been reached."));
-                BossStageBoss = config.Bind("Boss Stage", "Boss", BossEnum.VoidlingPhase3, new ConfigDescription("Which boss to spawn during the final boss stage wave."));
-                BossStageBossElite = config.Bind("Boss Stage", "Boss Elite Aspect", EliteEnum.Mending, new ConfigDescription("Which elite aspect the boss shall have."));
+                BossStageBoss = config.Bind("Boss Stage", "Boss", BossEnum.Voidling, new ConfigDescription("Which boss to spawn during the final boss stage wave."));
+                BossStageBossElite = config.Bind("Boss Stage", "Boss Elite Aspect", EliteEnum.None, new ConfigDescription("Which elite aspect the boss shall have."));
                 BossStageBossCount = config.Bind("Boss Stage", "Boss Count", 1, new ConfigDescription("How many bosses to spawn during the final boss stage wave."));
-                BossStageBossRadius = config.Bind("Boss Stage", "Boss Battleground Radius", 1.4f, new ConfigDescription("Whether to increase or decrease the normal radius of the battleground for the final boss stage wave (1.0 = vanilla)."));
+                BossStageBossRadius = config.Bind("Boss Stage", "Boss Battleground Radius", 1.5f, new ConfigDescription("Whether to increase or decrease the normal radius of the battleground for the final boss stage wave (1.0 = vanilla)."));
                 BossStageLunarCoinsReward = config.Bind("Boss Stage", "Boss Stage Lunar Coins Reward", 100, new ConfigDescription("How many Lunar Coins to drop once the final stage has been completed."));
                 BossStageCompleteEndRun = config.Bind("Boss Stage", "Completing Boss Stage ends Run", true, new ConfigDescription("If the boss stage is completed, the run will end."));
             }

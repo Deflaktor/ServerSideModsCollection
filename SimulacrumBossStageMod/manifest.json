@@ -1,10 +1,10 @@
 ﻿{
 	"name": "SimulacrumBossStageMod",
-	"version_number": "1.3.1",
+	"version_number": "1.3.2",
 	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
 	"description": "SimulacrumBossStageMod",
 	"dependencies": [
 		"RiskofThunder-R2API_Core-5.1.7",
-		"Def-SimulacrumNormalStages-1.0.2"
+		"Def-SimulacrumNormalStages-1.1.0"
 	]
 }

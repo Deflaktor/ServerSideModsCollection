@@ -1,19 +1,21 @@
 using BepInEx;
+using HarmonyLib;
+using MonoMod.Cil;
+using Newtonsoft.Json.Linq;
 using R2API;
 using R2API.Utils;
 using RoR2;
+using ServerSideTweaks;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using MonoMod.Cil;
-using System;
-using System.Reflection;
+using UnityEngine.Events;
 using UnityEngine.Networking;
-using static SimulacrumBossStageMod.EnumCollection;
-using System.Linq;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using ServerSideTweaks;
-using Newtonsoft.Json.Linq;
-using HarmonyLib;
+using static SimulacrumBossStageMod.EnumCollection;
 
 namespace SimulacrumBossStageMod
 {
@@ -31,7 +33,7 @@ namespace SimulacrumBossStageMod
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "SimulacrumBossStageMod";
-        public const string PluginVersion = "1.3.1";
+        public const string PluginVersion = "1.3.2";
 
         public AsyncOperationHandle<SpawnCard> iscVoidPortal;
         public AsyncOperationHandle<SpawnCard> iscVoidOutroPortal;
@@ -40,7 +42,7 @@ namespace SimulacrumBossStageMod
         public float nextBonusTime;
         public int bonusCounter;
         public bool bossStageCompleted;
-        public bool bossSpawned;
+        public List<GameObject> bossSpawned = new List<GameObject>();
         public SceneDef nextStageBeforeBoss;
         public float zoneRadiusBoss = 1.0f;
         public static CombatDirector.EliteTierDef poisonEliteTier;
@@ -69,6 +71,7 @@ namespace SimulacrumBossStageMod
         private void OnEnable()
         {
             On.RoR2.InfiniteTowerRun.Start                                   += InfiniteTowerRun_Start;
+            On.RoR2.Run.BuildDropTable                                       += Run_BuildDropTable;
             On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer          += InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
             On.RoR2.InfiniteTowerRun.AdvanceWave                             += InfiniteTowerRun_AdvanceWave;
             On.RoR2.InfiniteTowerRun.FixedUpdate                             += InfiniteTowerRun_FixedUpdate;
@@ -77,11 +80,13 @@ namespace SimulacrumBossStageMod
             On.RoR2.InfiniteTowerBossWaveController.Initialize               += InfiniteTowerBossWaveController_Initialize;
             On.RoR2.InfiniteTowerWaveController.Initialize                   += InfiniteTowerWaveController_Initialize;
             On.RoR2.InfiniteTowerWaveController.DropRewards                  += InfiniteTowerWaveController_DropRewards;
+            On.RoR2.FogDamageController.EvaluateTeam                         += FogDamageController_EvaluateTeam;
         }
 
         private void OnDisable()
         {
             On.RoR2.InfiniteTowerRun.Start                                   -= InfiniteTowerRun_Start;
+            On.RoR2.Run.BuildDropTable                                       -= Run_BuildDropTable;
             On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer          -= InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
             On.RoR2.InfiniteTowerRun.AdvanceWave                             -= InfiniteTowerRun_AdvanceWave;
             On.RoR2.InfiniteTowerRun.FixedUpdate                             -= InfiniteTowerRun_FixedUpdate;
@@ -90,6 +95,19 @@ namespace SimulacrumBossStageMod
             On.RoR2.InfiniteTowerBossWaveController.Initialize               -= InfiniteTowerBossWaveController_Initialize;
             On.RoR2.InfiniteTowerWaveController.Initialize                   -= InfiniteTowerWaveController_Initialize;
             On.RoR2.InfiniteTowerWaveController.DropRewards                  -= InfiniteTowerWaveController_DropRewards;
+            On.RoR2.FogDamageController.EvaluateTeam                         -= FogDamageController_EvaluateTeam;
+        }
+
+        private void Run_BuildDropTable(On.RoR2.Run.orig_BuildDropTable orig, Run self)
+        {
+            orig(self);
+            if (self is InfiniteTowerRun it)
+            {
+                if (BepConfig.Enabled.Value)
+                {
+                    SetArtifacts(it);
+                }
+            }
         }
 
         private void InfiniteTowerRun_Start(On.RoR2.InfiniteTowerRun.orig_Start orig, InfiniteTowerRun self)
@@ -97,7 +115,7 @@ namespace SimulacrumBossStageMod
             orig(self);
             bonusCounter = 0;
             nextBonusTime = 0f;
-            bossSpawned = false;
+            bossSpawned.Clear();
             bossStageCompleted = false;
             nextStageBeforeBoss = null;
             zoneRadiusBoss = 1.0f;
@@ -108,7 +126,7 @@ namespace SimulacrumBossStageMod
                 poisonEliteTier = new CombatDirector.EliteTierDef
                 {
                     costMultiplier = CombatDirector.baseEliteCostMultiplier * 3f,
-                    eliteTypes = new EliteDef[2] { RoR2Content.Elites.Poison, edBead.WaitForCompletion() },
+                    eliteTypes = new EliteDef[3] { RoR2Content.Elites.Poison, DLC2Content.Elites.Bead, DLC3Content.Elites.Collective },
                     isAvailable = (SpawnCard.EliteRules rules) => checkEliteAvailable(rules),
                     canSelectWithoutAvailableEliteDef = false
                 };
@@ -127,6 +145,7 @@ namespace SimulacrumBossStageMod
                 bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>(BossNames[BepConfig.BossStageBoss.Value]);
             }
         }
+
         private void InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer1(ILContext il)
         {
             ILCursor c = new ILCursor(il);
@@ -267,19 +286,23 @@ namespace SimulacrumBossStageMod
 
             if (IsBossStageStarted(self.waveIndex) && self.IsStageTransitionWave() && nextBonusTime == 0f && !bossStageCompleted && BepConfig.BossStageBoss.Value != BossEnum.None)
             {
-                if (self.waveController.GetNormalizedProgress() > 0.8f && !bossSpawned)
+                if (self.waveController.GetNormalizedProgress() > 0.8f && bossSpawned.Count == 0)
                 {
                     // spawn boss
-                    bossSpawned = true;
                     EliteDef eliteDef = null;
                     if (BepConfig.BossStageBossElite.Value != EliteEnum.None)
                     {
                         eliteDef = EliteDefs[BepConfig.BossStageBossElite.Value];
                     }
+                    var bossSpawnedListener = new UnityAction<GameObject, CombatDirector>((spawn, combatDir) => {
+                        bossSpawned.Add(spawn);
+                    });
+                    self.waveController.combatDirector.onSpawnedWithDirectorServer.AddListener(bossSpawnedListener);
                     for (int i = 0; i < BepConfig.BossStageBossCount.Value; i++)
                     {
                         self.waveController.combatDirector.Spawn(bossSpawnCard.WaitForCompletion(), eliteDef, self.waveController.spawnTarget.transform, DirectorCore.MonsterSpawnDistance.Far, false);
                     }
+                    self.waveController.combatDirector.onSpawnedWithDirectorServer.RemoveListener(bossSpawnedListener);
                 }
                 // increase/decrease safe ward zone size
                 if (!self.waveController.isInSuddenDeath)
@@ -305,7 +328,7 @@ namespace SimulacrumBossStageMod
                 return;
 
             zoneRadiusBoss = 1f;
-            bossSpawned = false;
+            bossSpawned.Clear();
             if (bonusCounter >= BepConfig.BossStageLunarCoinsReward.Value)
             {
                 nextBonusTime = 0f;
@@ -456,6 +479,11 @@ namespace SimulacrumBossStageMod
         private void InfiniteTowerRun_AdvanceWave(On.RoR2.InfiniteTowerRun.orig_AdvanceWave orig, InfiniteTowerRun self)
         {
             orig(self);
+            SetArtifacts(self);
+        }
+
+        private void SetArtifacts(InfiniteTowerRun self)
+        {
             if (!NetworkServer.active)
                 return;
             if (BepConfig.Artifact1.Value != ArtifactEnum.None)
@@ -500,6 +528,28 @@ namespace SimulacrumBossStageMod
                 else if (self.waveIndex == BepConfig.Artifact4EndWave.Value + 1)
                 {
                     RunArtifactManager.instance.SetArtifactEnabledServer(GetArtifactDef(BepConfig.Artifact4.Value), false);
+                }
+            }
+        }
+
+        private void FogDamageController_EvaluateTeam(On.RoR2.FogDamageController.orig_EvaluateTeam orig, FogDamageController self, TeamIndex teamIndex)
+        {
+            orig(self, teamIndex);
+            foreach(var boss in bossSpawned)
+            {
+                var bossMaster = boss.GetComponent<CharacterMaster>();
+                if (bossMaster == null)
+                    continue;
+                var bossBody = bossMaster.GetBody();
+                if (bossBody == null)
+                    continue;
+                if (self.characterBodyToStacks != null) {
+                    if(self.characterBodyToStacks.TryGetValue(bossBody, out var stack))
+                    {
+                        self.characterBodyToStacks.Remove(bossBody);
+                        if(bossBody.HasBuff(RoR2Content.Buffs.VoidFogStackCooldown))
+                            bossBody.RemoveOldestTimedBuff(RoR2Content.Buffs.VoidFogStackCooldown);
+                    }
                 }
             }
         }
