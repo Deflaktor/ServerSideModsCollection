@@ -18,9 +18,8 @@ namespace RandomEvents
 {
     public class TemporaryEquipment : MonoBehaviour
     {
-        private List<EquipmentState> realEquipmentStateSlots = new List<EquipmentState>();
-        private List<EquipmentState> temporaryEquipmentStateSlots = new List<EquipmentState>();
-        private bool passThrough = false;
+        private EquipmentState[][] realEquipmentStateSlots;
+        private EquipmentState[][] temporaryEquipmentStateSlots;
         public float cooldownScale = 1f;
         public bool doNotDisableEquipment = false;
 
@@ -93,11 +92,7 @@ namespace RandomEvents
                 temporaryEquipment = activator.GetComponent<TemporaryEquipment>();
                 if (temporaryEquipment != null)
                 {
-                    for (uint i = 0; i < inventory.equipmentStateSlots.Length; i++)
-                    {
-                        inventory.equipmentStateSlots[i].equipmentDef = EquipmentCatalog.GetEquipmentDef(EquipmentIndex.None);
-                        inventory.equipmentStateSlots[i].equipmentIndex = EquipmentIndex.None;
-                    }
+                    Helper.FillEquipment(inventory, EquipmentIndex.None);
                 }
             }
 
@@ -105,11 +100,7 @@ namespace RandomEvents
             {
                 if (temporaryEquipment != null)
                 {
-                    for (uint i = 0; i < inventory.equipmentStateSlots.Length; i++)
-                    {
-                        inventory.equipmentStateSlots[i].equipmentDef = temporaryEquipment.temporaryEquipmentStateSlots[0].equipmentDef;
-                        inventory.equipmentStateSlots[i].equipmentIndex = temporaryEquipment.temporaryEquipmentStateSlots[0].equipmentIndex;
-                    }
+                    Helper.TransferEquipmentIndex(temporaryEquipment.temporaryEquipmentStateSlots, inventory._equipmentStateSlots);
                 }
             }
         }
@@ -125,16 +116,7 @@ namespace RandomEvents
                 temporaryEquipment = context.body.GetComponent<TemporaryEquipment>();
                 if (temporaryEquipment != null)
                 {
-                    for (uint i = 0; i < inventory.equipmentStateSlots.Length; i++)
-                    {
-                        var equipmentIndex = EquipmentIndex.None;
-                        if (i < temporaryEquipment.realEquipmentStateSlots.Count)
-                        {
-                            equipmentIndex = temporaryEquipment.realEquipmentStateSlots[(int)i].equipmentIndex;
-                        }
-                        inventory.equipmentStateSlots[i].equipmentDef = EquipmentCatalog.GetEquipmentDef(equipmentIndex);
-                        inventory.equipmentStateSlots[i].equipmentIndex = equipmentIndex;
-                    }
+                    inventory._equipmentStateSlots = temporaryEquipment.realEquipmentStateSlots;
                 }
             }
 
@@ -142,94 +124,27 @@ namespace RandomEvents
             {
                 if (temporaryEquipment != null)
                 {
-                    for (uint i = 0; i < inventory.equipmentStateSlots.Length; i++)
-                    {
-                        var equipmentIndex = EquipmentIndex.None;
-                        if (i < temporaryEquipment.temporaryEquipmentStateSlots.Count)
-                        {
-                            equipmentIndex = temporaryEquipment.temporaryEquipmentStateSlots[(int)i].equipmentIndex;
-                        }
-                        inventory.equipmentStateSlots[i].equipmentDef = EquipmentCatalog.GetEquipmentDef(equipmentIndex);
-                        inventory.equipmentStateSlots[i].equipmentIndex = equipmentIndex;
-                    }
+                    inventory._equipmentStateSlots = temporaryEquipment.temporaryEquipmentStateSlots;
                 }
             }
-        }
-
-        private static bool Inventory_SetEquipmentInternal(On.RoR2.Inventory.orig_SetEquipmentInternal orig, Inventory self, EquipmentState equipmentState, uint slot)
-        {
-            //if (self.TryGetComponent<CharacterMaster>(out var characterMaster) && self.TryGetComponent<TemporaryEquipment>(out var temporaryEquipment) && !temporaryEquipment.passThrough)
-            //{
-            //    orig(self, equipmentState, slot);
-            //    temporaryEquipment.realEquipmentStateSlots.Clear();
-            //    temporaryEquipment.realEquipmentStateSlots.AddRange(self.equipmentStateSlots);
-            //    return false;
-            //} else { 
-                return orig(self, equipmentState, slot); // vanilla
-            //}
         }
 
         public void SetTemporaryEquipment(EquipmentIndex equipmentIndex)
         {
             if (TryGetComponent(out CharacterBody body))
             {
-                if (body.inventory != null && body.inventory.equipmentStateSlots != null)
+                if (body.inventory != null && body.inventory._equipmentStateSlots != null && body.master != null)
                 {
-                    realEquipmentStateSlots.Clear();
-                    realEquipmentStateSlots.AddRange(body.inventory.equipmentStateSlots);
-                    if (realEquipmentStateSlots.Count == 0)
+                    int maxEquipmentSlots = Helper.IsToolbotWithSwapSkill(body.master) ? 2 : 1;
+                    int maxEquipmentSets = body.inventory.GetItemCountEffective(DLC3Content.Items.ExtraEquipment.itemIndex) + 1;
+                    for (uint slot = 0; slot < maxEquipmentSlots; slot++)
                     {
-                        body.inventory.SetEquipmentIndex(equipmentIndex);
-                    }
-                    else
-                    {
-                        for (uint i = 0; i < realEquipmentStateSlots.Count; i++)
+                        for (uint set = 0; set < maxEquipmentSets; set++)
                         {
-                            try
-                            {
-                                passThrough = true;
-                                body.inventory.SetEquipmentIndexForSlot(equipmentIndex, i);
-                            }
-                            finally
-                            {
-                                passThrough = false;
-                            }
+                            body.inventory.SetEquipmentIndexForSlot(equipmentIndex, slot, set);
                         }
                     }
-                    temporaryEquipmentStateSlots.Clear();
-                    temporaryEquipmentStateSlots.AddRange(body.inventory.equipmentStateSlots);
-                }
-            }
-        }
-
-        public void RemoveTemporaryEquipment()
-        {
-            if (TryGetComponent(out CharacterBody body))
-            {
-                if (body.inventory != null)
-                {
-                    if (realEquipmentStateSlots.Count == 0)
-                    {
-                        passThrough = true;
-                        body.inventory.SetEquipmentIndex(EquipmentIndex.None);
-                        passThrough = false;
-                    }
-                    else
-                    {
-                        for (uint i = 0; i < realEquipmentStateSlots.Count; i++)
-                        {
-                            try
-                            {
-                                passThrough = true;
-                                body.inventory.SetEquipment(realEquipmentStateSlots[(int)i], i);
-                            }
-                            finally
-                            {
-                                passThrough = false;
-                            }
-                        }
-                    }
-                    temporaryEquipmentStateSlots.Clear();
+                    temporaryEquipmentStateSlots = Helper.CopyEquipmentState(body.inventory._equipmentStateSlots);
                 }
             }
         }
@@ -238,15 +153,34 @@ namespace RandomEvents
         {
             if (TryGetComponent(out CharacterBody body))
             {
-                if(body.inventory != null && body.inventory.equipmentStateSlots != null) { 
-                    realEquipmentStateSlots.AddRange(body.inventory.equipmentStateSlots);
+                if(body.inventory != null && body.inventory._equipmentStateSlots != null) {
+                    realEquipmentStateSlots = Helper.CopyEquipmentState(body.inventory._equipmentStateSlots);
                 }
             }
         }
 
         private void OnDisable()
         {
-            RemoveTemporaryEquipment();
+            if (TryGetComponent(out CharacterBody body))
+            {
+                if (body.inventory != null)
+                {
+                    for (uint slot = 0; slot < temporaryEquipmentStateSlots.Length; slot++)
+                    {
+                        for (uint set = 0; set < temporaryEquipmentStateSlots.Length; set++)
+                        {
+                            if(slot < realEquipmentStateSlots.Length && set < realEquipmentStateSlots[slot].Length)
+                            {
+                                body.inventory.SetEquipment(realEquipmentStateSlots[slot][set], slot, set);
+                            }
+                            else
+                            {
+                                body.inventory.SetEquipmentIndexForSlot(EquipmentIndex.None, slot, set);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

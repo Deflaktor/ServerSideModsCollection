@@ -112,7 +112,7 @@ namespace RandomEvents
                             inventory = gameObject.AddComponent<TemporaryInventory>();
                         }
                         var previousItem = itemCandidates[index];
-                        inventory.RemoveTemporaryItem(previousItem, true, 10);
+                        inventory.RemoveTemporaryItem(previousItem, 10);
                         index = (index + 1) % itemCandidates.Count;
                         var nextItem = itemCandidates[index];
                         inventory.GiveTemporaryItem(nextItem, 10);

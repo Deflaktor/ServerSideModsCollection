@@ -44,6 +44,7 @@ namespace RandomEvents
             artifactCandidates.Remove(DLC2Content.Artifacts.Rebirth);
             artifactCandidates.Remove(CU8Content.Artifacts.Devotion);
             artifactCandidates.Remove(CU8Content.Artifacts.Delusion);
+            artifactCandidates.Remove(DLC3Content.Artifacts.Prestige);
             var notEnabledArtifacts = artifactCandidates.Where(def => !enabledArtifacts.Any(enabled => enabled.artifactIndex == def.artifactIndex)).ToList();
             return notEnabledArtifacts.Count > 0;
         }

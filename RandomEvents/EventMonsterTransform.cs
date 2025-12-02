@@ -59,6 +59,7 @@ namespace RandomEvents
                 { "ParentBody",          " 5xHoof &   5xAlienHead &  10xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & 20xNearbyDamageBonus & SprintWisp" },
                 { "VoidJailerBody",      " 5xHoof &   5xAlienHead &  10xBoostDamage & 10xBoostAttackSpeed & 10xKnurl" },
                 { "HalcyoniteBody",      " 5xHoof &   0xAlienHead &  40xBoostDamage & 10xBoostAttackSpeed & 20xKnurl" },
+                { "DefectiveUnitBody",   " 3xHoof &   3xAlienHead &  20xBoostDamage & 20xBoostAttackSpeed & 10xKnurl & 4xBehemoth & LunarSecondaryReplacement" },
                 { "BeetleBody",          "10xHoof &   5xAlienHead &  20xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & 50xNearbyDamageBonus & SprintWisp & 5xFeather & LunarSecondaryReplacement" },
                 { "FlyingVerminBody",    "10xHoof &   5xAlienHead &  50xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & 10xBounceNearby" },
                 { "ImpBody",             " 5xHoof &   5xAlienHead &  10xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & 10xNearbyDamageBonus & SprintWisp" },
@@ -71,7 +72,9 @@ namespace RandomEvents
                 { "VerminBody",          " 5xHoof &   5xAlienHead &  10xBoostDamage & 10xBoostAttackSpeed & 10xKnurl & 30xNearbyDamageBonus & SprintWisp & 50xSeed" },
                 { "VultureBody",         " 5xHoof &   5xAlienHead &  60xBoostDamage & 30xBoostAttackSpeed & 10xKnurl & LightningStrikeOnHit & ChainLightning" },
                 { "ChildBody",           " 5xHoof &   5xAlienHead &  80xBoostDamage &  0xBoostAttackSpeed & 10xKnurl & PrimarySkillShuriken & 5xBehemoth & FireballsOnHit & Feather" },
+                { "TankerBody",          " 5xHoof &  10xAlienHead &  10xBoostDamage & 10xBoostAttackSpeed & 10xKnurl" },
                 { "ITBrotherBody",       " 0xHoof &   5xAlienHead &  10xBoostDamage &  0xBoostAttackSpeed & 10xKnurl" },
+                { "VultureHunterBody",   " 0xHoof &   0xAlienHead &  10xBoostDamage &  0xBoostAttackSpeed & 10xKnurl" },
             };
 
         public override bool LoadCondition()
@@ -128,12 +131,16 @@ namespace RandomEvents
                     }
                 }
             }
-            bodyStrings.Remove("AcidLarvaBody");
-            bodyStrings.Remove("BeetleQueen2Body");
-            bodyStrings.Remove("ScavBody");
-            bodyStrings.Remove("ScorchlingBody");
+            bodyStrings.Remove("AcidLarvaBody"); // self damages
+            bodyStrings.Remove("BeetleQueen2Body"); // cannot move
+            bodyStrings.Remove("ScavBody"); // generates items TODO: make him generate temporary items instead
+            bodyStrings.Remove("ScorchlingBody"); // gets stuck
             // bodyStrings.Remove("JellyfishBody");
-            bodyStrings.AddRange(["ITBrotherBody"]);
+            bodyStrings.Remove("ExtractorUnitBody"); // gets stuck once you steal one item
+            bodyStrings.Remove("IronHaulerBody"); // lots of errors / gets stuck
+            bodyStrings.Remove("SolusAmalgamatorBody"); // has weird camera
+            bodyStrings.Remove("WorkerUnitBody"); // has only a single melee attack which often misses at high movement speed
+            bodyStrings.AddRange(["ITBrotherBody", "VultureHunterBody"]);
 
             //string[] survivorBodyNames = SurvivorCatalog.allSurvivorDefs.Select(survivor => survivor.bodyPrefab.name).ToArray();
             //string[] blacklist = new string[]
@@ -271,6 +278,7 @@ namespace RandomEvents
         public override void Hook()
         {
             On.EntityStates.JellyfishMonster.JellyNova.Detonate += JellyNova_Detonate;
+            On.RoR2.Artifacts.EnigmaArtifactManager.OnPlayerCharacterBodyStartServer += EnigmaArtifactManager_OnPlayerCharacterBodyStartServer;
             //IL.RoR2.CharacterMaster.Respawn += CharacterMaster_Respawn;
         }
 
@@ -281,6 +289,15 @@ namespace RandomEvents
                 self.characterBody.AddBuff(DLC2Content.Buffs.ExtraLifeBuff);
             }
             orig(self);
+        }
+
+        private void EnigmaArtifactManager_OnPlayerCharacterBodyStartServer(On.RoR2.Artifacts.EnigmaArtifactManager.orig_OnPlayerCharacterBodyStartServer orig, CharacterBody characterBody)
+        {
+            // transforming into a monster counts as spawning which causes Artifact of Enigma to hand out random equipments -> we dont want that
+            if (!IsActive())
+            {
+                orig(characterBody);
+            }
         }
 
         //private void CharacterMaster_Respawn(MonoMod.Cil.ILContext il)
@@ -363,12 +380,10 @@ namespace RandomEvents
         {
             TemporaryInventory temporaryInventory = null;
             private CharacterBody monster = null;
-
             private void FixedUpdate()
             {
                 Check();
             }
-
             private void Check()
             {
                 if (monster == null)
@@ -400,8 +415,8 @@ namespace RandomEvents
                     temporaryInventory = body.gameObject.AddComponent<TemporaryInventory>();
 
                     Dictionary<PickupIndex, int> resolvedItems = new Dictionary<PickupIndex, int>();
-                    ItemStringParser.ParseItemStringReward(GetBodyBonusItemAllList(), resolvedItems);
-                    ItemStringParser.ParseItemStringReward(GetBodyBonusItemList(body.bodyIndex), resolvedItems);
+                    ItemStringParser.ItemStringParser.ParseItemString(GetBodyBonusItemAllList(), resolvedItems, Log._logSource, false);
+                    ItemStringParser.ItemStringParser.ParseItemString(GetBodyBonusItemList(body.bodyIndex), resolvedItems, Log._logSource, false);
 
                     foreach (var item in resolvedItems)
                     {
@@ -409,22 +424,22 @@ namespace RandomEvents
                         var itemAmount = item.Value;
                         if (itemIndex != ItemIndex.None && itemAmount > 0) {
                             var noAdditionalItem = RoR2Content.Items.LunarPrimaryReplacement.itemIndex;
-                            if (itemIndex == noAdditionalItem && body.inventory.GetItemCount(noAdditionalItem) > 0)
+                            if (itemIndex == noAdditionalItem && body.inventory.GetItemCountPermanent(noAdditionalItem) > 0)
                             {
                                 continue;
                             }
                             noAdditionalItem = RoR2Content.Items.LunarSecondaryReplacement.itemIndex;
-                            if (itemIndex == noAdditionalItem && body.inventory.GetItemCount(noAdditionalItem) > 0)
+                            if (itemIndex == noAdditionalItem && body.inventory.GetItemCountPermanent(noAdditionalItem) > 0)
                             {
                                 continue;
                             }
                             noAdditionalItem = RoR2Content.Items.LunarUtilityReplacement.itemIndex;
-                            if (itemIndex == noAdditionalItem && body.inventory.GetItemCount(noAdditionalItem) > 0)
+                            if (itemIndex == noAdditionalItem && body.inventory.GetItemCountPermanent(noAdditionalItem) > 0)
                             {
                                 continue;
                             }
                             noAdditionalItem = RoR2Content.Items.LunarSpecialReplacement.itemIndex;
-                            if (itemIndex == noAdditionalItem && body.inventory.GetItemCount(noAdditionalItem) > 0)
+                            if (itemIndex == noAdditionalItem && body.inventory.GetItemCountPermanent(noAdditionalItem) > 0)
                             {
                                 continue;
                             }

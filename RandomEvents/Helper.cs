@@ -248,5 +248,92 @@ namespace RandomEvents
             }
             return loadout.bodyLoadoutManager.GetSkillVariant(bodyIndex, num) == num2;
         }
+
+        public static void FillEquipment(Inventory inventory, EquipmentIndex equipmentIndex)
+        {
+            if (inventory._equipmentStateSlots.Length == 0)
+                return;
+            for (uint slot = 0; slot < inventory._equipmentStateSlots.Length; slot++)
+            {
+                for (uint set = 0; set < inventory._equipmentStateSlots[slot].Length; set++)
+                {
+                    inventory._equipmentStateSlots[slot][set].equipmentDef = EquipmentCatalog.GetEquipmentDef(EquipmentIndex.None);
+                    inventory._equipmentStateSlots[slot][set].equipmentIndex = EquipmentIndex.None;
+                }
+            }
+        }
+
+        public static void FillEquipment(Inventory inventory, EquipmentState[][] equipmentStateSlots)
+        {
+            if (inventory._equipmentStateSlots.Length == 0)
+                return;
+            for (uint slot = 0; slot < inventory._equipmentStateSlots.Length; slot++)
+            {
+                for (uint set = 0; set < inventory._equipmentStateSlots[slot].Length; set++)
+                {
+
+
+                    inventory._equipmentStateSlots[slot][set].equipmentDef = EquipmentCatalog.GetEquipmentDef(EquipmentIndex.None);
+                    inventory._equipmentStateSlots[slot][set].equipmentIndex = EquipmentIndex.None;
+                }
+            }
+        }
+
+        public static bool IsToolbotWithSwapSkill(CharacterMaster master)
+        {
+            var body = master.bodyPrefab.GetComponent<CharacterBody>();
+            var skillFamily = Helper.FindSkillByFamilyName("ToolbotBodySpecialFamily");
+            var skillDef = SkillCatalog.GetSkillDef(SkillCatalog.FindSkillIndexByName("Swap"));
+            return Helper.HasSkillVariantEnabled(master.loadout, body.bodyIndex, skillFamily, skillDef);
+        }
+
+        public static EquipmentState[][] CopyEquipmentState(EquipmentState[][] source)
+        {
+            if (source == null)
+                return null;
+
+            var destination = new EquipmentState[source.Length][];
+
+            for (int i = 0; i < source.Length; i++)
+            {
+                if (source[i] == null)
+                {
+                    destination[i] = null;
+                    continue;
+                }
+
+                destination[i] = new EquipmentState[source[i].Length];
+
+                for (int j = 0; j < source[i].Length; j++)
+                {
+                    destination[i][j] = new EquipmentState(source[i][j].equipmentIndex, source[i][j].chargeFinishTime, source[i][j].charges);
+                }
+            }
+
+            return destination;
+        }
+
+        public static void TransferEquipmentIndex(EquipmentState[][] source, EquipmentState[][] target)
+        {
+            if (source == null || source.Length == 0 || target == null || target.Length == 0)
+                return;
+
+            for (uint slot = 0; slot < target.Length; slot++)
+            {
+                for (uint set = 0; set < target[slot].Length; set++)
+                {
+                    if (slot < source.Length && set < source[slot].Length)
+                    {
+                        target[slot][set].equipmentDef = EquipmentCatalog.GetEquipmentDef(source[slot][set].equipmentIndex);
+                        target[slot][set].equipmentIndex = source[slot][set].equipmentIndex;
+                    }
+                    else
+                    {
+                        target[slot][set].equipmentDef = EquipmentCatalog.GetEquipmentDef(EquipmentIndex.None);
+                        target[slot][set].equipmentIndex = EquipmentIndex.None;
+                    }
+                }
+            }
+        }
     }
 }

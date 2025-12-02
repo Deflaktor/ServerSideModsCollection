@@ -155,7 +155,7 @@ namespace RandomEvents
                 if (body != null && body.inventory != null && equipment == null)
                 {
                     equipment = gameObject.AddComponent<TemporaryEquipment>();
-                    equipment.SetTemporaryEquipment(DLC1Content.Equipment.BossHunterConsumed.equipmentIndex);
+                    equipment.SetTemporaryEquipment(EquipmentIndex.None);
                 }
             }
 

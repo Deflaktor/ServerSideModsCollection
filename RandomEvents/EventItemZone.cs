@@ -123,7 +123,7 @@ namespace RandomEvents
                             var inventory = TemporaryInventory.Find(player.gameObject, inventories);
                             if (inventory != null)
                             {
-                                inventory.RemoveTemporaryItem(itemIndex, true);
+                                inventory.RemoveTemporaryItem(itemIndex);
                                 // PurchaseInteraction.CreateItemTakenOrb(player.transform.position, gameObject, itemIndex);
                             }
                         }

@@ -541,7 +541,7 @@ namespace RandomEvents
                     currentMonsterIndex = 0;
                 }
                 var target = monsterTransformEvent.validBodyPrefabs[currentMonsterIndex];
-                Log.LogInfo($"Transform into {target.name}");
+                Log.LogInfo($"Transform into {currentMonsterIndex}: {target.name}");
                 foreach(var pc in PlayerCharacterMasterController.instances)
                 {
                     if(pc.isConnected)
