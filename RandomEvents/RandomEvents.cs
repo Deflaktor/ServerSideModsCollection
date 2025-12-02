@@ -1,22 +1,14 @@
 using BepInEx;
-using HarmonyLib;
-using MonoMod.Cil;
-using Newtonsoft.Json.Linq;
 using R2API.Utils;
 using RoR2;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.UIElements;
-using static RandomEvents.EventSkillsOnly;
-using static Rewired.UI.ControlMapper.ControlMapper;
 
 namespace RandomEvents
 {
@@ -33,7 +25,7 @@ namespace RandomEvents
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "RandomEvents";
-        public const string PluginVersion = "1.1.2";
+        public const string PluginVersion = "1.1.3";
 
         public List<AbstractEvent> m_allEventsIncludingNotLoadedOnes = new List<AbstractEvent>();
         public List<AbstractEvent> m_loadedEvents = new List<AbstractEvent>();

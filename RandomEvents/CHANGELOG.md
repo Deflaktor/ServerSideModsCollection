@@ -1,3 +1,9 @@
+# 1.1.3
+
+- Update for Alloyed Collective
+- Fix Artifact of Engima causing equipment handout during Monster Transform event
+- Add Artifact of Prestige to blacklist for Random Artifacts event
+
 # 1.1.2
 
 - Fix version string
