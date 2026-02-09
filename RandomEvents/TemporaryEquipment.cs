@@ -27,9 +27,14 @@ namespace RandomEvents
         {
             //On.RoR2.Inventory.SetEquipmentInternal += Inventory_SetEquipmentInternal;
             On.RoR2.CostTypeDef.IsAffordable += (orig, self, cost, activator) => { using (new TemporarilyRemoveEquipment(activator)) { return orig(self, cost, activator); } };
-            On.RoR2.EquipmentDef.AttemptGrant += (orig, ref context) => { using (new TemporarilyRestoreOriginalEquipment(ref context)) { orig(ref context); } };
+            On.RoR2.EquipmentDef.AttemptGrant += EquipmentDef_AttemptGrant;
             On.RoR2.Inventory.CalculateEquipmentCooldownScale += Inventory_CalculateEquipmentCooldownScale;
             On.RoR2.Inventory.SetEquipmentDisabled += Inventory_SetEquipmentDisabled;
+        }
+
+        private static void EquipmentDef_AttemptGrant(On.RoR2.EquipmentDef.orig_AttemptGrant orig, ref PickupDef.GrantContext context)
+        {
+            using (new TemporarilyRestoreOriginalEquipment(ref context)) { orig(ref context); }
         }
 
         private static void Inventory_SetEquipmentDisabled(On.RoR2.Inventory.orig_SetEquipmentDisabled orig, Inventory self, bool _active)
