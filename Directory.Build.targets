@@ -1,0 +1,37 @@
+<Project>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(IsTestProject)' != 'true'">
+    <!-- Clean up deps.json and pdb files for Release builds -->
+    <ItemGroup Condition="'$(Configuration)' == 'Release'">
+      <FilesToDelete Include="$(TargetDir)*.deps.json" />
+      <FilesToDelete Include="$(TargetDir)*.pdb" />
+    </ItemGroup>
+    <Delete Files="@(FilesToDelete)" Condition="'$(Configuration)' == 'Release'" />
+
+    <!-- Copy output to profile plugin folder -->
+    <ItemGroup>
+      <OutputFiles Include="$(TargetDir)**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(OutputFiles)"
+          DestinationFiles="@(OutputFiles->'$(ProfilePath)/BepInEx/plugins/Def-$(ProjectName)/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(ProfilePath)')" />
+
+    <!-- Remove old zip to avoid including it in the new zip -->
+    <Delete Files="$(TargetDir)$(TargetName).zip" />
+
+    <!-- Create zip of output in intermediate dir, then move to target dir -->
+    <ZipDirectory SourceDirectory="$(TargetDir)"
+                  DestinationFile="$(IntermediateOutputPath)$(TargetName).zip"
+                  Overwrite="true" />
+    <Copy SourceFiles="$(IntermediateOutputPath)$(TargetName).zip"
+          DestinationFolder="$(TargetDir)" />
+
+    <!-- Copy zip to releases folder for Release builds -->
+    <MakeDir Directories="$(SolutionDir)releases" Condition="'$(Configuration)' == 'Release'" />
+    <Copy SourceFiles="$(TargetDir)$(TargetName).zip"
+          DestinationFolder="$(SolutionDir)releases"
+          Condition="'$(Configuration)' == 'Release'" />
+  </Target>
+
+</Project>
