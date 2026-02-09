@@ -1,6 +1,6 @@
 # SimulacrumNormalStages
 
-Server-Side compatible - only host needs this mod.
+**server-side mod** - only the host needs it installed.
 
 This mod makes Simulacrum play through the normal stages instead of the special Simulacrum stages. Here the detailed changes:
 

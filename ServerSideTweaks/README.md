@@ -1,6 +1,10 @@
 # ServerSideTweaks
 
-A small list of server-side configurable tweaks:
+**server-side mod** - only the host needs it installed.
+
+A small list of server-side configurable tweaks.
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/E1E71PHUJ2)
 
 ## General Tweaks
 

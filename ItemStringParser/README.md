@@ -2,6 +2,8 @@
 
 This mod is a library for parsing ItemStrings. See bottom on the developer manual.
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/E1E71PHUJ2)
+
 ## User Manual
 
 ItemStrings are a way to describe a droptable using plain text. They let you describe what items should appear and how many in a simple, readable line. ItemStrings can include instructions for repeating items, choosing items randomly, or excluding certain items.

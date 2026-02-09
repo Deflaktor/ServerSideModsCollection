@@ -85,9 +85,34 @@ namespace ServerSideTweaks
             On.RoR2.InfiniteTowerWaveController.Initialize                       += InfiniteTowerWaveController_Initialize;
             
             On.RoR2.ChildMonsterController.RegisterTeleport += ChildMonsterController_RegisterTeleport;
+            On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.OnServerCardSpawnedGlobal += MonsterTeamGainsItemsArtifactManager_OnServerCardSpawnedGlobal;
 
             simulacrumLootTweaks.Hook();
             FastSimulacrumVrab.Enable();
+        }
+
+        private void MonsterTeamGainsItemsArtifactManager_OnServerCardSpawnedGlobal(On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.orig_OnServerCardSpawnedGlobal orig, SpawnCard.SpawnResult spawnResult)
+        {
+            orig(spawnResult);
+            if(BepConfig.Enabled.Value && (BepConfig.VoidJailerNoCooldownReductions.Value || BepConfig.SolusInvalidatorNoCooldownReductions.Value)) {
+
+                CharacterMaster characterMaster = (spawnResult.spawnedInstance ? spawnResult.spawnedInstance.GetComponent<CharacterMaster>() : null);
+                if ((bool)characterMaster && characterMaster.teamIndex == TeamIndex.Monster && characterMaster.bodyPrefab != null)
+                {
+                    if(characterMaster.bodyPrefab.name == "VoidJailer" && BepConfig.VoidJailerNoCooldownReductions.Value)
+                    {
+                        characterMaster.inventory.RemoveItemPermanent(RoR2Content.Items.AlienHead, 10000);
+                    }
+                    if (characterMaster.bodyPrefab.name == "DefectiveUnitBody" && BepConfig.SolusInvalidatorNoCooldownReductions.Value)
+                    {
+                        characterMaster.inventory.RemoveItemPermanent(RoR2Content.Items.AlienHead, 10000);
+                    }
+                    if (characterMaster.bodyPrefab.name == "VoidRaidCrab" && BepConfig.VoidlingNoCooldownReductions.Value)
+                    {
+                        characterMaster.inventory.RemoveItemPermanent(RoR2Content.Items.AlienHead, 10000);
+                    }
+                }
+            }
         }
 
         private void OnDisable()

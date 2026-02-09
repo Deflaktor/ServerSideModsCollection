@@ -17,6 +17,9 @@ namespace ServerSideTweaks
         public static ConfigEntry<bool> NoPearlsInBazaar;
         public static ConfigEntry<bool> ChildReducedTeleportRange;
         public static ConfigEntry<bool> ChildRemoveInvincibility;
+        public static ConfigEntry<bool> VoidJailerNoCooldownReductions;
+        public static ConfigEntry<bool> SolusInvalidatorNoCooldownReductions;
+        public static ConfigEntry<bool> VoidlingNoCooldownReductions;
         // simulacrum tweaks
         public static ConfigEntry<bool> SimulacrumNonSharedLoot;
         public static ConfigEntry<int> SimulacrumLootMaxItemDebt;
@@ -41,6 +44,9 @@ namespace ServerSideTweaks
                 NoPearlsInBazaar = config.Bind("Main", "No Pearl replacements in the Bazaar between Times", true, new ConfigDescription("Prevents pearls from appearing in the Bazaar to prevent hoarding."));
                 ChildReducedTeleportRange = config.Bind("Main", "Child: Reduced teleport range", true, new ConfigDescription("Reduces the range children can teleport away."));
                 ChildRemoveInvincibility = config.Bind("Main", "Child: Remove invincibility", true, new ConfigDescription("Removes the invincibility buff that children get before teleporting."));
+                VoidJailerNoCooldownReductions = config.Bind("Main", "Void Jailer: No cooldown reductions", true, new ConfigDescription("Prevents Void Jailer from getting its cooldown reduced by items like Alien Head for balancing purposes."));
+                SolusInvalidatorNoCooldownReductions = config.Bind("Main", "Solus Invalidator: No cooldown reductions", true, new ConfigDescription("Prevents Solus Invalidator from getting its cooldown reduced by items like Alien Head for balancing purposes."));
+                VoidlingNoCooldownReductions = config.Bind("Main", "Voidling: No cooldown reductions", true, new ConfigDescription("Prevents Voidling from getting its cooldown reduced by items like Alien Head for balancing purposes."));
             }
             // --- Simulacrum ---
             {

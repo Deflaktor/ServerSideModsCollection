@@ -28,6 +28,11 @@ namespace RandomEvents
         {
             if (Run.instance is InfiniteTowerRun infiniteTowerRun)
             {
+                // not for super boss waves
+                if ((infiniteTowerRun.waveIndex + 1) % 50 == 0)
+                {
+                    return false;
+                }
                 var safeWardController = infiniteTowerRun.safeWardController;
                 return safeWardController != null;
             }

@@ -1,8 +1,12 @@
 # StartBonusMod
 
+**server-side mod** - only the host needs it installed.
+
 This mod gives every player a configurable set of items and starting cash at the beginning of a run. 
-I made it so that I can use [StartInBazaar](https://thunderstore.io/package/MagnusMagnuson/StartInBazaar/) in combination with [BiggerBazaar](https://thunderstore.io/package/MagnusMagnuson/BiggerBazaar/) and/or [BazaarIsMyHaven](https://thunderstore.io/package/Def/BazaarIsMyHaven/).
+I made it so that I can use [StartInBazaar](https://thunderstore.io/package/MagnusMagnuson/StartInBazaar/) in combination with [BiggerBazaar](https://thunderstore.io/package/MagnusMagnuson/BiggerBazaar/) and [BazaarIsMyHaven](https://thunderstore.io/package/Def/BazaarIsMyHaven/).
 This mod is also compatible with [InLobbyConfig](https://thunderstore.io/package/KingEnderBrine/InLobbyConfig/).
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/E1E71PHUJ2)
 
 ## Starting Cash
 
@@ -10,9 +14,9 @@ This mod is also compatible with [InLobbyConfig](https://thunderstore.io/package
 
 ## Simple Start Bonus Items
 
-- Simply choose for each tier which starting item and how many the player shall start with. 
+- Simply choose for each tier which starting item and how many the player shall start with.
 - There is also the option for a random item.
-- Easiest to configure this is using InLobbyConfig.
+- Easiest to configure this is using InLobbyConfig or Gale Mod Manager.
 
 ## Advanced Start Bonus Item List
 
