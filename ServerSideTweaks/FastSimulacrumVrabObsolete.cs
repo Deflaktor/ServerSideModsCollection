@@ -26,7 +26,7 @@ namespace ServerSideTweaks
 
         public static void Setup()
         {
-            iscInfiniteTowerSafeWard = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/InfiniteTowerSafeWard.prefab");
+            iscInfiniteTowerSafeWard = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/InfiniteTowerSafeWard.prefab");
             matNullifierSafeWardPillarGlow = Addressables.LoadAssetAsync<Material>("RoR2/DLC1/Common/Void/matNullifierSafeWardPillarGlow.mat");
             matNullifierSafeWardPillarStars = Addressables.LoadAssetAsync<Material>("RoR2/DLC1/Common/Void/matNullifierSafeWardPillarStars.mat");
         }
