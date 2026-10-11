@@ -378,7 +378,7 @@ namespace SimulacrumBossStageMod
                 int num2 = 0;
                 while (num2 < num)
                 {
-                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex("LunarCoin.Coin0"), position, vector);
+                    PickupDropletController.CreatePickupDroplet(new UniquePickup(PickupCatalog.FindPickupIndex("LunarCoin.Coin0")), position, vector, isDuplicated: false);
                     num2++;
                     bonusCounter++;
                     vector = quaternion * vector;
