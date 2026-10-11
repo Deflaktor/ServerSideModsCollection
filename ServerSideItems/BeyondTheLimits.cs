@@ -98,14 +98,14 @@ namespace ServerSideItems
         {
             ILCursor c = new ILCursor(il);
             var label = c.DefineLabel();
-            // if (body.isSprinting)
+            // if (base.body.isSprinting)
             // IL_0010: ldarg.0
-            // IL_0011: ldfld class RoR2.CharacterBody RoR2.CharacterBody/ItemBehavior::body
+            // IL_0011: call instance class RoR2.CharacterBody RoR2.Items.BaseItemBodyBehavior::get_body()
             // IL_0016: callvirt instance bool RoR2.CharacterBody::get_isSprinting()
             // IL_001b: brfalse.s IL_0050
             c.GotoNext(
                 x => x.MatchLdarg(0),
-                x => x.MatchLdfld<CharacterBody.ItemBehavior>("body"),
+                x => x.MatchCall<RoR2.Items.BaseItemBodyBehavior>("get_body"),
                 x => x.MatchCallvirt<CharacterBody>("get_isSprinting")
             );
             c.Index += 2;
@@ -138,29 +138,29 @@ namespace ServerSideItems
         {
             ILCursor c = new ILCursor(il);
             var label = c.DefineLabel();
-            // if (isSprinting && num22 > 0)
-            // IL_0fdc: ldarg.0
-            // IL_0fdd: call instance bool RoR2.CharacterBody::get_isSprinting()
-            // IL_0fe2: brfalse.s IL_0ffc
-            // 
-            // IL_0fe4: ldloc.s 22
-            // IL_0fe6: ldc.i4.0
-            // IL_0fe7: ble.s IL_0ffc
-            // 
-            // armor += num22 * 30;
-            // IL_0fe9: ldarg.0
-            // IL_0fea: ldarg.0
-            // IL_0feb: call instance float32 RoR2.CharacterBody::get_armor()
-            // IL_0ff0: ldloc.s 22
-            // IL_0ff2: ldc.i4.s 30
-            // IL_0ff4: mul
-            // IL_0ff5: conv.r4
-            // IL_0ff6: add
+            // if (isSprinting && num23 > 0)
+            // IL_2000: ldarg.0
+            // IL_2001: call instance bool RoR2.CharacterBody::get_isSprinting()
+            // IL_2006: brfalse.s IL_2020
+            //
+            // IL_2008: ldloc.s 23
+            // IL_200a: ldc.i4.0
+            // IL_200b: ble.s IL_2020
+            //
+            // armor += num23 * 30;
+            // IL_200d: ldarg.0
+            // IL_200e: ldarg.0
+            // IL_200f: call instance float32 RoR2.CharacterBody::get_armor()
+            // IL_2014: ldloc.s 23
+            // IL_2016: ldc.i4.s 30
+            // IL_2018: mul
+            // IL_2019: conv.r4
+            // IL_201a: add
             c.GotoNext(
                 x => x.MatchLdarg(0),
                 x => x.MatchCall<CharacterBody>("get_isSprinting"),
                 x => x.MatchBrfalse(out _),
-                x => x.MatchLdloc(22),
+                x => x.MatchLdloc(out _),
                 x => x.MatchLdcI4(0),
                 x => x.MatchBle(out _),
                 x => x.MatchLdarg(0),
