@@ -616,7 +616,7 @@ namespace ItemStringParser
                     writer.WriteLine($"| {dropTableName,-32} | {tier1Weight} | {tier2Weight} | {tier3Weight} | {bossWeight} | {lunarEquipmentWeight} | {lunarItemWeight} | {lunarCombinedWeight} | {equipmentWeight} | {voidTier1Weight} | {voidTier2Weight} | {voidTier3Weight} | {voidBossWeight} | {foodTierWeight} | {powerShapesWeight} | {canDropBeReplaced} | {requiredItemTags} | {bannedItemTags} |");
                 }
                 string itemNamesEBNF = "";
-                ItemIndex itemIndex = ItemIndex.Count;
+                ItemIndex itemIndex = (ItemIndex)0;
                 for (ItemIndex itemCount = (ItemIndex)ItemCatalog.itemCount; itemIndex < itemCount; itemIndex++)
                 {
                     ItemDef itemDef = ItemCatalog.GetItemDef(itemIndex);
