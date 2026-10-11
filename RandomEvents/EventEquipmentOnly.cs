@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using HG;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RoR2;
 using RoR2.Items;
@@ -68,26 +69,22 @@ namespace RandomEvents
 
         private void CharacterMaster_OnInventoryChanged(MonoMod.Cil.ILContext il)
         {
+            // Skip the whole Heretic transformation while the event is active, not just TransformBody:
+            // since 1.5.0 the block also changes the original body and body handling before that call.
             ILCursor c = new ILCursor(il);
-            var label = c.DefineLabel();
-            // TransformBody("HereticBody");
-            // IL_00dd: ldarg.0
-            // IL_00de: ldstr "HereticBody"
-            // IL_00e3: call instance void RoR2.CharacterMaster::TransformBody(string)
+            var skipHeretic = c.DefineLabel();
             c.GotoNext(
-            x => x.MatchCall<CharacterMaster>("TransformBody")
+            x => x.MatchLdstr("HereticBody"),
+            x => x.MatchCall(typeof(BodyCatalog), nameof(BodyCatalog.FindBodyPrefab))
             );
-            c.Remove();
-            c.EmitDelegate<Action<CharacterMaster, string>>((self, bodyName) =>
-            {
-                if(ModConfig.Enabled.Value && NetworkServer.active && IsActive())
-                {
-                    // do not transform as long as event is active
-                } else { 
-                    // vanilla
-                    self.TransformBody(bodyName);
-                }
-            });
+            var end = c.Clone();
+            end.GotoNext(
+            x => x.MatchLdarg(0),
+            x => x.MatchCall<CharacterMaster>("UpdateMoneyBasedItems")
+            );
+            end.MarkLabel(skipHeretic);
+            c.EmitDelegate<Func<bool>>(() => ModConfig.Enabled.Value && NetworkServer.active && IsActive());
+            c.Emit(OpCodes.Brtrue, skipHeretic);
         }
 
         private void CharacterBody_onBodyStartGlobal(CharacterBody body)
