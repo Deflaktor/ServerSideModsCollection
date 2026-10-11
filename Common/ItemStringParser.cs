@@ -201,17 +201,17 @@ namespace Common
             if (dropTables.ContainsKey(itemkey))
             {
                 var dropTable = GetDroptable(itemkey);
-                WeightedSelection<PickupIndex> selection = new WeightedSelection<PickupIndex>();
+                WeightedSelection<UniquePickup> selection = new WeightedSelection<UniquePickup>();
                 foreach (var choice in dropTable.selector.choices)
                 {
-                    if (!itemBlackList.Contains(choice.value))
+                    if (!itemBlackList.Contains(choice.value.pickupIndex))
                     {
                         selection.AddChoice(choice);
                     }
                 }
                 while (repeat > 0)
                 {
-                    var pickupIndex = selection.Evaluate(UnityEngine.Random.Range(0, 1f));
+                    var pickupIndex = selection.Evaluate(UnityEngine.Random.Range(0, 1f)).pickupIndex;
                     if (pickupIndex == PickupIndex.none)
                     {
                         Log.LogWarning($"ResolveItemKey: Could not get pickup from droptable: {itemkey}, skipping it.");
