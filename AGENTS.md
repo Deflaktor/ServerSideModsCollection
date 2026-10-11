@@ -10,7 +10,9 @@
 All mods in this workspace MUST work host side only. Only the host has the mod installed; clients run the unmodified game.
 
 - If networking functionality is required, it must work in such a way that only the host requires the mod installed.
-- No special networking code must be written (no custom network messages, no new networked components or SyncVars, no networking libraries such as R2API Networking). Changes reach clients only through what vanilla clients already understand.
+- Everything sent to clients must be something unmodded clients already understand: vanilla messages, RPCs and synced fields, in their vanilla data layout.
+- Not allowed: custom message types, extra serialized data, new SyncVars, or networking libraries such as R2API Networking. This also applies to optional extras that only clients with the mod would use.
+- Allowed: host-side code that adds nothing to network traffic, e.g. a NetworkBehaviour that only decides which clients receive an object.
 
 ## Workspace
 
