@@ -15,8 +15,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerSideTweaks", "ServerS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BazaarIsMyHaven", "BazaarIsMyHaven\BazaarIsMyHaven.csproj", "{FFF873A6-D7C4-1915-ACF6-A3BC490EFE46}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AeroltHostOnly", "AeroltHostOnly\AeroltHostOnly.csproj", "{AA2C7D13-214C-1E4D-B858-E44CF9F46DDA}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareSuite", "ShareSuite\ShareSuite.csproj", "{6C8E8DAD-7D65-34DC-975A-6D520719A796}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RandomEvents", "RandomEvents\RandomEvents.csproj", "{2E8F49CF-ACCF-FB21-374D-41B0B74594EA}"
@@ -57,10 +55,6 @@ Global
 		{FFF873A6-D7C4-1915-ACF6-A3BC490EFE46}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FFF873A6-D7C4-1915-ACF6-A3BC490EFE46}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FFF873A6-D7C4-1915-ACF6-A3BC490EFE46}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AA2C7D13-214C-1E4D-B858-E44CF9F46DDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AA2C7D13-214C-1E4D-B858-E44CF9F46DDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AA2C7D13-214C-1E4D-B858-E44CF9F46DDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AA2C7D13-214C-1E4D-B858-E44CF9F46DDA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6C8E8DAD-7D65-34DC-975A-6D520719A796}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6C8E8DAD-7D65-34DC-975A-6D520719A796}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C8E8DAD-7D65-34DC-975A-6D520719A796}.Release|Any CPU.ActiveCfg = Release|Any CPU
