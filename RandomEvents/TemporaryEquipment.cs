@@ -172,7 +172,7 @@ namespace RandomEvents
                 {
                     for (uint slot = 0; slot < temporaryEquipmentStateSlots.Length; slot++)
                     {
-                        for (uint set = 0; set < temporaryEquipmentStateSlots.Length; set++)
+                        for (uint set = 0; set < temporaryEquipmentStateSlots[slot]._setCount; set++)
                         {
                             if(slot < realEquipmentStateSlots.Length && set < realEquipmentStateSlots[slot]._setCount)
                             {
