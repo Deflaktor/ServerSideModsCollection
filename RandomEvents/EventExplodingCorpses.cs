@@ -34,11 +34,11 @@ namespace RandomEvents
                 if (pc.isConnected)
                 {
                     // check if character has a reliable way to do ranged attacks using items
-                    if (pc.master?.inventory.GetItemCount(RoR2Content.Items.LunarPrimaryReplacement) >= 1)
+                    if (pc.master?.inventory.GetItemCountEffective(RoR2Content.Items.LunarPrimaryReplacement) >= 1)
                         continue;
-                    if (pc.master?.inventory.GetItemCount(DLC1Content.Items.PrimarySkillShuriken) >= 8)
+                    if (pc.master?.inventory.GetItemCountEffective(DLC1Content.Items.PrimarySkillShuriken) >= 8)
                         continue;
-                    if (pc.master?.inventory.GetItemCount(RoR2Content.Items.SprintWisp) >= 2)
+                    if (pc.master?.inventory.GetItemCountEffective(RoR2Content.Items.SprintWisp) >= 2)
                         continue;
                     // if enough items have been collected, we assume there is a way to stay out of danger
                     var inventoryPower = pc.master?.inventory.GetTotalItemCountOfTier(ItemTier.Tier1) +
@@ -117,11 +117,11 @@ namespace RandomEvents
 
         public override void Hook()
         {
-            GlobalEventManager.onCharacterDeathGlobal += GlobalEventManager_onCharacterDeathGlobal;
+            GlobalEventManager.onDeathProcServer += GlobalEventManager_onDeathProcServer;
             CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
         }
 
-        private void GlobalEventManager_onCharacterDeathGlobal(DamageReport damageReport)
+        private void GlobalEventManager_onDeathProcServer(DamageReport damageReport)
         {
             if (ModConfig.Enabled.Value && NetworkServer.active && damageReport != null && damageReport.victimBody != null && IsActive())
             {

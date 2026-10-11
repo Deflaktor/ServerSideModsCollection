@@ -175,8 +175,8 @@ namespace RandomEvents
             {
                 var master = GetComponent<CharacterMaster>();
                 var body = master.GetBody();
-                master.inventory.GiveItem(RoR2Content.Items.HealthDecay.itemIndex, 60);
-                master.inventory.GiveItem(RoR2Content.Items.TonicAffliction.itemIndex, 10);
+                master.inventory.GiveItemPermanent(RoR2Content.Items.HealthDecay.itemIndex, 60);
+                master.inventory.GiveItemPermanent(RoR2Content.Items.TonicAffliction.itemIndex, 10);
                 //master.inventory.GiveItem(RoR2Content.Items.Pearl.itemIndex, 10);
                 // master.inventory.GiveItem(RoR2Content.Items.AdaptiveArmor.itemIndex, 1);
                 //body.AddBuff(RoR2Content.Buffs.PermanentCurse);
@@ -196,8 +196,8 @@ namespace RandomEvents
                     body.RemoveBuff(DLC1Content.Buffs.VoidSurvivorCorruptMode);
                 }
                 if (revived) { 
-                    master.inventory.RemoveItem(RoR2Content.Items.HealthDecay.itemIndex, 60);
-                    master.inventory.RemoveItem(RoR2Content.Items.TonicAffliction.itemIndex, 10);
+                    master.inventory.RemoveItemPermanent(RoR2Content.Items.HealthDecay.itemIndex, 60);
+                    master.inventory.RemoveItemPermanent(RoR2Content.Items.TonicAffliction.itemIndex, 10);
                 }
             }
 

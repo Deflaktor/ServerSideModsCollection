@@ -146,7 +146,7 @@ namespace RandomEvents
                     {
                         for (uint set = 0; set < maxEquipmentSets; set++)
                         {
-                            body.inventory.SetEquipmentIndexForSlot(equipmentIndex, slot, set);
+                            body.inventory.SetEquipmentIndex(equipmentIndex, new EquipmentLocation { slot = slot, set = set });
                         }
                     }
                     temporaryEquipmentStateSlots = Helper.CopyEquipmentState(body.inventory._equipmentSlots);
@@ -174,13 +174,14 @@ namespace RandomEvents
                     {
                         for (uint set = 0; set < temporaryEquipmentStateSlots[slot]._setCount; set++)
                         {
+                            var location = new EquipmentLocation { slot = slot, set = set };
                             if(slot < realEquipmentStateSlots.Length && set < realEquipmentStateSlots[slot]._setCount)
                             {
-                                body.inventory.SetEquipment(realEquipmentStateSlots[slot].GetEquipment(set), slot, set);
+                                body.inventory.SetEquipment(realEquipmentStateSlots[slot].GetEquipment(set), location);
                             }
                             else
                             {
-                                body.inventory.SetEquipmentIndexForSlot(EquipmentIndex.None, slot, set);
+                                body.inventory.SetEquipmentIndex(EquipmentIndex.None, location);
                             }
                         }
                     }
