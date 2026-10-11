@@ -24,7 +24,7 @@ namespace RandomEvents
             {
                 if (pc.isConnected)
                 {
-                    if (pc.master?.inventory.GetItemCount(RoR2Content.Items.AutoCastEquipment) > 0) {
+                    if (pc.master?.inventory.GetItemCountEffective(RoR2Content.Items.AutoCastEquipment) > 0) {
                         atLeastOneCharacterHasAutoCastEquipment = true;
                         break;
                     }
@@ -98,7 +98,7 @@ namespace RandomEvents
             {
                 if (pc.isConnected)
                 {
-                    if (pc.master?.inventory.GetItemCount(RoR2Content.Items.AutoCastEquipment) > 0)
+                    if (pc.master?.inventory.GetItemCountEffective(RoR2Content.Items.AutoCastEquipment) > 0)
                     {
                         atLeastOneCharacterHasAutoCastEquipment = true;
                         break;

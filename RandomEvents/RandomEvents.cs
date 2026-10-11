@@ -334,8 +334,8 @@ namespace RandomEvents
             directorSpawnRequest.onSpawnedServer = (Action<SpawnCard.SpawnResult>)Delegate.Combine(directorSpawnRequest.onSpawnedServer, (Action<SpawnCard.SpawnResult>)delegate (SpawnCard.SpawnResult result)
             {
                 var spawnResult = result.spawnedInstance.GetComponent<CharacterMaster>();
-                spawnResult.inventory.GiveItem(RoR2Content.Items.InvadingDoppelganger);
-                spawnResult.inventory.GiveItem(RoR2Content.Items.HealthDecay);
+                spawnResult.inventory.GiveItemPermanent(RoR2Content.Items.InvadingDoppelganger);
+                spawnResult.inventory.GiveItemPermanent(RoR2Content.Items.HealthDecay);
             });
             var result = spawnCard.DoSpawn(directorSpawnRequest.placementRule.position, UnityEngine.Quaternion.identity, directorSpawnRequest).spawnedInstance;
             return result.GetComponent<CharacterMaster>();

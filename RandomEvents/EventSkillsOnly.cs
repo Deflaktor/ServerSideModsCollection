@@ -35,7 +35,7 @@ namespace RandomEvents
             {
                 if (pc.isConnected)
                 {
-                    if (pc.master?.inventory.GetItemCount(RoR2Content.Items.Bandolier) >= 1)
+                    if (pc.master?.inventory.GetItemCountEffective(RoR2Content.Items.Bandolier) >= 1)
                     {
                         hasBandolier = true;
                         break;
