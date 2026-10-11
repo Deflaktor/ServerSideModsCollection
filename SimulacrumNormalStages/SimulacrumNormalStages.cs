@@ -117,7 +117,7 @@ namespace SimulacrumNormalStages
 
         private void ConduitCanyonController_DisableSector2(ILContext il)
         {
-            ReturnImmediately(il, (AccessCodesMissionController self) =>
+            ReturnImmediately(il, (ConduitCanyonController self) =>
             {
                 if (Run.instance.GetType() == typeof(InfiniteTowerRun))
                 {
