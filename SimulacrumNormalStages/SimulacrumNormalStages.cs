@@ -274,17 +274,21 @@ namespace SimulacrumNormalStages
         {
             ILCursor c = new ILCursor(il);
             var label = c.DefineLabel();
-            // right at the start
+            // right after Stage.instance.CompleteServer(), skip the scene type checks
+            // (jumping from the start would leave sceneDefForCurrentScene unassigned for ShouldBeginLoop)
+            // IL_0032: callvirt instance void RoR2.Stage::CompleteServer()
+            c.GotoNext(MoveType.After,
+                x => x.MatchCallvirt<Stage>("CompleteServer")
+            );
             c.EmitDelegate<Func<bool>>(() =>
             {
                 SceneDef sceneDefForCurrentScene = SceneCatalog.GetSceneDefForCurrentScene();
                 return sceneDefForCurrentScene.baseSceneName == "arena" && Run.instance.GetType() == typeof(InfiniteTowerRun);
             });
             c.Emit(OpCodes.Brtrue, label);
-            c.Index += 2;
-            // IL_003d: ldarg.0
-            // IL_003e: ldarg.0
-            // IL_003f: ldfld int32 RoR2.Run::stageClearCount
+            // IL_0056: ldarg.0
+            // IL_0057: ldarg.0
+            // IL_0058: ldfld int32 RoR2.Run::stageClearCount
             c.GotoNext(
                 x => x.MatchLdarg(0),
                 x => x.MatchLdarg(0),
