@@ -164,7 +164,7 @@ namespace StartBonusMod
                 {
                     uint slot = (uint) (equipIndex % maxEquipmentSlots);
                     uint set = (uint) (equipIndex / maxEquipmentSlots);
-                    inventory.SetEquipmentIndexForSlot(equipmentIndex, slot, set);
+                    inventory.SetEquipmentIndex(equipmentIndex, new EquipmentLocation { slot = slot, set = set });
                     equipmentCount--;
                     equipIndex++;
                 }
@@ -212,7 +212,9 @@ namespace StartBonusMod
             }
             if (equipmentIndex != EquipmentIndex.None)
             {
-                inventory.SetEquipmentIndex(equipmentIndex, isRemovingEquipment: false);
+                // the active slot, in the set the game picks for a new pickup
+                var set = inventory.FindBestEquipmentLocationOrCurrent(in Inventory.EquipmentLocationQueryArgs.defaultPickup).set;
+                inventory.SetEquipmentIndex(equipmentIndex, new EquipmentLocation { slot = inventory.activeEquipmentSlot, set = set });
             }
         }
     }
