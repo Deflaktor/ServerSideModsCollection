@@ -251,30 +251,32 @@ namespace RandomEvents
 
         public static void FillEquipment(Inventory inventory, EquipmentIndex equipmentIndex)
         {
-            if (inventory._equipmentStateSlots.Length == 0)
+            if (inventory._equipmentSlots.Length == 0)
                 return;
-            for (uint slot = 0; slot < inventory._equipmentStateSlots.Length; slot++)
+            for (uint slot = 0; slot < inventory._equipmentSlots.Length; slot++)
             {
-                for (uint set = 0; set < inventory._equipmentStateSlots[slot].Length; set++)
+                for (uint set = 0; set < inventory._equipmentSlots[slot]._setCount; set++)
                 {
-                    inventory._equipmentStateSlots[slot][set].equipmentDef = EquipmentCatalog.GetEquipmentDef(EquipmentIndex.None);
-                    inventory._equipmentStateSlots[slot][set].equipmentIndex = EquipmentIndex.None;
+                    ref EquipmentState equipmentState = ref inventory._equipmentSlots[slot].GetEquipment(set);
+                    equipmentState.equipmentDef = EquipmentCatalog.GetEquipmentDef(EquipmentIndex.None);
+                    equipmentState.equipmentIndex = EquipmentIndex.None;
                 }
             }
         }
 
-        public static void FillEquipment(Inventory inventory, EquipmentState[][] equipmentStateSlots)
+        public static void FillEquipment(Inventory inventory, Inventory.EquipmentStateSlot[] equipmentStateSlots)
         {
-            if (inventory._equipmentStateSlots.Length == 0)
+            if (inventory._equipmentSlots.Length == 0)
                 return;
-            for (uint slot = 0; slot < inventory._equipmentStateSlots.Length; slot++)
+            for (uint slot = 0; slot < inventory._equipmentSlots.Length; slot++)
             {
-                for (uint set = 0; set < inventory._equipmentStateSlots[slot].Length; set++)
+                for (uint set = 0; set < inventory._equipmentSlots[slot]._setCount; set++)
                 {
 
 
-                    inventory._equipmentStateSlots[slot][set].equipmentDef = EquipmentCatalog.GetEquipmentDef(EquipmentIndex.None);
-                    inventory._equipmentStateSlots[slot][set].equipmentIndex = EquipmentIndex.None;
+                    ref EquipmentState equipmentState = ref inventory._equipmentSlots[slot].GetEquipment(set);
+                    equipmentState.equipmentDef = EquipmentCatalog.GetEquipmentDef(EquipmentIndex.None);
+                    equipmentState.equipmentIndex = EquipmentIndex.None;
                 }
             }
         }
@@ -287,12 +289,12 @@ namespace RandomEvents
             return Helper.HasSkillVariantEnabled(master.loadout, body.bodyIndex, skillFamily, skillDef);
         }
 
-        public static EquipmentState[][] CopyEquipmentState(EquipmentState[][] source)
+        public static Inventory.EquipmentStateSlot[] CopyEquipmentState(Inventory.EquipmentStateSlot[] source)
         {
             if (source == null)
                 return null;
 
-            var destination = new EquipmentState[source.Length][];
+            var destination = new Inventory.EquipmentStateSlot[source.Length];
 
             for (int i = 0; i < source.Length; i++)
             {
@@ -302,38 +304,53 @@ namespace RandomEvents
                     continue;
                 }
 
-                destination[i] = new EquipmentState[source[i].Length];
+                destination[i] = new Inventory.EquipmentStateSlot(source[i]._setCount);
+                destination[i].activeSetIndex = source[i].activeSetIndex;
 
-                for (int j = 0; j < source[i].Length; j++)
+                for (uint j = 0; j < source[i]._setCount; j++)
                 {
-                    destination[i][j] = new EquipmentState(source[i][j].equipmentIndex, source[i][j].chargeFinishTime, source[i][j].charges);
+                    var equipmentState = source[i].GetEquipment(j);
+                    destination[i].GetEquipment(j) = new EquipmentState(equipmentState.equipmentIndex, equipmentState.chargeFinishTime, equipmentState.charges);
                 }
             }
 
             return destination;
         }
 
-        public static void TransferEquipmentIndex(EquipmentState[][] source, EquipmentState[][] target)
+        public static void TransferEquipmentIndex(Inventory.EquipmentStateSlot[] source, Inventory.EquipmentStateSlot[] target)
         {
             if (source == null || source.Length == 0 || target == null || target.Length == 0)
                 return;
 
             for (uint slot = 0; slot < target.Length; slot++)
             {
-                for (uint set = 0; set < target[slot].Length; set++)
+                for (uint set = 0; set < target[slot]._setCount; set++)
                 {
-                    if (slot < source.Length && set < source[slot].Length)
+                    ref EquipmentState targetState = ref target[slot].GetEquipment(set);
+                    if (slot < source.Length && set < source[slot]._setCount)
                     {
-                        target[slot][set].equipmentDef = EquipmentCatalog.GetEquipmentDef(source[slot][set].equipmentIndex);
-                        target[slot][set].equipmentIndex = source[slot][set].equipmentIndex;
+                        var sourceEquipmentIndex = source[slot].GetEquipment(set).equipmentIndex;
+                        targetState.equipmentDef = EquipmentCatalog.GetEquipmentDef(sourceEquipmentIndex);
+                        targetState.equipmentIndex = sourceEquipmentIndex;
                     }
                     else
                     {
-                        target[slot][set].equipmentDef = EquipmentCatalog.GetEquipmentDef(EquipmentIndex.None);
-                        target[slot][set].equipmentIndex = EquipmentIndex.None;
+                        targetState.equipmentDef = EquipmentCatalog.GetEquipmentDef(EquipmentIndex.None);
+                        targetState.equipmentIndex = EquipmentIndex.None;
                     }
                 }
             }
+        }
+
+        // The inventory tracks its equipment set count separately from the slots, so swapped in slots have to match it
+        public static void SwapEquipmentSlots(Inventory inventory, Inventory.EquipmentStateSlot[] equipmentStateSlots)
+        {
+            foreach (var equipmentStateSlot in equipmentStateSlots)
+            {
+                equipmentStateSlot.UpdateSetCount(inventory.equipmentSetCount);
+                equipmentStateSlot.EnsureValidActiveSetIndex(inventory.accessibleEquipmentSetCount);
+            }
+            inventory._equipmentSlots = equipmentStateSlots;
         }
     }
 }

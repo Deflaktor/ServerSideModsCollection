@@ -18,8 +18,8 @@ namespace RandomEvents
 {
     public class TemporaryEquipment : MonoBehaviour
     {
-        private EquipmentState[][] realEquipmentStateSlots;
-        private EquipmentState[][] temporaryEquipmentStateSlots;
+        private Inventory.EquipmentStateSlot[] realEquipmentStateSlots;
+        private Inventory.EquipmentStateSlot[] temporaryEquipmentStateSlots;
         public float cooldownScale = 1f;
         public bool doNotDisableEquipment = false;
 
@@ -105,7 +105,7 @@ namespace RandomEvents
             {
                 if (temporaryEquipment != null)
                 {
-                    Helper.TransferEquipmentIndex(temporaryEquipment.temporaryEquipmentStateSlots, inventory._equipmentStateSlots);
+                    Helper.TransferEquipmentIndex(temporaryEquipment.temporaryEquipmentStateSlots, inventory._equipmentSlots);
                 }
             }
         }
@@ -121,7 +121,7 @@ namespace RandomEvents
                 temporaryEquipment = context.body.GetComponent<TemporaryEquipment>();
                 if (temporaryEquipment != null)
                 {
-                    inventory._equipmentStateSlots = temporaryEquipment.realEquipmentStateSlots;
+                    Helper.SwapEquipmentSlots(inventory, temporaryEquipment.realEquipmentStateSlots);
                 }
             }
 
@@ -129,7 +129,7 @@ namespace RandomEvents
             {
                 if (temporaryEquipment != null)
                 {
-                    inventory._equipmentStateSlots = temporaryEquipment.temporaryEquipmentStateSlots;
+                    Helper.SwapEquipmentSlots(inventory, temporaryEquipment.temporaryEquipmentStateSlots);
                 }
             }
         }
@@ -138,7 +138,7 @@ namespace RandomEvents
         {
             if (TryGetComponent(out CharacterBody body))
             {
-                if (body.inventory != null && body.inventory._equipmentStateSlots != null && body.master != null)
+                if (body.inventory != null && body.inventory._equipmentSlots != null && body.master != null)
                 {
                     int maxEquipmentSlots = Helper.IsToolbotWithSwapSkill(body.master) ? 2 : 1;
                     int maxEquipmentSets = body.inventory.GetItemCountEffective(DLC3Content.Items.ExtraEquipment.itemIndex) + 1;
@@ -149,7 +149,7 @@ namespace RandomEvents
                             body.inventory.SetEquipmentIndexForSlot(equipmentIndex, slot, set);
                         }
                     }
-                    temporaryEquipmentStateSlots = Helper.CopyEquipmentState(body.inventory._equipmentStateSlots);
+                    temporaryEquipmentStateSlots = Helper.CopyEquipmentState(body.inventory._equipmentSlots);
                 }
             }
         }
@@ -158,8 +158,8 @@ namespace RandomEvents
         {
             if (TryGetComponent(out CharacterBody body))
             {
-                if(body.inventory != null && body.inventory._equipmentStateSlots != null) {
-                    realEquipmentStateSlots = Helper.CopyEquipmentState(body.inventory._equipmentStateSlots);
+                if(body.inventory != null && body.inventory._equipmentSlots != null) {
+                    realEquipmentStateSlots = Helper.CopyEquipmentState(body.inventory._equipmentSlots);
                 }
             }
         }
@@ -174,9 +174,9 @@ namespace RandomEvents
                     {
                         for (uint set = 0; set < temporaryEquipmentStateSlots.Length; set++)
                         {
-                            if(slot < realEquipmentStateSlots.Length && set < realEquipmentStateSlots[slot].Length)
+                            if(slot < realEquipmentStateSlots.Length && set < realEquipmentStateSlots[slot]._setCount)
                             {
-                                body.inventory.SetEquipment(realEquipmentStateSlots[slot][set], slot, set);
+                                body.inventory.SetEquipment(realEquipmentStateSlots[slot].GetEquipment(set), slot, set);
                             }
                             else
                             {
