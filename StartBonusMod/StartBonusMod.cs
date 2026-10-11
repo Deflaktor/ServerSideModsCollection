@@ -81,10 +81,11 @@ namespace StartBonusMod
                 x => x.MatchLdarg(0),
                 x => x.MatchCall<Run>("get_ruleBook"),
                 x => x.MatchCallvirt<RuleBook>("get_startingMoney"),
+                x => x.MatchLdcI4(0),
                 x => x.MatchCallvirt<CharacterMaster>("GiveMoney")
                 );
             c.Index += 4;
-            c.Remove();
+            c.RemoveRange(2);
             c.EmitDelegate((CharacterMaster characterMaster, uint startingMoney) =>
             {
                 if (characterMaster != null)
@@ -93,16 +94,16 @@ namespace StartBonusMod
                     {
                         if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.MagnusMagnuson.StartInBazaar"))
                         {
-                            characterMaster.GiveMoney((uint)Run.instance.GetDifficultyScaledCost(BepConfig.StartingCash.Value) + startingMoney);
+                            characterMaster.GiveMoney((uint)Run.instance.GetDifficultyScaledCost(BepConfig.StartingCash.Value) + startingMoney, false);
                         }
                         else
                         {
-                            characterMaster.GiveMoney((uint)Run.instance.GetDifficultyScaledCost(BepConfig.StartingCash.Value));
+                            characterMaster.GiveMoney((uint)Run.instance.GetDifficultyScaledCost(BepConfig.StartingCash.Value), false);
                         }
                     }
                     else
                     {
-                        characterMaster.GiveMoney(startingMoney);
+                        characterMaster.GiveMoney(startingMoney, false);
                     }
                 }
             });
