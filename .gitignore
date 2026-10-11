@@ -332,3 +332,6 @@ ASALocalRun/
 .prefabs/
 # Decompiled game sources
 dec/
+
+# Extracted game prefabs
+prefabs/
