@@ -104,7 +104,7 @@ namespace RandomEvents
 
         public override void Preload()
         {
-            FusionCellExplosion = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC2/Scorchling/FusionCellExplosion.prefab");
+            FusionCellExplosion = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/FusionCellDestructible/FusionCellExplosion.prefab");
             VFXScorchlingBreachExplosion = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC2/Scorchling/VFXScorchlingBreachExplosion.prefab");
             // RoR2/Base/AltarSkeleton/OmniExplosionVFXAltarSkeleton.prefab
             // RoR2/Base/BleedOnHitAndExplode/BleedOnHitAndExplode_Explosion.prefab
