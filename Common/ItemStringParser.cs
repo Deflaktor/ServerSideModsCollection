@@ -53,11 +53,11 @@ namespace Common
             dropTables.Add("dtLunarChest", "RoR2/Base/LunarChest/dtLunarChest.asset");
             dropTables.Add("dtShrineChance", "RoR2/Base/ShrineChance/dtShrineChance.asset");
             dropTables.Add("dtLockbox", "RoR2/Base/TreasureCache/dtLockbox.asset");
-            dropTables.Add("dtITBossWave", "RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/dtITBossWave.asset");
-            dropTables.Add("dtITDefaultWave", "RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/dtITDefaultWave.asset");
-            dropTables.Add("dtITLunar", "RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/dtITLunar.asset");
-            dropTables.Add("dtITSpecialBossWave", "RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/dtITSpecialBossWave.asset");
-            dropTables.Add("dtITVoid", "RoR2/DLC1/GameModes/InfiniteTowerRun/InfiniteTowerAssets/dtITVoid.asset");
+            dropTables.Add("dtITBossWave", "RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/dtITBossWave.asset");
+            dropTables.Add("dtITDefaultWave", "RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/dtITDefaultWave.asset");
+            dropTables.Add("dtITLunar", "RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/dtITLunar.asset");
+            dropTables.Add("dtITSpecialBossWave", "RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/dtITSpecialBossWave.asset");
+            dropTables.Add("dtITVoid", "RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/dtITVoid.asset");
             dropTables.Add("dtCategoryChest2Damage", "RoR2/DLC1/CategoryChest2/dtCategoryChest2Damage.asset");
             dropTables.Add("dtCategoryChest2Healing", "RoR2/DLC1/CategoryChest2/dtCategoryChest2Healing.asset");
             dropTables.Add("dtCategoryChest2Utility", "RoR2/DLC1/CategoryChest2/dtCategoryChest2Utility.asset");
