@@ -335,3 +335,6 @@ dec/
 
 # Extracted game prefabs
 prefabs/
+
+# Local TODO list
+TODO.md
