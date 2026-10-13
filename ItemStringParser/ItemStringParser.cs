@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace ItemStringParser
@@ -574,6 +575,102 @@ namespace ItemStringParser
         public static bool ParseItemString(string itemString, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, bool availableOnly = true, int index = -1)
         {
             return ParseItemString(itemString, resolvedItems, log, availableOnly, index, 1);
+        }
+
+        private static readonly Inventory.EquipmentLocationQueryArgs emptyEquipmentLocation = new Inventory.EquipmentLocationQueryArgs
+        {
+            searchAllSlots = true,
+            allowEmpty = true,
+            searchPriority = Inventory.EquipmentLocationQueryArgs.SearchPriority.EmptyFirst
+        };
+
+        /// <summary>
+        /// Gives pickups to a character, like picking them up. Server only.
+        /// Items come first, so a Functional Coupler among them adds its equipment sets before equipment is placed.
+        /// Equipment fills the empty slots of all equipment slots and sets. Without one, the first equipment of this call replaces the active one, and further equipment is not given.
+        /// Key items replace the current one. Drones and other pickups are granted the way the game grants them.
+        /// </summary>
+        /// <param name="body">The character receiving the pickups.</param>
+        /// <param name="pickups">The pickups and their amounts, e.g. from <see cref="ParseItemString(string, Dictionary{PickupIndex, int}, ManualLogSource, bool, int)"/>.</param>
+        /// <returns>The pickups that were replaced or not given, so the caller can drop them or hand them back.</returns>
+        public static List<UniquePickup> GivePickups(CharacterBody body, Dictionary<PickupIndex, int> pickups)
+        {
+            var leftOver = new List<UniquePickup>();
+            var inventory = body ? body.inventory : null;
+            if (!NetworkServer.active || !inventory || pickups == null)
+                return leftOver;
+
+            bool gaveItems = false;
+            foreach (var (pickupIndex, count) in pickups)
+            {
+                var pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
+                if (count > 0 && pickupDef != null && pickupDef.itemIndex != ItemIndex.None)
+                {
+                    inventory.GiveItemPermanent(pickupDef.itemIndex, count);
+                    gaveItems = true;
+                }
+            }
+            // the equipment sets would only follow the items in the next fixed update
+            if (gaveItems)
+                inventory.RefreshInventoryStateServer();
+
+            bool gaveEquipment = false;
+            foreach (var (pickupIndex, count) in pickups)
+            {
+                var pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
+                if (count <= 0 || pickupDef == null || pickupDef.itemIndex != ItemIndex.None)
+                    continue;
+                for (int i = 0; i < count; i++)
+                {
+                    if (pickupDef.equipmentIndex != EquipmentIndex.None)
+                    {
+                        GiveEquipment(inventory, pickupDef.equipmentIndex, ref gaveEquipment, leftOver);
+                    }
+                    else if (pickupDef.keyItemIndex != KeyItemIndex.None)
+                    {
+                        var previousKeyItem = inventory.GetKeyItemIndex();
+                        inventory.SetKeyItem(pickupDef.keyItemIndex);
+                        if (previousKeyItem != KeyItemIndex.None && previousKeyItem != pickupDef.keyItemIndex)
+                            leftOver.Add(new UniquePickup(PickupCatalog.FindPickupIndex(previousKeyItem)));
+                    }
+                    else
+                    {
+                        // drones, coins and the like
+                        var context = new PickupDef.GrantContext
+                        {
+                            body = body,
+                            uniquePickup = new UniquePickup(pickupIndex),
+                            position = body.corePosition,
+                            rotation = body.transform.rotation
+                        };
+                        pickupDef.attemptGrant?.Invoke(ref context);
+                    }
+                }
+            }
+            return leftOver;
+        }
+
+        private static void GiveEquipment(Inventory inventory, EquipmentIndex equipmentIndex, ref bool gaveEquipment, List<UniquePickup> leftOver)
+        {
+            if (inventory.TryFindBestEquipmentLocation(in emptyEquipmentLocation, out var location))
+            {
+                inventory.SetEquipmentIndex(equipmentIndex, in location);
+                gaveEquipment = true;
+                return;
+            }
+            // replacing now could swap out equipment given just before
+            if (gaveEquipment)
+            {
+                leftOver.Add(new UniquePickup(PickupCatalog.FindPickupIndex(equipmentIndex)));
+                return;
+            }
+            // like picking it up: swap the active equipment
+            location = inventory.FindBestEquipmentLocationOrCurrent(in Inventory.EquipmentLocationQueryArgs.defaultPickup);
+            var previousEquipment = inventory.GetEquipmentIndex(in location);
+            inventory.SetEquipmentIndex(equipmentIndex, in location);
+            gaveEquipment = true;
+            if (previousEquipment != EquipmentIndex.None)
+                leftOver.Add(new UniquePickup(PickupCatalog.FindPickupIndex(previousEquipment)));
         }
 
         public static void WriteDropTablesMarkdownFile(string filePath)
