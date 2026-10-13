@@ -130,7 +130,7 @@ namespace StartBonusMod
                             if (BepConfig.SimpleEnabled.Value)
                                 GiveStartingItemsSimple(master.inventory);
                             if (BepConfig.AdvancedEnabled.Value)
-                                GiveStartingItemsAdvanced(master);
+                                GiveStartingItemsAdvanced(characterBody);
                             instance.itemGivenTo.Add(master.playerCharacterMasterController);
                         }
                     }
@@ -139,35 +139,14 @@ namespace StartBonusMod
         }
 
 
-        private void GiveStartingItemsAdvanced(CharacterMaster master)
+        private void GiveStartingItemsAdvanced(CharacterBody body)
         {
-            var inventory = master.inventory;
             Dictionary<PickupIndex, int> itemsToGive = new Dictionary<PickupIndex, int>();
             ItemStringParser.ItemStringParser.ParseItemString(BepConfig.AdvancedItemList.Value, itemsToGive, instance.Logger, false);
-            uint equipIndex = 0;
-            foreach (var (pickupIndex, itemAmount) in itemsToGive)
+            // equipment without a free slot is dropped next to the player
+            foreach (var leftOver in ItemStringParser.ItemStringParser.GivePickups(body, itemsToGive))
             {
-                var pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
-                // handle items
-                var itemIndex = pickupDef.itemIndex;
-                var equipmentIndex = pickupDef.equipmentIndex;
-                if (itemIndex != ItemIndex.None && itemAmount > 0)
-                {
-                    inventory.GiveItemPermanent(itemIndex, itemAmount);
-                }
-                // handle equipments
-                int maxEquipmentSlots = Helper.IsToolbotWithSwapSkill(master) ? 2 : 1;
-                int maxEquipmentSets = master.inventory.GetItemCountEffective(DLC3Content.Items.ExtraEquipment.itemIndex) + 1;
-                int maxEquipmentCount = maxEquipmentSlots * maxEquipmentSets;
-                var equipmentCount = itemAmount;
-                while (equipmentIndex != EquipmentIndex.None && equipmentCount > 0 && equipIndex < maxEquipmentCount)
-                {
-                    uint slot = (uint) (equipIndex % maxEquipmentSlots);
-                    uint set = (uint) (equipIndex / maxEquipmentSlots);
-                    inventory.SetEquipmentIndex(equipmentIndex, new EquipmentLocation { slot = slot, set = set });
-                    equipmentCount--;
-                    equipIndex++;
-                }
+                PickupDropletController.CreatePickupDroplet(leftOver, body.corePosition + Vector3.up * 1.5f, Vector3.up * 15f, false);
             }
         }
 
