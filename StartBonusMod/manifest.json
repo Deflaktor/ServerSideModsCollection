@@ -5,6 +5,6 @@
 	"description": "Gives each player a configurable set of items and starting gold at the beginning of a run.",
 	"dependencies": [
 		"RiskofThunder-R2API_Core-5.1.7",
-		"Def-ItemStringParser-2.0.0"
+		"Def-ItemStringParser-2.1.0"
 	]
 }
