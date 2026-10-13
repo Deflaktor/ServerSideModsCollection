@@ -25,7 +25,8 @@ namespace ItemStringParser
         public const string PluginName = "ItemStringParser";
         public const string PluginVersion = "2.0.0";
 
-        private static readonly Regex tokenPattern = new Regex(@"(?:(\d+)\s*x\s*)?(\w+)", RegexOptions.IgnoreCase);
+        // a key with its blacklist, e.g. 3xdtChest1!Bear!Crowbar
+        private static readonly Regex tokenPattern = new Regex(@"^(?:(\d+)\s*x\s*)?(\w+(?:\s*!\s*\w+)*)$", RegexOptions.IgnoreCase);
 
         private static ManualLogSource Log;
 
@@ -217,7 +218,7 @@ namespace ItemStringParser
             for(var i = 1; i < blacklistedItems.Length; i++)
             {
                 var blacklistedItem = blacklistedItems[i].Trim();
-                var pickupIndex = PickupCatalog.FindPickupIndex(blacklistedItem);
+                var pickupIndex = FindPickupByName(blacklistedItem);
                 if (pickupIndex != PickupIndex.none)
                 {
                     itemBlackList.Add(pickupIndex);
@@ -301,39 +302,38 @@ namespace ItemStringParser
             }
             else
             {
-                ItemIndex itemIndex = ItemCatalog.FindItemIndex(itemkey);
-                if (itemIndex != ItemIndex.None)
+                var pickupIndex = FindPickupByName(itemkey);
+                if (pickupIndex == PickupIndex.none)
                 {
-                    if (availableOnly && !Run.instance.IsItemAvailable(itemIndex))
-                    {
-                        HandleWarning(log, $"ResolveItemKey: {itemkey} cannot be resolved as it is disabled in this run.");
-                        return false;
-                    }
-                    var pickupIndex = PickupCatalog.FindPickupIndex(itemIndex);
-                    resolvedItems[pickupIndex] = resolvedItems.GetValueOrDefault(pickupIndex) + repeat;
-                    return true;
+                    HandleWarning(log, $"ResolveItemKey: Could not find item key: {itemkey}");
+                    return false;
                 }
-                else
+                if (availableOnly && !Run.instance.IsPickupAvailable(pickupIndex))
                 {
-                    EquipmentIndex equipmentIndex = EquipmentCatalog.FindEquipmentIndex(itemkey);
-                    if (equipmentIndex != EquipmentIndex.None)
-                    {
-                        if (availableOnly && !Run.instance.IsEquipmentAvailable(equipmentIndex))
-                        {
-                            HandleWarning(log, $"ResolveItemKey: {itemkey} cannot be resolved as it is disabled in this run.");
-                            return false;
-                        }
-                        var pickupIndex = PickupCatalog.FindPickupIndex(equipmentIndex);
-                        resolvedItems[pickupIndex] = resolvedItems.GetValueOrDefault(pickupIndex) + repeat;
-                        return true;
-                    }
-                    else
-                    {
-                        HandleWarning(log, $"ResolveItemKey: Could not find item key: {itemkey}");
-                        return false;
-                    }
+                    HandleWarning(log, $"ResolveItemKey: {itemkey} cannot be resolved as it is disabled in this run.");
+                    return false;
                 }
+                resolvedItems[pickupIndex] = resolvedItems.GetValueOrDefault(pickupIndex) + repeat;
+                return true;
             }
+        }
+
+        // Internal names. Equipment comes first: BurnNearby is also the name of an unused item.
+        private static PickupIndex FindPickupByName(string name)
+        {
+            var equipmentIndex = EquipmentCatalog.FindEquipmentIndex(name);
+            if (equipmentIndex != EquipmentIndex.None)
+                return PickupCatalog.FindPickupIndex(equipmentIndex);
+            var itemIndex = ItemCatalog.FindItemIndex(name);
+            if (itemIndex != ItemIndex.None)
+                return PickupCatalog.FindPickupIndex(itemIndex);
+            var droneIndex = DroneCatalog.FindDroneIndex(name);
+            if (droneIndex != DroneIndex.None)
+                return PickupCatalog.FindPickupIndex(droneIndex);
+            var keyItemIndex = KeyItemCatalog.FindKeyItemIndex(name);
+            if (keyItemIndex != KeyItemIndex.None)
+                return PickupCatalog.FindPickupIndex(keyItemIndex);
+            return PickupIndex.none;
         }
 
         private class ItemStringEntry
