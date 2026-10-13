@@ -166,7 +166,7 @@ namespace ItemStringParser
         /// This method resolves a single item key into an pickup index. It supports parsing item keys that represent item tiers, drop tables, concrete items, or concrete equipment. It also supports blacklisting certain items from selection.
         /// </summary>
         /// <param name="itemkey">A concrete item internal name or a drop table with possible not-operators or a tier with possible not-operators.</param>
-        /// <param name="availableOnly">If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked.</param>
+        /// <param name="availableOnly">If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked. Names from a DLC that is not enabled for the run never resolve.</param>
         /// <returns>The resolved pickup index</returns>
         /// <exception cref="ArgumentException">Thrown when itemkey can not be resolved to an concrete item name, droptable or tier or when any of the blacklisted item names could not be resolved.<exception>
         public static PickupIndex ResolveItemKey(string itemkey, bool availableOnly = true)
@@ -309,6 +309,12 @@ namespace ItemStringParser
                     HandleWarning(log, $"ResolveItemKey: Could not find item key: {itemkey}");
                     return false;
                 }
+                // also with availableOnly false, e.g. for elite equipment
+                if (IsExpansionLocked(pickupIndex))
+                {
+                    HandleWarning(log, $"ResolveItemKey: {itemkey} cannot be resolved as its DLC is not enabled in this run.");
+                    return false;
+                }
                 if (availableOnly && !Run.instance.IsPickupAvailable(pickupIndex))
                 {
                     HandleWarning(log, $"ResolveItemKey: {itemkey} cannot be resolved as it is disabled in this run.");
@@ -317,6 +323,24 @@ namespace ItemStringParser
                 resolvedItems[pickupIndex] = resolvedItems.GetValueOrDefault(pickupIndex) + repeat;
                 return true;
             }
+        }
+
+        // Whether the pickup belongs to a DLC that is not enabled for the run
+        private static bool IsExpansionLocked(PickupIndex pickupIndex)
+        {
+            var run = Run.instance;
+            var pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
+            if (!run || pickupDef == null)
+                return false;
+            if (pickupDef.itemIndex != ItemIndex.None)
+                return run.IsItemExpansionLocked(pickupDef.itemIndex);
+            if (pickupDef.equipmentIndex != EquipmentIndex.None)
+                return run.IsEquipmentExpansionLocked(pickupDef.equipmentIndex);
+            if (pickupDef.droneIndex != DroneIndex.None)
+                return run.IsDroneExpansionLocked(pickupDef.droneIndex);
+            if (pickupDef.keyItemIndex != KeyItemIndex.None)
+                return run.IsKeyItemExpansionLocked(pickupDef.keyItemIndex);
+            return false;
         }
 
         // Internal names. Equipment comes first: BurnNearby is also the name of an unused item.
@@ -555,7 +579,7 @@ namespace ItemStringParser
         /// </summary>
         /// <param name="itemString">The input string containing item definitions to parse. It includes items, operators, and formatting syntax.</param>
         /// <param name="resolvedItems">A dictionary to which parsed item entries and their amounts will be added or updated.</param>
-        /// <param name="availableOnly">If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked.</param>
+        /// <param name="availableOnly">If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked. Names from a DLC that is not enabled for the run never resolve.</param>
         /// <param name="index">Specifies if a certain entry of the top-level or-group shall be taken or if it should be picked at random. -1 is default and means random.</param>
         /// <exception cref="ArgumentException">Thrown when input can not be properly resolved for any reason, be it syntax errors or a concrete item name which does not exist or the user has not the required dlc, etc.<exception>
         public static void ParseItemStringStrict(string itemString, Dictionary<PickupIndex, int> resolvedItems, bool availableOnly = true, int index = -1)
@@ -569,7 +593,7 @@ namespace ItemStringParser
         /// <param name="itemString">The input string containing item definitions to parse. It includes items, operators, and formatting syntax.</param>
         /// <param name="resolvedItems">A dictionary to which parsed item entries and their amounts will be added or updated.</param>
         /// <param name="log">For logging in case the provided itemString contains syntax errors.</param>
-        /// <param name="availableOnly">If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked.</param>
+        /// <param name="availableOnly">If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked. Names from a DLC that is not enabled for the run never resolve.</param>
         /// <param name="index">Specifies if a certain entry of the top-level or-group shall be taken or if it should be picked at random. -1 is default and means random.</param>
         /// <returns>Whether the item string was resolved successfully. A failure case can be when the input string had syntax error or a concrete item was selected for which the user does not have the required dlc or a droptable or tier not having enough candidates.</returns>
         public static bool ParseItemString(string itemString, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, bool availableOnly = true, int index = -1)
