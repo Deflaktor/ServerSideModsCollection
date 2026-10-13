@@ -27,75 +27,65 @@ namespace ItemStringParser
 
         private static readonly Regex tokenPattern = new Regex(@"(?:(\d+)\s*x\s*)?(\w+)", RegexOptions.IgnoreCase);
 
-        private static Dictionary<string, AsyncOperationHandle<BasicPickupDropTable>> loadedDropTables = new Dictionary<string, AsyncOperationHandle<BasicPickupDropTable>>();
-        private static readonly Dictionary<string, string> dropTables = InitDropTables();
+        private static ManualLogSource Log;
 
-        private static BasicPickupDropTable GetDroptable(string droptable)
+        private static readonly Dictionary<string, AsyncOperationHandle<PickupDropTable>> loadedDropTables = new Dictionary<string, AsyncOperationHandle<PickupDropTable>>();
+        private static Dictionary<string, string> dropTables;
+        // for drop tables without a weighted selection; separate from the run's seeded generators
+        private static readonly Xoroshiro128Plus dropTableRng = new Xoroshiro128Plus((ulong)DateTime.UtcNow.Ticks);
+
+        private void Awake()
         {
-            loadedDropTables[droptable] = loadedDropTables.GetValueOrDefault(droptable, Addressables.LoadAssetAsync<BasicPickupDropTable>(dropTables[droptable]));
-            var dropTable = loadedDropTables[droptable].WaitForCompletion();
-            return dropTable;
+            Log = Logger;
         }
-        private static Dictionary<string, string> InitDropTables()
-        {
-            Dictionary<string, string> dropTables = new Dictionary<string, string>();
-            void Add(string path)
-            {
-                var fileName = System.IO.Path.GetFileNameWithoutExtension(path);
-                dropTables.Add(fileName, path);
-            }
-            Add("RoR2/Base/CasinoChest/dtCasinoChest.asset");
-            Add("RoR2/Base/CategoryChest/dtSmallChestDamage.asset");
-            Add("RoR2/Base/CategoryChest/dtSmallChestHealing.asset");
-            Add("RoR2/Base/CategoryChest/dtSmallChestUtility.asset");
-            Add("RoR2/Base/Chest1/dtChest1.asset");
-            Add("RoR2/Base/Chest2/dtChest2.asset");
-            Add("RoR2/Base/Common/dtAISafeTier1Item.asset");
-            Add("RoR2/Base/Common/dtAISafeTier2Item.asset");
-            Add("RoR2/Base/Common/dtAISafeTier3Item.asset");
-            Add("RoR2/Base/Common/dtEquipment.asset");
-            Add("RoR2/Base/Common/dtTier1Item.asset");
-            Add("RoR2/Base/Common/dtTier2Item.asset");
-            Add("RoR2/Base/Common/dtTier3Item.asset");
-            Add("RoR2/Base/Common/dtVoidChest.asset");
-            Add("RoR2/Base/Duplicator/dtDuplicatorTier1.asset");
-            Add("RoR2/Base/DuplicatorLarge/dtDuplicatorTier2.asset");
-            Add("RoR2/Base/DuplicatorMilitary/dtDuplicatorTier3.asset");
-            Add("RoR2/Base/DuplicatorWild/dtDuplicatorWild.asset");
-            Add("RoR2/Base/GoldChest/dtGoldChest.asset");
-            Add("RoR2/Base/LunarChest/dtLunarChest.asset");
-            Add("RoR2/Base/MonsterTeamGainsItems/dtMonsterTeamTier1Item.asset");
-            Add("RoR2/Base/MonsterTeamGainsItems/dtMonsterTeamTier2Item.asset");
-            Add("RoR2/Base/MonsterTeamGainsItems/dtMonsterTeamTier3Item.asset");
-            Add("RoR2/Base/Sacrifice/dtSacrificeArtifact.asset");
-            Add("RoR2/Base/ShrineChance/dtShrineChance.asset");
-            Add("RoR2/Base/TreasureCache/dtLockbox.asset");
-            Add("RoR2/CommandChest/dtCommandChest.asset");
-            Add("RoR2/DLC1/CategoryChest2/dtCategoryChest2Damage.asset");
-            Add("RoR2/DLC1/CategoryChest2/dtCategoryChest2Healing.asset");
-            Add("RoR2/DLC1/CategoryChest2/dtCategoryChest2Utility.asset");
-            Add("RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/dtITBossWave.asset");
-            Add("RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/dtITDefaultWave.asset");
-            Add("RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/dtITLunar.asset");
-            Add("RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/dtITSpecialBossWave.asset");
-            Add("RoR2/DLC1/GameModes/InfiniteTowerRun/ITAssets/dtITVoid.asset");
-            Add("RoR2/DLC1/TreasureCacheVoid/dtVoidLockbox.asset");
-            Add("RoR2/DLC1/VoidCamp/dtVoidCamp.asset");
-            Add("RoR2/DLC1/VoidTriple/dtVoidTriple.asset");
-            Add("RoR2/DLC2/AurelioniteHeartPickupDropTable.asset");
-            Add("RoR2/DLC2/dtShrineHalcyoniteTier1.asset");
-            Add("RoR2/DLC2/dtShrineHalcyoniteTier2.asset");
-            Add("RoR2/DLC2/dtShrineHalcyoniteTier3.asset");
-            Add("RoR2/DLC2/GeodeRewardDropTable.asset");
-            Add("RoR2/DLC2/Items/ExtraShrineItem/dtChanceDoll.asset");
-            Add("RoR2/DLC2/Items/ItemDropChanceOnKill/dtSonorousEcho.asset");
-            Add("RoR2/DLC3/Drifter/dtSalvage.asset");
-            Add("RoR2/DLC3/DrifterBagChest/dtDrifterBagChest.asset");
-            Add("RoR2/DLC3/Drones/dtJunkDrone.asset");
-            Add("RoR2/DLC3/SolusHeart/dtSolusHeart.asset");
-            Add("RoR2/DLC3/TemporaryItemsDistributor/dtTemporaryItemsDistributor.asset");
 
-            return dropTables;
+        // Every drop table the game's Addressables know, by file name, so new ones need no update here
+        private static Dictionary<string, string> DropTables
+        {
+            get
+            {
+                if (dropTables == null)
+                {
+                    dropTables = FindDropTables();
+                }
+                return dropTables;
+            }
+        }
+
+        private static Dictionary<string, string> FindDropTables()
+        {
+            var found = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var locator in Addressables.ResourceLocators)
+            {
+                foreach (var key in locator.Keys)
+                {
+                    if (key is not string address || !address.EndsWith(".asset", StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    if (!locator.Locate(address, typeof(PickupDropTable), out var locations) || locations.Count == 0)
+                        continue;
+
+                    var name = System.IO.Path.GetFileNameWithoutExtension(address);
+                    if (found.TryGetValue(name, out var existing))
+                    {
+                        if (existing != address)
+                            Log?.LogDebug($"Drop table name {name} is used twice; {address} is ignored in favor of {existing}.");
+                        continue;
+                    }
+                    found.Add(name, address);
+                }
+            }
+            return found;
+        }
+
+        private static PickupDropTable GetDroptable(string droptable)
+        {
+            var address = DropTables[droptable];
+            if (!loadedDropTables.TryGetValue(address, out var handle))
+            {
+                handle = Addressables.LoadAssetAsync<PickupDropTable>(address);
+                loadedDropTables[address] = handle;
+            }
+            return handle.WaitForCompletion();
         }
         public static T GetRandom<T>(List<T> list, T defaultValue)
         {
@@ -257,12 +247,39 @@ namespace ItemStringParser
                 }
                 return true;
             }
-            if (dropTables.ContainsKey(itemkey))
+            if (DropTables.ContainsKey(itemkey))
             {
                 var dropTable = GetDroptable(itemkey);
-                WeightedSelection<UniquePickup> selection = new WeightedSelection<UniquePickup>();
-                foreach (var choice in dropTable.selector.choices)
+                dropTable.EnsureInitialization();
+                WeightedSelection<UniquePickup> choices = dropTable switch
                 {
+                    BasicPickupDropTable basicDropTable => basicDropTable.selector,
+                    ExplicitPickupDropTable explicitDropTable => explicitDropTable.weightedSelection,
+                    _ => null,
+                };
+                if (choices == null)
+                {
+                    // special drop tables only generate their pickups
+                    if (itemBlackList.Count > 0)
+                        HandleWarning(log, $"ResolveItemKey: Droptable {itemkey} does not support blacklisting items.");
+                    while (repeat > 0)
+                    {
+                        var uniquePickup = dropTable.GeneratePickup(dropTableRng);
+                        if (!uniquePickup.isValid)
+                        {
+                            HandleWarning(log, $"ResolveItemKey: Could not get pickup from droptable: {itemkey}");
+                            return false;
+                        }
+                        resolvedItems[uniquePickup.pickupIndex] = resolvedItems.GetValueOrDefault(uniquePickup.pickupIndex) + 1;
+                        repeat--;
+                    }
+                    return true;
+                }
+                WeightedSelection<UniquePickup> selection = new WeightedSelection<UniquePickup>();
+                // the choices array has spare capacity beyond Count
+                for (int i = 0; i < choices.Count; i++)
+                {
+                    var choice = choices.GetChoice(i);
                     var pickupIndex = choice.value.pickupIndex;
                     if (!itemBlackList.Contains(pickupIndex) && Run.instance.IsPickupAvailable(pickupIndex))
                     {
@@ -584,7 +601,7 @@ namespace ItemStringParser
                 writer.WriteLine("# DropTables");
                 writer.WriteLine("| Drop Table Name                  | tier1 | tier2 | tier3 | boss | lunarEquipment | lunarItem | lunarCombined | equipment | voidTier1 | voidTier2 | voidTier3 | voidBoss | foodTier | powerShapes | canDropBeReplaced | requiredItemTags | bannedItemTags |");
                 writer.WriteLine("|----------------------------------|-------|-------|-------|------|----------------|-----------|---------------|-----------|-----------|-----------|-----------|----------|----------|-------------|-------------------|------------------|----------------|");
-                foreach (var entry in dropTables)
+                foreach (var entry in DropTables)
                 {
                     var dropTableName = entry.Key;
                     if(string.IsNullOrWhiteSpace(dropTableNamesEBNF))
@@ -595,7 +612,8 @@ namespace ItemStringParser
                     {
                         dropTableNamesEBNF += $" | \"{dropTableName}\"";
                     }
-                    var dropTable = GetDroptable(dropTableName);
+                    if (GetDroptable(dropTableName) is not BasicPickupDropTable dropTable)
+                        continue;
                     string canDropBeReplaced = dropTable.canDropBeReplaced.ToString();
                     string requiredItemTags = string.Join(", ", dropTable.requiredItemTags.Select(e => e.ToString()));
                     string bannedItemTags = string.Join(", ", dropTable.bannedItemTags.Select(e => e.ToString()));
