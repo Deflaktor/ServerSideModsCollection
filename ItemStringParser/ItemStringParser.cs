@@ -181,6 +181,34 @@ namespace ItemStringParser
             return PickupIndex.none;
         }
 
+        // Tier keywords, plus the run's other drop lists; null if the key is none of them
+        private static List<PickupIndex> GetTierDropList(string tier)
+        {
+            var run = Run.instance;
+            switch (tier.ToLowerInvariant())
+            {
+                case "tier1": return run.availableTier1DropList;
+                case "tier2": return run.availableTier2DropList;
+                case "tier3": return run.availableTier3DropList;
+                case "boss": return run.availableBossDropList;
+                case "lunar": return run.availableLunarCombinedDropList;
+                case "lunaritem": return run.availableLunarItemDropList;
+                case "lunarequipment": return run.availableLunarEquipmentDropList;
+                case "equipment": return run.availableEquipmentDropList;
+                case "voidtier1": return run.availableVoidTier1DropList;
+                case "voidtier2": return run.availableVoidTier2DropList;
+                case "voidtier3": return run.availableVoidTier3DropList;
+                case "voidboss": return run.availableVoidBossDropList;
+                case "foodtier": return run.availableFoodTierDropList;
+                case "cursed": return run.availableCursedTierDropList;
+                case "hex": return run.availableHexTierDropList;
+                case "page": return run.availablePageTierDropList;
+                case "powershape": return run.availablePowerShapeItemsDropList;
+                case "keyitem": return run.availableKeyItemsDropList;
+                default: return null;
+            }
+        }
+
         private static bool ResolveItemKey(string itemkey, int repeat, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, bool availableOnly)
         {
             List<PickupIndex> itemBlackList = [];
@@ -199,40 +227,8 @@ namespace ItemStringParser
                     HandleWarning(log, $"ResolveItemKey: Could not get pickup from blacklisted item: {blacklistedItem}");
                 }
             }
-            List<PickupIndex> candidates = null;
-            switch (itemkey.ToLower())
-            {
-                case "tier1":
-                    candidates = Run.instance.availableTier1DropList.Except(itemBlackList).ToList();
-                    break;
-                case "tier2":
-                    candidates = Run.instance.availableTier2DropList.Except(itemBlackList).ToList();
-                    break;
-                case "tier3":
-                    candidates = Run.instance.availableTier3DropList.Except(itemBlackList).ToList();
-                    break;
-                case "boss":
-                    candidates = Run.instance.availableBossDropList.Except(itemBlackList).ToList();
-                    break;
-                case "lunar":
-                    candidates = Run.instance.availableLunarCombinedDropList.Except(itemBlackList).ToList();
-                    break;
-                case "voidtier1":
-                    candidates = Run.instance.availableVoidTier1DropList.Except(itemBlackList).ToList();
-                    break;
-                case "voidtier2":
-                    candidates = Run.instance.availableVoidTier2DropList.Except(itemBlackList).ToList();
-                    break;
-                case "voidtier3":
-                    candidates = Run.instance.availableVoidTier3DropList.Except(itemBlackList).ToList();
-                    break;
-                case "voidboss":
-                    candidates = Run.instance.availableVoidBossDropList.Except(itemBlackList).ToList();
-                    break;
-                case "foodtier":
-                    candidates = Run.instance.availableFoodTierDropList.Except(itemBlackList).ToList();
-                    break;
-            }
+            var tierDropList = GetTierDropList(itemkey);
+            List<PickupIndex> candidates = tierDropList?.Except(itemBlackList).ToList();
             if (candidates != null) {
                 while (repeat > 0)
                 {
