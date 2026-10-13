@@ -1,6 +1,6 @@
 ﻿{
 	"name": "ItemStringParser",
-	"version_number": "2.0.0",
+	"version_number": "2.1.0",
 	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
 	"description": "A library for parsing Item Strings. Does nothing on its own.",
 	"dependencies": []

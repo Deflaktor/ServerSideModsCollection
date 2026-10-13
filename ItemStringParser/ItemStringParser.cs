@@ -24,7 +24,7 @@ namespace ItemStringParser
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
         public const string PluginName = "ItemStringParser";
-        public const string PluginVersion = "2.0.0";
+        public const string PluginVersion = "2.1.0";
 
         // a key with its blacklist, e.g. 3xdtChest1!Bear!Crowbar
         private static readonly Regex tokenPattern = new Regex(@"^(?:(\d+)\s*x\s*)?(\w+(?:\s*!\s*\w+)*)$", RegexOptions.IgnoreCase);
