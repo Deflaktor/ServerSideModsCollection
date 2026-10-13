@@ -159,7 +159,7 @@ Preon Accumulator and 10 Gesture of the Drowned or Ifrit's Distinction and 1 Ign
 ### Item Keywords
 
 You can use:
-- **Internal item, equipment, drone and key item names** (see [R2Wiki - Items-and-Equipments-Data](https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Items-and-Equipments-Data/)). `BurnNearby` is Helfire Tincture, the equipment; the item of the same name is unused.
+- **Internal item, equipment, drone and key item names** (see [R2Wiki - Items-and-Equipments-Data](https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Items-and-Equipments-Data/)). `BurnNearby` is Helfire Tincture, the equipment; the item of the same name is unused. Names from a DLC that is not enabled for the run are skipped.
 - **Item Tier names**: `Tier1`, `Tier2`, `Tier3`, `Lunar`, `Boss`, `VoidTier1`, `VoidTier2`, `VoidTier3`, `VoidBoss`, `FoodTier`, `Cursed`, `Hex`, `Page`. `Lunar` contains lunar items and lunar equipment.
 - **Other drop lists of the run**: `Equipment`, `LunarEquipment`, `LunarItem`, `PowerShape`, `KeyItem`
 - **Droptable names**: e.g. `dtChest1`, `dtLunarChest`, `dtVoidChest`. See below.
@@ -277,7 +277,7 @@ bool ItemStringParser.ItemStringParser.ParseItemString(string itemString, Dictio
 
 `log (ManualLogSource)`: For logging in case the provided itemString contains syntax errors.
 
-`availableOnly (bool, optional)`: If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked.
+`availableOnly (bool, optional)`: If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked. Names from a DLC that is not enabled for the run never resolve.
 
 `index (int, optional)`: Specifies if a certain entry of the top-level or-group shall be taken or if it should be picked at random. -1 is default and means random.
 
@@ -356,7 +356,7 @@ bool ItemStringParser.ItemStringParser.ResolveItemKey(string itemkey, int repeat
 
 `itemkey (string)`: The identifier string for the item or group of items to resolve. May exclude items from droptables or tiers with with `!`.
 
-`availableOnly (bool, optional)`: If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked.
+`availableOnly (bool, optional)`: If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked. Names from a DLC that is not enabled for the run never resolve.
 
 `Return Value`: The resolved pickupIndex.
 
