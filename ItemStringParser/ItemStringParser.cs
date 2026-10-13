@@ -593,42 +593,31 @@ namespace ItemStringParser
                 {
                     writer.WriteLine($"{entry}");
                 }
-                string dropTableNamesEBNF = "";
                 writer.WriteLine("# DropTables");
-                writer.WriteLine("| Drop Table Name                  | tier1 | tier2 | tier3 | boss | lunarEquipment | lunarItem | lunarCombined | equipment | voidTier1 | voidTier2 | voidTier3 | voidBoss | foodTier | powerShapes | canDropBeReplaced | requiredItemTags | bannedItemTags |");
-                writer.WriteLine("|----------------------------------|-------|-------|-------|------|----------------|-----------|---------------|-----------|-----------|-----------|-----------|----------|----------|-------------|-------------------|------------------|----------------|");
-                foreach (var entry in DropTables)
+                writer.WriteLine("| Drop Table Name                  | tier1 | tier2 | tier3 | boss | lunarEquipment | lunarItem | lunarCombined | equipment | voidTier1 | voidTier2 | voidTier3 | voidBoss | foodTier | powerShapes | cursed | hex | page | canDropBeReplaced | requiredItemTags | bannedItemTags |");
+                writer.WriteLine("|----------------------------------|-------|-------|-------|------|----------------|-----------|---------------|-----------|-----------|-----------|-----------|----------|----------|-------------|--------|-----|------|-------------------|------------------|----------------|");
+                var otherDropTables = new List<string>();
+                var dropTableNames = DropTables.Keys.OrderBy(name => name, StringComparer.OrdinalIgnoreCase).ToList();
+                foreach (var dropTableName in dropTableNames)
                 {
-                    var dropTableName = entry.Key;
-                    if(string.IsNullOrWhiteSpace(dropTableNamesEBNF))
+                    var loadedDropTable = GetDroptable(dropTableName);
+                    if (loadedDropTable is not BasicPickupDropTable dropTable)
                     {
-                        dropTableNamesEBNF = $"\"{dropTableName}\"";
-                    }
-                    else
-                    {
-                        dropTableNamesEBNF += $" | \"{dropTableName}\"";
-                    }
-                    if (GetDroptable(dropTableName) is not BasicPickupDropTable dropTable)
+                        otherDropTables.Add($"| {dropTableName,-32} | {loadedDropTable.GetType().Name} |");
                         continue;
-                    string canDropBeReplaced = dropTable.canDropBeReplaced.ToString();
+                    }
                     string requiredItemTags = string.Join(", ", dropTable.requiredItemTags.Select(e => e.ToString()));
                     string bannedItemTags = string.Join(", ", dropTable.bannedItemTags.Select(e => e.ToString()));
-                    string tier1Weight = dropTable.tier1Weight.ToString();
-                    string tier2Weight = dropTable.tier2Weight.ToString();
-                    string tier3Weight = dropTable.tier3Weight.ToString();
-                    string bossWeight = dropTable.bossWeight.ToString();
-                    string lunarEquipmentWeight = dropTable.lunarEquipmentWeight.ToString();
-                    string lunarItemWeight = dropTable.lunarItemWeight.ToString();
-                    string lunarCombinedWeight = dropTable.lunarCombinedWeight.ToString();
-                    string equipmentWeight = dropTable.equipmentWeight.ToString();
-                    string voidTier1Weight = dropTable.voidTier1Weight.ToString();
-                    string voidTier2Weight = dropTable.voidTier2Weight.ToString();
-                    string voidTier3Weight = dropTable.voidTier3Weight.ToString();
-                    string voidBossWeight = dropTable.voidBossWeight.ToString();
-                    string foodTierWeight = dropTable.foodTierWeight.ToString();
-                    string powerShapesWeight = dropTable.powerShapesWeight.ToString();
-                    writer.WriteLine($"| {dropTableName,-32} | {tier1Weight} | {tier2Weight} | {tier3Weight} | {bossWeight} | {lunarEquipmentWeight} | {lunarItemWeight} | {lunarCombinedWeight} | {equipmentWeight} | {voidTier1Weight} | {voidTier2Weight} | {voidTier3Weight} | {voidBossWeight} | {foodTierWeight} | {powerShapesWeight} | {canDropBeReplaced} | {requiredItemTags} | {bannedItemTags} |");
+                    writer.WriteLine($"| {dropTableName,-32} | {dropTable.tier1Weight} | {dropTable.tier2Weight} | {dropTable.tier3Weight} | {dropTable.bossWeight} | {dropTable.lunarEquipmentWeight} | {dropTable.lunarItemWeight} | {dropTable.lunarCombinedWeight} | {dropTable.equipmentWeight} | {dropTable.voidTier1Weight} | {dropTable.voidTier2Weight} | {dropTable.voidTier3Weight} | {dropTable.voidBossWeight} | {dropTable.foodTierWeight} | {dropTable.powerShapesWeight} | {dropTable.cursedWeight} | {dropTable.hexWeight} | {dropTable.pageWeight} | {dropTable.canDropBeReplaced} | {requiredItemTags} | {bannedItemTags} |");
                 }
+                writer.WriteLine("# Other DropTables");
+                writer.WriteLine("| Drop Table Name                  | Type |");
+                writer.WriteLine("|----------------------------------|------|");
+                foreach (var line in otherDropTables)
+                {
+                    writer.WriteLine(line);
+                }
+                string dropTableNamesEBNF = string.Join(" | ", dropTableNames.Select(name => $"\"{name}\""));
                 string itemNamesEBNF = "";
                 ItemIndex itemIndex = (ItemIndex)0;
                 for (ItemIndex itemCount = (ItemIndex)ItemCatalog.itemCount; itemIndex < itemCount; itemIndex++)
@@ -664,6 +653,14 @@ namespace ItemStringParser
                             itemNamesEBNF += $" | \"{equipmentDef.name}\"";
                         }
                     }
+                }
+                foreach (var droneDef in DroneCatalog.allDroneDefs)
+                {
+                    itemNamesEBNF += string.IsNullOrWhiteSpace(itemNamesEBNF) ? $"\"{droneDef.name}\"" : $" | \"{droneDef.name}\"";
+                }
+                foreach (var keyItemDef in KeyItemCatalog.allKeyItemDefs)
+                {
+                    itemNamesEBNF += string.IsNullOrWhiteSpace(itemNamesEBNF) ? $"\"{keyItemDef.name}\"" : $" | \"{keyItemDef.name}\"";
                 }
                 writer.WriteLine("# EBNF");
                 writer.WriteLine("```");
