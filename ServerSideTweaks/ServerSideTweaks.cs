@@ -368,7 +368,7 @@ namespace ServerSideTweaks
                 return uniquePickup;
             }
             PickupDef pickupDef = PickupCatalog.GetPickupDef(uniquePickup.pickupIndex);
-            if(pickupDef != null && pickupDef.isLunar)
+            if(pickupDef != null && pickupDef.isLunar && pickupDef.itemIndex != ItemIndex.None)
             {
                 if(!BepConfig.NoPearlsInBazaar.Value || !IsCurrentMapInBazaar())
                 {
@@ -397,7 +397,7 @@ namespace ServerSideTweaks
             for (int i = 0; i < pickupIndices.Length; i++)
             {
                 PickupDef pickupDef = PickupCatalog.GetPickupDef(pickupIndices[i]);
-                if (pickupDef != null && pickupDef.isLunar)
+                if (pickupDef != null && pickupDef.isLunar && pickupDef.itemIndex != ItemIndex.None)
                 {
                     if (!BepConfig.NoPearlsInBazaar.Value || !IsCurrentMapInBazaar())
                     {
