@@ -74,12 +74,6 @@ namespace SimulacrumNormalStages
             On.RoR2.Run.Start                                 += Run_Start;
             On.RoR2.ArenaMissionController.OnStartServer      += ArenaMissionController_OnStartServer;
             On.RoR2.VoidStageMissionController.Start          += VoidStageMissionController_Start;
-
-            // fix these two not being validForRandomSelection even though they should be
-            SceneDef scene = Addressables.LoadAssetAsync<SceneDef>(key: "RoR2/DLC2/habitat/habitat.asset").WaitForCompletion();
-            scene.validForRandomSelection = true;
-            scene = Addressables.LoadAssetAsync<SceneDef>(key: "RoR2/DLC2/helminthroost/helminthroost.asset").WaitForCompletion();
-            scene.validForRandomSelection = true;
         }
 
         private void OnDisable()
@@ -428,7 +422,7 @@ namespace SimulacrumNormalStages
             for (int i = 0; i < SceneCatalog.allStageSceneDefs.Length; i++)
             {
                 SceneDef def = SceneCatalog.allStageSceneDefs[i];
-                if (def.validForRandomSelection && def.hasAnyDestinations || def.cachedName == "conduitcanyon")
+                if (IsRealityStage(def))
                 {
                     float weight = 1;
                     switch (def.cachedName)
@@ -454,6 +448,19 @@ namespace SimulacrumNormalStages
 
             }
             realityDestinations._sceneEntries = newSceneEntry.ToArray();
+        }
+
+        private static bool IsRealityStage(SceneDef sceneDef)
+        {
+            switch (sceneDef.cachedName)
+            {
+                // normal stages that are not valid for random selection in vanilla
+                case "conduitcanyon":
+                case "habitat":
+                case "helminthroost":
+                    return true;
+            }
+            return sceneDef.validForRandomSelection && sceneDef.hasAnyDestinations;
         }
 
         private static void Run_Start(On.RoR2.Run.orig_Start orig, Run self)
@@ -607,7 +614,7 @@ namespace SimulacrumNormalStages
             {
                 return false;
             }
-            return sceneDef.hasAnyDestinations && sceneDef.validForRandomSelection;
+            return IsRealityStage(sceneDef);
         }
 
         private static bool Allow_Earlier_Spawns(On.RoR2.DirectorCard.orig_IsAvailable orig, DirectorCard self)
