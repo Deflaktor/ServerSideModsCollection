@@ -111,7 +111,7 @@ namespace ServerSideItems
 
         public static int GetBombCount(int stackCount)
         {
-            return 3 + 2 * stackCount;
+            return 1 + 2 * stackCount;
         }
 
         public static float GetRechargeDuration(int stackCount)
