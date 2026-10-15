@@ -6,10 +6,11 @@
 
 ## Features
 
-- Makes wave 41-50 happen in Void Locus.
-- Increases the difficulty of these waves and activates Artifact of Honor in the boss waves.
-- A boss is spawned in the final wave of the boss stage culminating in spawning Voidling.
-- After completion, the player is rewarded with 100 Lunar Coins and the run is ended.
+- Waves 41 to 50 take place in Void Locus.
+- These waves are harder, Malachite elites appear, and artifacts turn on: Dissonance for waves 41 to 45, Honor for the boss waves.
+- Voidling appears in the final wave.
+- Beating it rewards 100 Lunar Coins and ends the run.
 
-This mod is configurable and compatible with [InLobbyConfig](https://thunderstore.io/package/KingEnderBrine/InLobbyConfig/).
-Requires [SimulacrumNormalStages](https://thunderstore.io/package/Def/SimulacrumNormalStages/) to work properly.
+Everything is configurable, also with [InLobbyConfig](https://thunderstore.io/package/KingEnderBrine/InLobbyConfig/). Works with [ProperSave](https://thunderstore.io/c/riskofrain2/p/KingEnderBrine/ProperSave/).
+
+Needs [SimulacrumNormalStages](https://thunderstore.io/package/Def/SimulacrumNormalStages/).
