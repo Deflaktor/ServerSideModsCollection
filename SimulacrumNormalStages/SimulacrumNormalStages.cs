@@ -625,11 +625,18 @@ namespace SimulacrumNormalStages
 
         private static bool Allow_Earlier_Spawns(On.RoR2.DirectorCard.orig_IsAvailable orig, DirectorCard self)
         {
-            if(BepConfig.Enabled.Value && Run.instance?.GetType() == typeof(InfiniteTowerRun))
+            int minimumStageCompletions = self.minimumStageCompletions;
+            if (minimumStageCompletions > 2 && BepConfig.Enabled.Value && Run.instance?.GetType() == typeof(InfiniteTowerRun))
             {
-                if (self.minimumStageCompletions > 2)
+                // the cards are shared with normal runs, so lower it only for this check
+                self.minimumStageCompletions = 2;
+                try
                 {
-                    self.minimumStageCompletions = 2;
+                    return orig(self);
+                }
+                finally
+                {
+                    self.minimumStageCompletions = minimumStageCompletions;
                 }
             }
             return orig(self);
