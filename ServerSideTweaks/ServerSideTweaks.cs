@@ -29,6 +29,7 @@ namespace ServerSideTweaks
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.funkfrog_sipondo.sharesuite", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.KingEnderBrine.ProperSave", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.MagnusMagnuson.BiggerBazaar", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.Lunzir.BazaarIsMyHome", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
@@ -59,6 +60,7 @@ namespace ServerSideTweaks
             BepConfig.ChildReducedTeleportRange.SettingChanged += ChildReducedTeleportRange_SettingChanged;
             ChildReducedTeleportRange_SettingChanged(null, null);
             FastSimulacrumVrab.Setup();
+            simulacrumLootTweaks.RegisterSaveData();
         }
 
         private void ChildReducedTeleportRange_SettingChanged(object sender, EventArgs e)

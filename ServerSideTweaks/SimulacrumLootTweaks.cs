@@ -26,6 +26,46 @@ namespace ServerSideTweaks
         private readonly Dictionary<PlayerCharacterMasterController, float> lastGreedyWarningTime = new Dictionary<PlayerCharacterMasterController, float>();
         private const float GreedyWarningInterval = 5f;
 
+        public void RegisterSaveData()
+        {
+            ModCompatibilityProperSave.Register("ServerSideTweaks.SimulacrumLootCredits", SaveItemCredits, LoadItemCredits);
+        }
+
+        // A loaded run has new player masters, so the credits are saved by user
+        private object SaveItemCredits()
+        {
+            var credits = new Dictionary<string, float>();
+            foreach (var credit in usersItemCredit)
+            {
+                if (credit.Key && credit.Key.networkUser)
+                {
+                    credits[GetUserKey(credit.Key.networkUser.id)] = credit.Value;
+                }
+            }
+            return credits;
+        }
+
+        private void LoadItemCredits(object saved)
+        {
+            if (saved is not Dictionary<string, float> credits)
+            {
+                return;
+            }
+            usersItemCredit.Clear();
+            foreach (var pc in PlayerCharacterMasterController.instances)
+            {
+                if (pc.networkUser && credits.TryGetValue(GetUserKey(pc.networkUser.id), out float credit))
+                {
+                    usersItemCredit[pc] = credit;
+                }
+            }
+        }
+
+        private static string GetUserKey(NetworkUserId id)
+        {
+            return $"{id.value}/{id.strValue}/{id.subId}";
+        }
+
         public void RunStart()
         {
             mostRecentlyCreatedPickup = null;
