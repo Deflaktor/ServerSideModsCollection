@@ -43,6 +43,7 @@ namespace ServerSideTweaks
         public static List<PickupIndex> availableLunarItemDropList_Saved = new List<PickupIndex>();
         public static List<PickupIndex> availableLunarEquipmentDropList_Saved = new List<PickupIndex>();
         public static SimulacrumLootTweaks simulacrumLootTweaks = new SimulacrumLootTweaks();
+        private static bool dissonanceEnabledForWave = false;
 
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Def";
@@ -181,6 +182,7 @@ namespace ServerSideTweaks
         {
             simulacrumLootTweaks.RunStart();
             ResetOverridePowerBias();
+            dissonanceEnabledForWave = false;
             orig(self);
         }
 
@@ -324,14 +326,10 @@ namespace ServerSideTweaks
         private void InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer(On.RoR2.InfiniteTowerRun.orig_OnWaveAllEnemiesDefeatedServer orig, InfiniteTowerRun self, InfiniteTowerWaveController wc)
         {
             orig(self, wc);
-            if (!BepConfig.Enabled.Value || !NetworkServer.active)
-                return;
-
-            if (BepConfig.SimulacrumCommencementArtifactDissonanceChance.Value <= 0f)
-                return;
-
-            if (IsCurrentMapCommencment())
+            // only turn off what the tweak turned on, so Dissonance chosen in the lobby stays on
+            if (dissonanceEnabledForWave && NetworkServer.active)
             {
+                dissonanceEnabledForWave = false;
                 RunArtifactManager.instance.SetArtifactEnabledServer(RoR2Content.Artifacts.MixEnemy, false);
             }
         }
@@ -344,10 +342,11 @@ namespace ServerSideTweaks
             if (BepConfig.SimulacrumCommencementArtifactDissonanceChance.Value <= 0f)
                 return;
 
-            if (IsCurrentMapCommencment())
+            if (IsCurrentMapCommencment() && !RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.MixEnemy))
             {
                 if (BepConfig.SimulacrumCommencementArtifactDissonanceChance.Value > RoR2Application.rng.nextNormalizedFloat)
                 {
+                    dissonanceEnabledForWave = true;
                     RunArtifactManager.instance.SetArtifactEnabledServer(RoR2Content.Artifacts.MixEnemy, true);
                 }
             }
