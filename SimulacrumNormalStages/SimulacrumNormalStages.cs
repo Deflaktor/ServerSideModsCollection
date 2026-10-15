@@ -547,11 +547,6 @@ namespace SimulacrumNormalStages
                 PortalDialerController item = portalDialerControllers[i];
                 NetworkServer.Destroy(item.gameObject);
             }
-
-            if (NetworkServer.active)
-            {
-                Run.instance.PickNextStageScene(null);
-            }
         }
 
         private static void VoidStageMissionController_Start(On.RoR2.VoidStageMissionController.orig_Start orig, VoidStageMissionController self)
