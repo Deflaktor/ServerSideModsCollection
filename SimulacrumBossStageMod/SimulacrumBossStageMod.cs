@@ -461,6 +461,8 @@ namespace SimulacrumBossStageMod
         private void InfiniteTowerRun_RecalculateDifficultyCoefficentInternal(On.RoR2.InfiniteTowerRun.orig_RecalculateDifficultyCoefficentInternal orig, InfiniteTowerRun self)
         {
             orig(self);
+            if (!BepConfig.Enabled.Value)
+                return;
             if (BepConfig.DifficultyMultiplier1StartWave.Value <= self.waveIndex && self.waveIndex <= BepConfig.DifficultyMultiplier1EndWave.Value)
             {
                 self.difficultyCoefficient *= BepConfig.DifficultyMultiplier1.Value;
