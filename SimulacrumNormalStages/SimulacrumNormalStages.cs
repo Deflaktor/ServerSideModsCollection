@@ -33,8 +33,9 @@ namespace SimulacrumNormalStages
 
         public static SimulacrumNormalStages instance;
         public static SceneCollection realityDestinations = ScriptableObject.CreateInstance<SceneCollection>();
-        public static List<SceneDef> visitedScenes;
+        public static List<SceneDef> visitedScenes = new List<SceneDef>();
         public static bool shouldAttemptToSpawnShopPortal = false;
+        private static bool pickingStartingStage = false;
 
         public AsyncOperationHandle<SpawnCard> iscShopPortal;
         //public static SceneDef arena = Addressables.LoadAssetAsync<SceneDef>(key: "RoR2/Base/arena/arena.asset").WaitForCompletion();
@@ -71,7 +72,6 @@ namespace SimulacrumNormalStages
             On.RoR2.SceneDirector.Start                       += DoReality;
             On.RoR2.Run.PickNextStageScene                    += ChooseRealityStages;
             On.RoR2.Run.Start                                 += Run_Start;
-            On.RoR2.Run.OnDisable                             += Run_OnDisable;
             On.RoR2.ArenaMissionController.OnStartServer      += ArenaMissionController_OnStartServer;
             On.RoR2.VoidStageMissionController.Start          += VoidStageMissionController_Start;
 
@@ -99,18 +99,12 @@ namespace SimulacrumNormalStages
             On.RoR2.SceneDirector.PopulateScene -= SceneDirector_PopulateScene;
 
             // stuff from SimulacrumAdditions
-            if (Run.instance)
-            {
-                RuleDef StageOrderRule = RuleCatalog.FindRuleDef("Misc.StageOrder");
-                Run.instance.ruleBook.GetRuleChoice(StageOrderRule).extraData = StageOrder.Normal;
-            }
             On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer -= RemoveSpawnPointsAndMonsters;
             SceneDirector.onGenerateInteractableCardSelection -= AddAndRemoveInteractables;
             On.RoR2.DirectorCard.IsAvailable                  -= Allow_Earlier_Spawns;
             On.RoR2.SceneDirector.Start                       -= DoReality;
             On.RoR2.Run.PickNextStageScene                    -= ChooseRealityStages;
             On.RoR2.Run.Start                                 -= Run_Start;
-            On.RoR2.Run.OnDisable                             -= Run_OnDisable;
             On.RoR2.ArenaMissionController.OnStartServer      -= ArenaMissionController_OnStartServer;
             On.RoR2.VoidStageMissionController.Start          -= VoidStageMissionController_Start;
         }
@@ -468,13 +462,18 @@ namespace SimulacrumNormalStages
             {
                 DoDestinations();
                 self.startingSceneGroup = realityDestinations;
-            }
-            orig(self);
-            if(Run.instance.GetType() == typeof(InfiniteTowerRun) && BepConfig.Enabled.Value) {
-                RuleDef StageOrderRule = RuleCatalog.FindRuleDef("Misc.StageOrder");
-                self.ruleBook.GetRuleChoice(StageOrderRule).extraData = StageOrder.Random;
-                visitedScenes = new List<SceneDef>();
+                visitedScenes.Clear();
                 shouldAttemptToSpawnShopPortal = false;
+            }
+            // leave the starting stage to the starting scene group, which other mods like StartInBazaar may override
+            pickingStartingStage = true;
+            try
+            {
+                orig(self);
+            }
+            finally
+            {
+                pickingStartingStage = false;
             }
         }
 
@@ -558,16 +557,9 @@ namespace SimulacrumNormalStages
             orig(self);
         }
 
-        private static void Run_OnDisable(On.RoR2.Run.orig_OnDisable orig, Run self)
-        {
-            RuleDef StageOrderRule = RuleCatalog.FindRuleDef("Misc.StageOrder");
-            Run.instance.ruleBook.GetRuleChoice(StageOrderRule).extraData = StageOrder.Normal;
-            orig(self);
-        }
-
         private static void ChooseRealityStages(On.RoR2.Run.orig_PickNextStageScene orig, Run self, WeightedSelection<SceneDef> choices)
         {
-            if (Run.instance.GetType() == typeof(InfiniteTowerRun) && BepConfig.Enabled.Value && self.ruleBook.stageOrder == StageOrder.Random)
+            if (Run.instance.GetType() == typeof(InfiniteTowerRun) && BepConfig.Enabled.Value && !pickingStartingStage)
             {
                 if (visitedScenes.Count > 10)
                 {
