@@ -202,7 +202,11 @@ namespace SimulacrumNormalStages
         private void InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer(On.RoR2.InfiniteTowerRun.orig_OnWaveAllEnemiesDefeatedServer orig, InfiniteTowerRun self, InfiniteTowerWaveController wc)
         {
             orig(self, wc);
-            if (self.IsStageTransitionWave() && shouldAttemptToSpawnShopPortal && self.safeWardController != null)
+            if (!self.IsStageTransitionWave())
+            {
+                return;
+            }
+            if (shouldAttemptToSpawnShopPortal && self.safeWardController != null)
             {
                 var portal = DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(iscShopPortal.WaitForCompletion(), new DirectorPlacementRule
                 {
