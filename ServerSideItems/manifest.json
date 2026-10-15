@@ -2,7 +2,7 @@
 	"name": "ServerSideItems",
 	"version_number": "1.1.0",
 	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
-	"description": "ServerSideItems",
+	"description": "Reworks Newly Hatched Zoea and Shatterspleen. Server-side.",
 	"dependencies": [
 		"RiskofThunder-R2API_Core-5.3.0",
 		"RiskofThunder-R2API_Language-1.1.0"
