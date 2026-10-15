@@ -24,6 +24,8 @@ namespace ServerSideItems
 
         Dictionary<CharacterMaster, FireProjectileStruct> fireProjectileByCharacter = new Dictionary<CharacterMaster, FireProjectileStruct>();
         Dictionary<int, List<Vector2>> polarPointsCache = new Dictionary<int, List<Vector2>>();
+        // bodies made Voidtouched by the rework; Voidtouched elites get the same buff from their aspect
+        readonly HashSet<CharacterBody> voidtouchedBodies = new HashSet<CharacterBody>();
 
         internal class FireProjectileStruct
         {
@@ -64,6 +66,7 @@ namespace ServerSideItems
         private void Stage_onServerStageBegin(Stage obj)
         {
             fireProjectileByCharacter.Clear();
+            voidtouchedBodies.Clear();
         }
 
         private void HealthComponent_TakeDamageProcess(On.RoR2.HealthComponent.orig_TakeDamageProcess orig, HealthComponent self, DamageInfo damageInfo)
@@ -233,8 +236,9 @@ namespace ServerSideItems
                 if (stackSize > 0)
                 {
                     obj.SetBuffCount(DLC1Content.Buffs.EliteVoid.buffIndex, 1);
+                    voidtouchedBodies.Add(obj);
                 }
-                else
+                else if (voidtouchedBodies.Remove(obj) && obj.inventory.currentEquipmentIndex != DLC1Content.Equipment.EliteVoidEquipment.equipmentIndex)
                 {
                     obj.SetBuffCount(DLC1Content.Buffs.EliteVoid.buffIndex, 0);
                 }
