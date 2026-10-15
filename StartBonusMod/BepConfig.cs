@@ -102,8 +102,9 @@ namespace StartBonusMod
             // --- Advanced Item List ---
             AdvancedEnabled = config.Bind("03 Advanced Item List", "SectionEnabled", false, new ConfigDescription("Whether to enable Advanced Start Bonus Item List"));
             var items = "2xHealWhileSafe & Tier3 & 2xLunar & 4xdtChest2";
-            var itemTiersString = "Tier1, Tier2, Tier3, Lunar, Boss, VoidTier1, VoidTier2, VoidTier3, VoidBoss, FoodTier";
-            var itemKeyWordsExplanation = $"Can use:\n - internal item names(see https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Items-and-Equipments-Data/)\n- item tier keywords ({itemTiersString})\n- droptable names (see README.md)\nExample: {items}";
+            var itemTiersString = "Tier1, Tier2, Tier3, Lunar, Boss, VoidTier1, VoidTier2, VoidTier3, VoidBoss, FoodTier, Cursed, Hex, Page";
+            var dropListsString = "Equipment, LunarEquipment, LunarItem, PowerShape, KeyItem";
+            var itemKeyWordsExplanation = $"Can use:\n - internal item, equipment, drone and key item names (see https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Items-and-Equipments-Data/)\n- item tier keywords ({itemTiersString})\n- other drop lists of the run ({dropListsString})\n- droptable names (see README.md)\nExample: {items}";
             AdvancedItemList = config.Bind("03 Advanced Item List", "ItemList", "2xdtChest1 & Tier2", $"List of items in the format <amount1>x<item1> & <amount2>x<item2>. See README.md for more detailed description. {itemKeyWordsExplanation}");
 
             // --- InLobbyConfig ---
