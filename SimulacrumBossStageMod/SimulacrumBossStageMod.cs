@@ -23,6 +23,7 @@ namespace SimulacrumBossStageMod
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("Def.ServerSideTweaks", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("Def.SimulacrumNormalStages", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.KingEnderBrine.ProperSave", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class SimulacrumBossStageMod : BaseUnityPlugin
@@ -61,6 +62,7 @@ namespace SimulacrumBossStageMod
             iscVoidPortal = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC1/PortalVoid/iscVoidPortal.asset");
             iscVoidOutroPortal = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC1/VoidOutroPortal/iscVoidOutroPortal.asset");
             edBead = Addressables.LoadAssetAsync<EliteDef>(key: "RoR2/DLC2/Elites/EliteBead/edBead.asset");
+            RegisterSaveData();
             // bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset");
             // bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabBase.asset");
             // bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidRaidCrab/cscMiniVoidRaidCrabPhase1.asset");
@@ -97,6 +99,34 @@ namespace SimulacrumBossStageMod
             On.RoR2.InfiniteTowerWaveController.Initialize                   -= InfiniteTowerWaveController_Initialize;
             On.RoR2.InfiniteTowerWaveController.DropRewards                  -= InfiniteTowerWaveController_DropRewards;
             On.RoR2.FogDamageController.EvaluateTeam                         -= FogDamageController_EvaluateTeam;
+        }
+
+        // ProperSave: without these, a save made after the boss stage would warp to it again
+        private void RegisterSaveData()
+        {
+            ModCompatibilityProperSave.Register("SimulacrumBossStageMod.BossStageCompleted",
+                () => bossStageCompleted,
+                saved => bossStageCompleted = saved is bool completed && completed);
+            ModCompatibilityProperSave.Register("SimulacrumBossStageMod.NextStageBeforeBoss",
+                () => nextStageBeforeBoss ? nextStageBeforeBoss.cachedName : "",
+                saved => nextStageBeforeBoss = saved is string sceneName && sceneName != "" ? SceneCatalog.FindSceneDef(sceneName) : null);
+            ModCompatibilityProperSave.Register("SimulacrumBossStageMod.ArtifactsEnabledByMod",
+                () => artifactsEnabledByMod.Select(artifact => artifact.cachedName).ToList(),
+                saved =>
+                {
+                    artifactsEnabledByMod.Clear();
+                    if (saved is List<string> artifactNames)
+                    {
+                        foreach (var artifactName in artifactNames)
+                        {
+                            var artifact = ArtifactCatalog.FindArtifactDef(artifactName);
+                            if (artifact)
+                            {
+                                artifactsEnabledByMod.Add(artifact);
+                            }
+                        }
+                    }
+                });
         }
 
         private void Run_BuildDropTable(On.RoR2.Run.orig_BuildDropTable orig, Run self)
