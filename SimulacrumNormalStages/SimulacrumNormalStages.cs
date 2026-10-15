@@ -498,46 +498,9 @@ namespace SimulacrumNormalStages
                 combatDirector[i].enabled = false;
             }
 
-            PortalStatueBehavior[] newtList2 = UnityEngine.Object.FindObjectsOfType(typeof(PortalStatueBehavior)) as PortalStatueBehavior[];
-
-            if (newtList2.Length > 0)
+            if (NetworkServer.active && !BepConfig.PlaceNewtAltars.Value)
             {
-                if (BepConfig.PlaceVoidEradictors.Value && !BepConfig.PlaceNewtAltars.Value)
-                {
-                    GameObject SupressorObject = LegacyResourcesAPI.Load<GameObject>("Prefabs/NetworkedObjects/VoidSuppressor");
-                    Transform MainTransform = newtList2[0].gameObject.transform.parent;
-                    for (int i = 0; i < MainTransform.childCount; i++)
-                    {
-                        Transform NewtAltar = MainTransform.GetChild(i);
-                        if (NewtAltar.GetComponent<PortalStatueBehavior>())
-                        {
-                            Debug.Log(NewtAltar);
-                            NewtAltar.gameObject.SetActive(true);
-                            if (NetworkServer.active)
-                            {
-                                GameObject VoidSuppressor = GameObject.Instantiate(SupressorObject, NewtAltar);
-                                VoidSuppressor.transform.localPosition = new Vector3(0, -1.38f, 0);
-                                PurchaseInteraction purch = VoidSuppressor.GetComponent<PurchaseInteraction>();
-                                purch.costType = CostTypeIndex.None;
-                                purch.cost = 0;
-                                NetworkServer.Spawn(VoidSuppressor);
-                                NewtAltar.GetChild(0).gameObject.SetActive(false);
-                            }
-                            GameObject.Destroy(NewtAltar.GetComponent<PurchaseInteraction>());
-                            GameObject.Destroy(NewtAltar.GetComponent<HologramProjector>());
-                            GameObject.Destroy(NewtAltar.GetComponent<PortalStatueBehavior>());
-                        }
-                    }
-                }
-                else if(!BepConfig.PlaceNewtAltars.Value)
-                {
-                    Transform MainTransform = newtList2[0].gameObject.transform.parent;
-                    for (int i = 0; i < MainTransform.childCount; i++)
-                    {
-                        Transform NewtAltar = MainTransform.GetChild(i);
-                        NetworkServer.Destroy(NewtAltar.gameObject);
-                    }
-                }
+                RemoveNewtAltars(BepConfig.PlaceVoidEradictors.Value);
             }
 
             // the buttons to dial artifact code in the final stages
@@ -552,6 +515,44 @@ namespace SimulacrumNormalStages
             {
                 PortalDialerController item = portalDialerControllers[i];
                 NetworkServer.Destroy(item.gameObject);
+            }
+        }
+
+        private static void RemoveNewtAltars(bool placeVoidEradicators)
+        {
+            GameObject suppressorPrefab = placeVoidEradicators ? Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/VoidSuppressor/VoidSuppressor.prefab").WaitForCompletion() : null;
+            HashSet<GameObject> newtAltars = new HashSet<GameObject>();
+            // include the altars the stage did not pick, so every altar location gets a Void Eradicator
+            foreach (PortalStatueBehavior statue in UnityEngine.Object.FindObjectsOfType<PortalStatueBehavior>(true))
+            {
+                if (statue.portalType != PortalStatueBehavior.PortalType.Shop)
+                {
+                    continue;
+                }
+                Transform altar = statue.transform;
+                // skip locations in hidden parts of the stage
+                if (suppressorPrefab && (!altar.parent || altar.parent.gameObject.activeInHierarchy))
+                {
+                    GameObject suppressor = UnityEngine.Object.Instantiate(suppressorPrefab, altar.TransformPoint(new Vector3(0, -1.38f, 0)), altar.rotation);
+                    PurchaseInteraction purchaseInteraction = suppressor.GetComponent<PurchaseInteraction>();
+                    purchaseInteraction.costType = CostTypeIndex.None;
+                    purchaseInteraction.cost = 0;
+                    NetworkServer.Spawn(suppressor);
+                }
+                newtAltars.Add(statue.gameObject);
+                NetworkServer.Destroy(statue.gameObject);
+            }
+            // clients still loading the stage never spawn the removed altars, but the stage's toggle groups would show them
+            foreach (SceneObjectToggleGroup toggleGroup in UnityEngine.Object.FindObjectsOfType<SceneObjectToggleGroup>(true))
+            {
+                for (int i = 0; i < toggleGroup.allToggleableObjects.Length; i++)
+                {
+                    if (toggleGroup.activations[i] && newtAltars.Contains(toggleGroup.allToggleableObjects[i]))
+                    {
+                        toggleGroup.activations[i] = false;
+                        toggleGroup.SetDirtyBit(1u);
+                    }
+                }
             }
         }
 
