@@ -186,6 +186,16 @@ namespace ServerSideItems
                     if (!selfData.Target.HasValue)
                         break;
 
+                    // the stack shrank during the volley
+                    if (selfData.BombsFired >= portalBombCount)
+                    {
+                        self.spawnTimer = 0f;
+                        selfData.FireTimer = 0f;
+                        selfData.BombsFired = 0;
+                        selfData.Target = null;
+                        break;
+                    }
+
                     // Fire
                     if (!polarPointsCache.ContainsKey(portalBombCount))
                     {
