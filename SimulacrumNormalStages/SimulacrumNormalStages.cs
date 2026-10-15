@@ -580,22 +580,15 @@ namespace SimulacrumNormalStages
                 }
                 if (realityDestinations.sceneEntries.Length > 0)
                 {
-                    //
+                    // the starting stage was not picked here
+                    MarkVisited(SceneCatalog.mostRecentSceneDef);
                     WeightedSelection<SceneDef> weightedSelection = new WeightedSelection<SceneDef>(24);
                     realityDestinations.AddToWeightedSelection(weightedSelection, new System.Func<SceneDef, bool>(self.CanPickStage));
 
                     //0 00-10, 1 10-20, 2 20-30
 
                     self.nextStageScene = weightedSelection.Evaluate(self.nextStageRng.nextNormalizedFloat);
-                    visitedScenes.Add(self.nextStageScene);
-
-                    for (int i = 0; i < realityDestinations._sceneEntries.Length; i++)
-                    {
-                        if (realityDestinations._sceneEntries[i].sceneDef == self.nextStageScene)
-                        {
-                            realityDestinations._sceneEntries[i].weight = 0;
-                        }
-                    }
+                    MarkVisited(self.nextStageScene);
                 }
                 else
                 {
@@ -606,6 +599,23 @@ namespace SimulacrumNormalStages
             else
             {
                 orig(self, choices);
+            }
+        }
+
+        private static void MarkVisited(SceneDef sceneDef)
+        {
+            if (visitedScenes.Contains(sceneDef))
+            {
+                return;
+            }
+            for (int i = 0; i < realityDestinations._sceneEntries.Length; i++)
+            {
+                if (realityDestinations._sceneEntries[i].sceneDef == sceneDef)
+                {
+                    realityDestinations._sceneEntries[i].weight = 0;
+                    visitedScenes.Add(sceneDef);
+                    break;
+                }
             }
         }
 
