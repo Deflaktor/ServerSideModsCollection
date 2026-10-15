@@ -94,20 +94,22 @@ namespace ServerSideTweaks
         private void MonsterTeamGainsItemsArtifactManager_OnServerCardSpawnedGlobal(On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.orig_OnServerCardSpawnedGlobal orig, SpawnCard.SpawnResult spawnResult)
         {
             orig(spawnResult);
-            if(BepConfig.Enabled.Value && (BepConfig.VoidJailerNoCooldownReductions.Value || BepConfig.SolusInvalidatorNoCooldownReductions.Value)) {
+            if(BepConfig.Enabled.Value && (BepConfig.VoidJailerNoCooldownReductions.Value || BepConfig.SolusInvalidatorNoCooldownReductions.Value || BepConfig.VoidlingNoCooldownReductions.Value)) {
 
                 CharacterMaster characterMaster = (spawnResult.spawnedInstance ? spawnResult.spawnedInstance.GetComponent<CharacterMaster>() : null);
                 if ((bool)characterMaster && characterMaster.teamIndex == TeamIndex.Monster && characterMaster.bodyPrefab != null)
                 {
-                    if(characterMaster.bodyPrefab.name == "VoidJailer" && BepConfig.VoidJailerNoCooldownReductions.Value)
+                    string bodyName = characterMaster.bodyPrefab.name;
+                    if (bodyName == "VoidJailerBody" && BepConfig.VoidJailerNoCooldownReductions.Value)
                     {
                         characterMaster.inventory.RemoveItemPermanent(RoR2Content.Items.AlienHead, 10000);
                     }
-                    if (characterMaster.bodyPrefab.name == "DefectiveUnitBody" && BepConfig.SolusInvalidatorNoCooldownReductions.Value)
+                    if (bodyName == "DefectiveUnitBody" && BepConfig.SolusInvalidatorNoCooldownReductions.Value)
                     {
                         characterMaster.inventory.RemoveItemPermanent(RoR2Content.Items.AlienHead, 10000);
                     }
-                    if (characterMaster.bodyPrefab.name == "VoidRaidCrab" && BepConfig.VoidlingNoCooldownReductions.Value)
+                    // the Voidling fight spawns MiniVoidRaidCrabBodyPhase1 to 3
+                    if ((bodyName == "VoidRaidCrabBody" || bodyName.StartsWith("MiniVoidRaidCrabBodyPhase")) && BepConfig.VoidlingNoCooldownReductions.Value)
                     {
                         characterMaster.inventory.RemoveItemPermanent(RoR2Content.Items.AlienHead, 10000);
                     }
