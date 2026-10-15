@@ -389,7 +389,7 @@ namespace SimulacrumNormalStages
             });
         }
 
-        private bool IsCurrentMapInBazaar()
+        private static bool IsCurrentMapInBazaar()
         {
             return SceneManager.GetActiveScene().name == "bazaar";
         }
@@ -637,7 +637,11 @@ namespace SimulacrumNormalStages
             {
                 sceneDirector.teleporterSpawnCard = null;
                 sceneDirector.monsterCredit = 0;
-                sceneDirector.RemoveAllExistingSpawnPoints();
+                // the Bazaar has no safe ward to place new spawn points around
+                if (!IsCurrentMapInBazaar())
+                {
+                    sceneDirector.RemoveAllExistingSpawnPoints();
+                }
             }
             orig(self, sceneDirector);
         }
