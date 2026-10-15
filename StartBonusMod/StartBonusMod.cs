@@ -20,6 +20,7 @@ namespace StartBonusMod
 {
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.KingEnderBrine.ProperSave", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(ItemStringParser.ItemStringParser.PluginGUID)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
@@ -34,12 +35,15 @@ namespace StartBonusMod
         public const string PluginVersion = "3.0.3";
 
         private List<PlayerCharacterMasterController> itemGivenTo = new List<PlayerCharacterMasterController>();
+        // the same players by user, for ProperSave: a loaded run has new player masters
+        private HashSet<string> itemGivenToUsers = new HashSet<string>();
 
         public void Awake()
         {
             PInfo = Info;
             instance = this;
             Log.Init(Logger);
+            ModCompatibilityProperSave.Register("StartBonusMod.StartingItemsGivenTo", () => itemGivenToUsers.ToList(), LoadStartingItemsGivenTo);
             RoR2.Language.onCurrentLanguageChanged += () =>
             {
                 ItemCatalog.availability.CallWhenAvailable(() =>
@@ -112,7 +116,30 @@ namespace StartBonusMod
         private void Run_Start(On.RoR2.Run.orig_Start orig, Run self)
         {
             instance.itemGivenTo.Clear();
+            instance.itemGivenToUsers.Clear();
             orig(self);
+        }
+
+        // players loaded from a save have their starting items in their inventory already
+        private void LoadStartingItemsGivenTo(object saved)
+        {
+            if (saved is not List<string> users)
+            {
+                return;
+            }
+            itemGivenToUsers.UnionWith(users);
+            foreach (var pc in PlayerCharacterMasterController.instances)
+            {
+                if (pc.networkUser && itemGivenToUsers.Contains(GetUserKey(pc.networkUser.id)) && !itemGivenTo.Contains(pc))
+                {
+                    itemGivenTo.Add(pc);
+                }
+            }
+        }
+
+        private static string GetUserKey(NetworkUserId id)
+        {
+            return $"{id.value}/{id.strValue}/{id.subId}";
         }
 
         private void Run_OnServerCharacterBodySpawned(On.RoR2.Run.orig_OnServerCharacterBodySpawned orig, Run self, CharacterBody characterBody)
@@ -132,6 +159,10 @@ namespace StartBonusMod
                             if (BepConfig.AdvancedEnabled.Value)
                                 GiveStartingItemsAdvanced(characterBody);
                             instance.itemGivenTo.Add(master.playerCharacterMasterController);
+                            if (master.playerCharacterMasterController.networkUser)
+                            {
+                                instance.itemGivenToUsers.Add(GetUserKey(master.playerCharacterMasterController.networkUser.id));
+                            }
                         }
                     }
                 }

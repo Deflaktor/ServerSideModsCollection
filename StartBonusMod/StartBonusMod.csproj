@@ -38,6 +38,10 @@
       <HintPath>..\libs\InLobbyConfig.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="ProperSave">
+      <HintPath>..\libs\ProperSave.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
