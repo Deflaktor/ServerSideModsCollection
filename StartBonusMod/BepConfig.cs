@@ -94,7 +94,10 @@ namespace StartBonusMod
 
             foreach (var tierDef in ItemTierCatalog.allItemTierDefs)
             {
-                AcceptableValueList<string> acceptableItemList = new AcceptableValueList<string>(itemTierToItemEnglishNames[tierDef.tier].ToArray());
+                // a tier without items, e.g. from another mod, gets no setting
+                if (!itemTierToItemEnglishNames.TryGetValue(tierDef.tier, out var tierItemNames))
+                    continue;
+                AcceptableValueList<string> acceptableItemList = new AcceptableValueList<string>(tierItemNames.ToArray());
                 StartingItemByTier[tierDef.tier] = config.Bind("02 Simple Item List", $"{tierDef.tier.ToString()} Item", "None", new ConfigDescription($"Which {tierDef.tier.ToString()} item each player shall receive at the start.", acceptableItemList));
                 StartingItemByTierAmount[tierDef.tier] = config.Bind("02 Simple Item List", $"{tierDef.tier.ToString()} Amount", 0, new ConfigDescription($"How many of the {tierDef.tier.ToString()} item each player shall receive."));
             }
