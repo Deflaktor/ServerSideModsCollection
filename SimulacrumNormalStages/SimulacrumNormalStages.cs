@@ -694,8 +694,14 @@ namespace SimulacrumNormalStages
         public static System.Predicate<DirectorCard> trimmer = new System.Predicate<DirectorCard>(SimulacrumTrimmer);
         public static bool SimulacrumTrimmer(DirectorCard card)
         {
-            GameObject prefab = card.spawnCard.prefab;
-            if ((card.spawnCard as InteractableSpawnCard).skipSpawnWhenDevotionArtifactEnabled && !RunArtifactManager.instance.IsArtifactEnabled(CU8Content.Artifacts.Devotion))
+            SpawnCard spawnCard = card.GetSpawnCard();
+            GameObject prefab = spawnCard ? spawnCard.prefab : null;
+            if (!prefab)
+            {
+                // the director skips these cards anyway
+                return true;
+            }
+            if (spawnCard is InteractableSpawnCard interactableSpawnCard && interactableSpawnCard.skipSpawnWhenDevotionArtifactEnabled && !RunArtifactManager.instance.IsArtifactEnabled(CU8Content.Artifacts.Devotion))
             {
                 //Skip Drones only if Devo not active
                 return false;
