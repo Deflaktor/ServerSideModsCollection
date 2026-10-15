@@ -433,7 +433,8 @@ namespace SimulacrumBossStageMod
                     foreach (PlayerCharacterMasterController instance in PlayerCharacterMasterController.instances)
                     {
                         CharacterMaster master = instance.master;
-                        if (!instance.isConnected)
+                        // dead players have no body
+                        if (!instance.isConnected || !master.GetBody())
                         {
                             continue;
                         }
