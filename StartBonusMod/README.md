@@ -4,7 +4,7 @@
 
 This mod gives every player a configurable set of items and starting cash at the beginning of a run. 
 I made it so that I can use [StartInBazaar](https://thunderstore.io/package/MagnusMagnuson/StartInBazaar/) in combination with [BiggerBazaar](https://thunderstore.io/package/MagnusMagnuson/BiggerBazaar/) and [BazaarIsMyHaven](https://thunderstore.io/package/Def/BazaarIsMyHaven/).
-This mod is also compatible with [InLobbyConfig](https://thunderstore.io/package/KingEnderBrine/InLobbyConfig/).
+This mod is also compatible with [InLobbyConfig](https://thunderstore.io/package/KingEnderBrine/InLobbyConfig/) and [ProperSave](https://thunderstore.io/c/riskofrain2/p/KingEnderBrine/ProperSave/).
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/E1E71PHUJ2)
 
