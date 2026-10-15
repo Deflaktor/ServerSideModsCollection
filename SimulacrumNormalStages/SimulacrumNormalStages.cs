@@ -500,7 +500,7 @@ namespace SimulacrumNormalStages
 
             if (NetworkServer.active && !BepConfig.PlaceNewtAltars.Value)
             {
-                RemoveNewtAltars(BepConfig.PlaceVoidEradictors.Value);
+                RemoveNewtAltars(BepConfig.PlaceVoidEradicators.Value);
             }
 
             // the buttons to dial artifact code in the final stages
@@ -693,7 +693,7 @@ namespace SimulacrumNormalStages
                     };
                     dccs.AddCard(voidIndex, iscVoidCoinBarrelITSacrifice);
                     dccs.AddCard(voidIndex, iscVoidChestSacrificeOn);
-                    if (BepConfig.PlaceVoidEradictors.Value)
+                    if (BepConfig.PlaceVoidEradicators.Value)
                         dccs.AddCard(voidIndex, iscVoidSuppressorIT);
                     dccs.AddCard(voidIndex, iscVoidTriple);
                 }
