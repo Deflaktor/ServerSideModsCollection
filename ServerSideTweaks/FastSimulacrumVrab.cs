@@ -42,18 +42,20 @@ namespace ServerSideTweaks
             //   self.travelSpeed = 5f;
             //   self.travelHeight = 10f;
             //   self.radius = 15f;
-            if (BepConfig.SimulacrumFastVoidCrab.Value)
+            if (!BepConfig.Enabled.Value || !BepConfig.SimulacrumFastVoidCrab.Value)
             {
-                if (Run.instance != null)
+                return;
+            }
+            if (Run.instance != null)
+            {
+                if (Run.instance.GetType() == typeof(InfiniteTowerRun))
                 {
-                    if (Run.instance.GetType() == typeof(InfiniteTowerRun))
-                    {
-                        var run = (InfiniteTowerRun)Run.instance;
-                        self.travelSpeed = 5f + run.waveIndex * 0.1f;
-                    }
+                    var run = (InfiniteTowerRun)Run.instance;
+                    self.travelSpeed = 5f + run.waveIndex * 0.1f;
                 }
             }
-            if(NetworkServer.active) { 
+            if(NetworkServer.active) {
+                // the faster crab travels further: it tries the last nodes first
                 List<NodeGraph.NodeIndex> list = self.groundNodeGraph.FindNodesInRangeWithFlagConditions(self.transform.position, self.minDistanceToNewLocation, 500f, HullMask.Human, NodeFlags.TeleporterOK, NodeFlags.None, preventOverhead: false);
                 Util.ShuffleList(list, self.rng);
                 self.potentialEndNodes.AddRange(list);
