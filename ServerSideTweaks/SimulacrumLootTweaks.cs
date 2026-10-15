@@ -22,12 +22,16 @@ namespace ServerSideTweaks
         public float totalItemRewardCount = 0;
         private bool comingFromInfiniteTowerWaveController_DropRewards;
         public Dictionary<PlayerCharacterMasterController, float> usersItemCredit = new Dictionary<PlayerCharacterMasterController, float>();
+        // standing on an item retries the pickup every physics frame
+        private readonly Dictionary<PlayerCharacterMasterController, float> lastGreedyWarningTime = new Dictionary<PlayerCharacterMasterController, float>();
+        private const float GreedyWarningInterval = 5f;
 
         public void RunStart()
         {
             mostRecentlyCreatedPickup = null;
             totalItemRewardCount = 0;
             usersItemCredit.Clear();
+            lastGreedyWarningTime.Clear();
         }
 
         public void Hook()
@@ -296,7 +300,11 @@ namespace ServerSideTweaks
                         }
                         else
                         {
-                            ChatHelper.PlayerHasTooManyItems(pc.GetDisplayName());
+                            if (!lastGreedyWarningTime.TryGetValue(pc, out float lastWarning) || Time.time - lastWarning >= GreedyWarningInterval)
+                            {
+                                lastGreedyWarningTime[pc] = Time.time;
+                                ChatHelper.PlayerHasTooManyItems(pc.GetDisplayName());
+                            }
                             return false;
                         }
                     }
