@@ -159,8 +159,18 @@ namespace StartBonusMod
                     continue;
                 if (configEnglishName.Value.Equals("Random"))
                 {
-                    var pickupIndex = ItemStringParser.ItemStringParser.ResolveItemKey(itemTier.ToString());
-                    var itemIndex = PickupCatalog.GetPickupDef(pickupIndex).itemIndex;
+                    PickupIndex pickupIndex;
+                    try
+                    {
+                        pickupIndex = ItemStringParser.ItemStringParser.ResolveItemKey(itemTier.ToString());
+                    }
+                    catch (ArgumentException exception)
+                    {
+                        // e.g. a tier from another mod, which ItemStringParser has no keyword for; the other items are still given
+                        Log.LogWarning($"No random {itemTier} item: {exception.Message}");
+                        continue;
+                    }
+                    var itemIndex = PickupCatalog.GetPickupDef(pickupIndex)?.itemIndex ?? ItemIndex.None;
                     if (itemIndex != ItemIndex.None)
                     {
                         inventory.GiveItemPermanent(itemIndex, amount);
