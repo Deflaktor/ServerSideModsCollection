@@ -99,19 +99,7 @@ namespace ItemStringParser
             return list[UnityEngine.Random.RandomRangeInt(0, list.Count)];
         }
 
-        // Generates a random string of given length (letters + digits)
-        private static string GenerateRandomString(int length = 12)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            var random = new System.Random();
-            var sb = new StringBuilder();
-            sb.Append("Set_");
-            for (int i = 0; i < length; i++)
-                sb.Append(chars[random.Next(chars.Length)]);
-            return sb.ToString();
-        }
-
-        // Parses input, replaces outer curly braces with random strings, returns transformed string and dict mapping random strings to originals
+        // Parses input, replaces outer curly braces with placeholders, returns transformed string and dict mapping placeholders to originals
         private static (string replacedString, Dictionary<string, string> replacements) ReplaceOuterBraces(string input)
         {
             var sb = new StringBuilder();
@@ -146,14 +134,10 @@ namespace ItemStringParser
 
                 string original = input.Substring(br.start, br.end - br.start + 1);
                 string originalWithoutBraces = original.Substring(1, original.Length - 2); // exclude {}
-                string randomKey;
-                do
-                {
-                    randomKey = GenerateRandomString();
-                } while (replacements.ContainsKey(randomKey));
-
-                replacements[randomKey] = originalWithoutBraces;
-                sb.Append(randomKey);
+                // no item or drop table name looks like this
+                string placeholder = $"__group{replacements.Count}__";
+                replacements[placeholder] = originalWithoutBraces;
+                sb.Append(placeholder);
 
                 currentPos = br.end + 1;
             }
