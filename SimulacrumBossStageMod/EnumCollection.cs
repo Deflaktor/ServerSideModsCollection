@@ -309,6 +309,21 @@ namespace SimulacrumBossStageMod
             return SceneNames[stageEnum].First();
         }
 
+        // The scene to warp to, also for scenes that aren't regular stages, like the Bazaar. Commencement's first name,
+        // moon, is a scene the game no longer uses.
+        public static SceneDef FindSceneDef(StageEnum stageEnum)
+        {
+            foreach (var name in SceneNames[stageEnum])
+            {
+                var sceneDef = SceneCatalog.FindSceneDef(name);
+                if (sceneDef != null && sceneDef.sceneType != SceneType.Invalid)
+                {
+                    return sceneDef;
+                }
+            }
+            return null;
+        }
+
         public static ArtifactDef GetArtifactDef(ArtifactEnum artifacts)
         {
             switch (artifacts)

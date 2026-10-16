@@ -1,5 +1,6 @@
 using BepInEx;
 using HarmonyLib;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using Newtonsoft.Json.Linq;
 using R2API;
@@ -216,6 +217,20 @@ namespace SimulacrumBossStageMod
                 // increase the max spawn distance from 30f to 45f to attempt to fix issues with the portal not spawning
                 self.stageTransitionPortalMaxDistance = 45f;
                 return iscVoidPortal.WaitForCompletion();
+            });
+
+            // The void portal always leads to Void Locus by itself. Like Simulacrum's own portal, it leads to the run's next
+            // stage instead, which InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer sets to the boss stage.
+            c.GotoNext(MoveType.After,
+                x => x.MatchCallvirt<DirectorCore>(nameof(DirectorCore.TrySpawnObject))
+                );
+            c.Emit(OpCodes.Dup);
+            c.EmitDelegate<Action<GameObject>>((portal) =>
+            {
+                if (portal && portal.TryGetComponent(out SceneExitController sceneExitController))
+                {
+                    sceneExitController.useRunNextStageScene = true;
+                }
             });
         }
 
@@ -442,11 +457,19 @@ namespace SimulacrumBossStageMod
             if (!self.IsStageTransitionWave())
                 return;
 
-            if (BepConfig.BossStage.Value != StageEnum.None && SceneCatalog.currentSceneDef.cachedName != GetStageName(BepConfig.BossStage.Value) && !bossStageCompleted)
+            if (BepConfig.BossStage.Value != StageEnum.None && !bossStageCompleted)
             {
-                if (nextStageBeforeBoss == null)
-                    nextStageBeforeBoss = self.nextStageScene;
-                self.nextStageScene = SceneCatalog.allStageSceneDefs.Where(s => s.cachedName == GetStageName(BepConfig.BossStage.Value)).First();
+                var bossStageScene = FindSceneDef(BepConfig.BossStage.Value);
+                if (bossStageScene == null)
+                {
+                    Log.LogWarning($"Could not find the scene of the boss stage {BepConfig.BossStage.Value}");
+                }
+                else if (SceneCatalog.currentSceneDef != bossStageScene)
+                {
+                    if (nextStageBeforeBoss == null)
+                        nextStageBeforeBoss = self.nextStageScene;
+                    self.nextStageScene = bossStageScene;
+                }
             }
 
             if (IsBossStageStarted(self.waveIndex))
