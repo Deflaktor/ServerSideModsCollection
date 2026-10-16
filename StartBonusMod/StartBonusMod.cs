@@ -193,7 +193,9 @@ namespace StartBonusMod
                     PickupIndex pickupIndex;
                     try
                     {
-                        pickupIndex = ItemStringParser.ItemStringParser.ResolveItemKey(itemTier.ToString());
+                        // ItemStringParser's "Lunar" also includes lunar equipment
+                        var tierKey = itemTier == ItemTier.Lunar ? "LunarItem" : itemTier.ToString();
+                        pickupIndex = ItemStringParser.ItemStringParser.ResolveItemKey(tierKey);
                     }
                     catch (ArgumentException exception)
                     {
