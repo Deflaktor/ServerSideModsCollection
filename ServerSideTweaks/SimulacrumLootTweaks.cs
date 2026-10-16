@@ -274,6 +274,8 @@ namespace ServerSideTweaks
 
         private void GenericPickupController_AttemptGrant(On.RoR2.GenericPickupController.orig_AttemptGrant orig, GenericPickupController self, CharacterBody body)
         {
+            // another player can take the item in the same frame
+            bool wasConsumed = self.consumed;
             if ((BepConfig.Enabled.Value && CanInteract(self.gameObject, body)) || !BepConfig.Enabled.Value)
             {
                 orig(self, body);
@@ -284,7 +286,7 @@ namespace ServerSideTweaks
             }
             if (BepConfig.Enabled.Value && self.TryGetComponent<NonShareableItem>(out _))
             {
-                if (self.consumed)
+                if (!wasConsumed && self.consumed)
                 {
                     var master = body.master;
                     if (master != null && master.playerCharacterMasterController != null)
