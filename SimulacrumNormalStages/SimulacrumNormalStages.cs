@@ -188,7 +188,7 @@ namespace SimulacrumNormalStages
         private void InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer(On.RoR2.InfiniteTowerRun.orig_OnWaveAllEnemiesDefeatedServer orig, InfiniteTowerRun self, InfiniteTowerWaveController wc)
         {
             orig(self, wc);
-            if (!self.IsStageTransitionWave())
+            if (!BepConfig.Enabled.Value || !self.IsStageTransitionWave())
             {
                 return;
             }
@@ -441,12 +441,13 @@ namespace SimulacrumNormalStages
 
         private static void Run_Start(On.RoR2.Run.orig_Start orig, Run self)
         {
+            // a Newt Altar of an earlier run, also a classic one, doesn't open a portal in this one
+            shouldAttemptToSpawnShopPortal = false;
             if (Run.instance.GetType() == typeof(InfiniteTowerRun) && BepConfig.Enabled.Value)
             {
                 DoDestinations();
                 self.startingSceneGroup = realityDestinations;
                 visitedScenes.Clear();
-                shouldAttemptToSpawnShopPortal = false;
             }
             // leave the starting stage to the starting scene group, which other mods like StartInBazaar may override
             pickingStartingStage = true;
