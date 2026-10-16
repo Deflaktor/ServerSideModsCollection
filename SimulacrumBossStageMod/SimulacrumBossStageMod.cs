@@ -84,6 +84,7 @@ namespace SimulacrumBossStageMod
             On.RoR2.InfiniteTowerBossWaveController.Initialize               += InfiniteTowerBossWaveController_Initialize;
             On.RoR2.InfiniteTowerWaveController.Initialize                   += InfiniteTowerWaveController_Initialize;
             On.RoR2.InfiniteTowerWaveController.DropRewards                  += InfiniteTowerWaveController_DropRewards;
+            On.RoR2.InfiniteTowerWaveController.FixedUpdate                  += InfiniteTowerWaveController_FixedUpdate;
             On.RoR2.FogDamageController.EvaluateTeam                         += FogDamageController_EvaluateTeam;
         }
 
@@ -99,6 +100,7 @@ namespace SimulacrumBossStageMod
             On.RoR2.InfiniteTowerBossWaveController.Initialize               -= InfiniteTowerBossWaveController_Initialize;
             On.RoR2.InfiniteTowerWaveController.Initialize                   -= InfiniteTowerWaveController_Initialize;
             On.RoR2.InfiniteTowerWaveController.DropRewards                  -= InfiniteTowerWaveController_DropRewards;
+            On.RoR2.InfiniteTowerWaveController.FixedUpdate                  -= InfiniteTowerWaveController_FixedUpdate;
             On.RoR2.FogDamageController.EvaluateTeam                         -= FogDamageController_EvaluateTeam;
         }
 
@@ -352,20 +354,6 @@ namespace SimulacrumBossStageMod
                     }
                     self.waveController.combatDirector.onSpawnedWithDirectorServer.RemoveListener(bossSpawnedListener);
                 }
-                // increase/decrease safe ward zone size
-                if (!self.waveController.isInSuddenDeath)
-                {
-                    if (self.waveController._zoneRadiusPercentage < BepConfig.BossStageBossRadius.Value)
-                    {
-                        zoneRadiusBoss = Math.Min(BepConfig.BossStageBossRadius.Value, zoneRadiusBoss + self.waveController.suddenDeathRadiusConstrictingPerSecond * Time.fixedDeltaTime);
-                        self.waveController.Network_zoneRadiusPercentage = zoneRadiusBoss;
-                    } 
-                    else if (self.waveController._zoneRadiusPercentage > BepConfig.BossStageBossRadius.Value)
-                    {
-                        zoneRadiusBoss = Math.Max(0f, zoneRadiusBoss - self.waveController.suddenDeathRadiusConstrictingPerSecond * Time.fixedDeltaTime);
-                        self.waveController.Network_zoneRadiusPercentage = zoneRadiusBoss;
-                    }
-                }
             }
 
             if (!bossStageCompleted)
@@ -441,6 +429,22 @@ namespace SimulacrumBossStageMod
                 }
             }
         }
+        // after the wave controller's own update, which sets the radius back to normal every tick outside sudden death
+        private void InfiniteTowerWaveController_FixedUpdate(On.RoR2.InfiniteTowerWaveController.orig_FixedUpdate orig, InfiniteTowerWaveController self)
+        {
+            orig(self);
+            if (!NetworkServer.active || !BepConfig.Enabled.Value || !(Run.instance is InfiniteTowerRun run) || run.waveController != self)
+                return;
+            if (IsBossStageStarted(run.waveIndex) && run.IsStageTransitionWave() && nextBonusTime == 0f && !bossStageCompleted && BepConfig.BossStageBoss.Value != BossEnum.None && !self.isInSuddenDeath)
+            {
+                // grow or shrink the safe ward zone to the boss battleground radius
+                float targetRadius = BepConfig.BossStageBossRadius.Value;
+                float step = self.suddenDeathRadiusConstrictingPerSecond * Time.fixedDeltaTime;
+                zoneRadiusBoss = zoneRadiusBoss < targetRadius ? Math.Min(targetRadius, zoneRadiusBoss + step) : Math.Max(targetRadius, zoneRadiusBoss - step);
+                self.Network_zoneRadiusPercentage = zoneRadiusBoss;
+            }
+        }
+
         private void InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer(On.RoR2.InfiniteTowerRun.orig_OnWaveAllEnemiesDefeatedServer orig, InfiniteTowerRun self, InfiniteTowerWaveController wc)
         {
             orig(self, wc);
