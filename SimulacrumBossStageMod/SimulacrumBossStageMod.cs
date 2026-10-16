@@ -559,6 +559,9 @@ namespace SimulacrumBossStageMod
             orig(self, teamIndex);
             foreach(var boss in bossSpawned)
             {
+                // the master of a dead boss is destroyed soon after
+                if (!boss)
+                    continue;
                 var bossMaster = boss.GetComponent<CharacterMaster>();
                 if (bossMaster == null)
                     continue;
