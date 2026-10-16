@@ -95,18 +95,23 @@ namespace ServerSideItems
                     crit = body.RollCrit()
                 };
                 ProjectileManager.instance.FireProjectile(fireProjectileInfo);
-                ServerSideItems.instance.StartCoroutine(DelayDestroyBody(self));
+                ServerSideItems.instance.StartCoroutine(DelayDestroyBody(self, body));
             }
             orig(self, body);
-            if (self.inventory.GetItemCountEffective(DLC1Content.Items.VoidMegaCrabItem) > 0 && NetworkServer.active && BepConfig.Enabled.Value && BepConfig.NewlyHatchedZoeaRework.Value)
+            // only the body that died: since 1.5.0 the master can switch to another, living body here, e.g. back from a soul extraction ghost
+            if (self.inventory.GetItemCountEffective(DLC1Content.Items.VoidMegaCrabItem) > 0 && NetworkServer.active && BepConfig.Enabled.Value && BepConfig.NewlyHatchedZoeaRework.Value && body && self.GetBody() == body)
             {
                 self.DestroyBody();
             }
         }
-        IEnumerator DelayDestroyBody(CharacterMaster self)
+        IEnumerator DelayDestroyBody(CharacterMaster self, CharacterBody body)
         {
             yield return new WaitForSeconds(0.5f);
-            self.DestroyBody();
+            // not a body the player was revived in meanwhile
+            if (self && body && self.GetBody() == body)
+            {
+                self.DestroyBody();
+            }
         }
 
         public static int GetBombCount(int stackCount)
