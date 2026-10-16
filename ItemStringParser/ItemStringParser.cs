@@ -380,7 +380,8 @@ namespace ItemStringParser
             }
         }
 
-        private static bool ParseItemString(string itemString, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, bool availableOnly, int index, int repeat)
+        // skippedEntries: set when an entry of an & group could not be resolved and was left out
+        private static bool ParseItemString(string itemString, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, bool availableOnly, int index, int repeat, ref bool skippedEntries)
         {
             // "5 random whites or 3 large chest":
             // 5xRandom: 0.5, 3xdtChest2: 0.5
@@ -524,10 +525,11 @@ namespace ItemStringParser
                     foreach (var entry in selectionList)
                     {
                         bool success;
+                        bool entrySkippedEntries = false;
                         Dictionary<PickupIndex, int> subResolvedItems = new Dictionary<PickupIndex, int>();
                         if (replacements.ContainsKey(entry.itemKey))
                         {
-                            success = ParseItemString(replacements[entry.itemKey], subResolvedItems, log, availableOnly, -1, entry.repeat);
+                            success = ParseItemString(replacements[entry.itemKey], subResolvedItems, log, availableOnly, -1, entry.repeat, ref entrySkippedEntries);
                         }
                         else
                         {
@@ -539,6 +541,12 @@ namespace ItemStringParser
                             {
                                 resolvedItems[pickupIndex] = resolvedItems.GetValueOrDefault(pickupIndex) + giveAmount * entry.multiplier;
                             }
+                            skippedEntries |= entrySkippedEntries;
+                        }
+                        else
+                        {
+                            // the other entries are still given
+                            skippedEntries = true;
                         }
                     }
                 }
@@ -566,10 +574,12 @@ namespace ItemStringParser
                             // select at random
                             entry = selection.Evaluate(rng.nextNormalizedFloat);
                         }
+                        // a failed attempt is replaced by another one, so only the chosen attempt counts
+                        bool attemptSkippedEntries = false;
                         Dictionary<PickupIndex, int> subResolvedItems = new Dictionary<PickupIndex, int>();
                         if (replacements.ContainsKey(entry.itemKey))
                         {
-                            success = ParseItemString(replacements[entry.itemKey], subResolvedItems, log, availableOnly, -1, entry.repeat);
+                            success = ParseItemString(replacements[entry.itemKey], subResolvedItems, log, availableOnly, -1, entry.repeat, ref attemptSkippedEntries);
                         }
                         else
                         {
@@ -581,6 +591,7 @@ namespace ItemStringParser
                             {
                                 resolvedItems[pickupIndex] = resolvedItems.GetValueOrDefault(pickupIndex) + giveAmount * entry.multiplier;
                             }
+                            skippedEntries |= attemptSkippedEntries;
                         }
                         else
                         {
@@ -603,7 +614,8 @@ namespace ItemStringParser
         /// <exception cref="ArgumentException">Thrown when input can not be properly resolved for any reason, be it syntax errors or a concrete item name which does not exist or the user has not the required dlc, etc.<exception>
         public static void ParseItemStringStrict(string itemString, Dictionary<PickupIndex, int> resolvedItems, bool availableOnly = true, int index = -1)
         {
-            ParseItemString(itemString, resolvedItems, null, availableOnly, index, 1);
+            bool skippedEntries = false;
+            ParseItemString(itemString, resolvedItems, null, availableOnly, index, 1, ref skippedEntries);
         }
 
         /// <summary>
@@ -614,10 +626,11 @@ namespace ItemStringParser
         /// <param name="log">For logging in case the provided itemString contains syntax errors.</param>
         /// <param name="availableOnly">If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked. Names from a DLC that is not enabled for the run never resolve.</param>
         /// <param name="index">Specifies if a certain entry of the top-level or-group shall be taken or if it should be picked at random. -1 is default and means random.</param>
-        /// <returns>Whether the item string was resolved successfully. A failure case can be when the input string had syntax error or a concrete item was selected for which the user does not have the required dlc or a droptable or tier not having enough candidates.</returns>
+        /// <returns>Whether the item string was resolved completely. A failure case can be when the input string had syntax error or a concrete item was selected for which the user does not have the required dlc or a droptable or tier not having enough candidates. Entries of an &amp; group that could be resolved are still added when another one fails.</returns>
         public static bool ParseItemString(string itemString, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, bool availableOnly = true, int index = -1)
         {
-            return ParseItemString(itemString, resolvedItems, log, availableOnly, index, 1);
+            bool skippedEntries = false;
+            return ParseItemString(itemString, resolvedItems, log, availableOnly, index, 1, ref skippedEntries) && !skippedEntries;
         }
 
         private static readonly Inventory.EquipmentLocationQueryArgs emptyEquipmentLocation = new Inventory.EquipmentLocationQueryArgs
