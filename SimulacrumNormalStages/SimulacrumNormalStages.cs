@@ -471,7 +471,6 @@ namespace SimulacrumNormalStages
             CombatDirector[] combatDirector = self.gameObject.GetComponents<CombatDirector>();
             for (int i = 0; i < combatDirector.Length; i++)
             {
-                Debug.Log(combatDirector[i]);
                 combatDirector[i].enabled = false;
             }
 
