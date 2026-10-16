@@ -89,17 +89,33 @@ namespace ServerSideTweaks
             
             On.RoR2.ChildMonsterController.RegisterTeleport += ChildMonsterController_RegisterTeleport;
             On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.OnServerCardSpawnedGlobal += MonsterTeamGainsItemsArtifactManager_OnServerCardSpawnedGlobal;
+            On.RoR2.InfiniteTowerWaveController.OnCombatSquadMemberDiscovered    += InfiniteTowerWaveController_OnCombatSquadMemberDiscovered;
 
             simulacrumLootTweaks.Hook();
             FastSimulacrumVrab.Enable();
         }
 
+        // the Artifact of Evolution's items
         private void MonsterTeamGainsItemsArtifactManager_OnServerCardSpawnedGlobal(On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.orig_OnServerCardSpawnedGlobal orig, SpawnCard.SpawnResult spawnResult)
         {
             orig(spawnResult);
+            RemoveAlienHeads(spawnResult.spawnedInstance ? spawnResult.spawnedInstance.GetComponent<CharacterMaster>() : null);
+        }
+
+        // Simulacrum's items, which it gives its enemies with or without the Artifact of Evolution
+        private void InfiniteTowerWaveController_OnCombatSquadMemberDiscovered(On.RoR2.InfiniteTowerWaveController.orig_OnCombatSquadMemberDiscovered orig, InfiniteTowerWaveController self, CharacterMaster master)
+        {
+            orig(self, master);
+            if (NetworkServer.active)
+            {
+                RemoveAlienHeads(master);
+            }
+        }
+
+        private static void RemoveAlienHeads(CharacterMaster characterMaster)
+        {
             if(BepConfig.Enabled.Value && (BepConfig.VoidJailerNoCooldownReductions.Value || BepConfig.SolusInvalidatorNoCooldownReductions.Value || BepConfig.VoidlingNoCooldownReductions.Value)) {
 
-                CharacterMaster characterMaster = (spawnResult.spawnedInstance ? spawnResult.spawnedInstance.GetComponent<CharacterMaster>() : null);
                 if ((bool)characterMaster && characterMaster.teamIndex == TeamIndex.Monster && characterMaster.bodyPrefab != null)
                 {
                     string bodyName = characterMaster.bodyPrefab.name;
@@ -134,6 +150,7 @@ namespace ServerSideTweaks
 
             On.RoR2.ChildMonsterController.RegisterTeleport -= ChildMonsterController_RegisterTeleport;
             On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.OnServerCardSpawnedGlobal -= MonsterTeamGainsItemsArtifactManager_OnServerCardSpawnedGlobal;
+            On.RoR2.InfiniteTowerWaveController.OnCombatSquadMemberDiscovered    -= InfiniteTowerWaveController_OnCombatSquadMemberDiscovered;
 
             simulacrumLootTweaks.Unhook();
             FastSimulacrumVrab.Disable();
