@@ -1,3 +1,10 @@
+# 2.1.1
+
+- Weights like `:0.5` are read correctly when the game runs in a language with a decimal comma, such as German
+- A bad number, an unbalanced brace or a negative weight gives a warning instead of an error, and the item string is skipped
+- Fix a rare error when picking among weighted options, and a short stall when an item string has several `{}` groups
+- `ParseItemString` returns false when an entry of an `&` group couldn't be resolved; the other entries are still given
+
 # 2.1.0
 
 - Support Risk of Rain 2 1.5.0
