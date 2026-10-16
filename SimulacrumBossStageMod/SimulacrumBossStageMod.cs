@@ -40,6 +40,7 @@ namespace SimulacrumBossStageMod
         public AsyncOperationHandle<SpawnCard> iscVoidPortal;
         public AsyncOperationHandle<SpawnCard> iscVoidOutroPortal;
         public AsyncOperationHandle<CharacterSpawnCard> bossSpawnCard;
+        private BossEnum loadedBoss = BossEnum.None;
         public AsyncOperationHandle<EliteDef> edBead;
         public float nextBonusTime;
         public int bonusCounter;
@@ -178,8 +179,20 @@ namespace SimulacrumBossStageMod
             }
             if (BepConfig.Enabled.Value && BepConfig.BossStageBoss.Value != BossEnum.None)
             {
-                bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>(BossNames[BepConfig.BossStageBoss.Value]);
+                LoadBossSpawnCard();
             }
+        }
+
+        // The chosen boss, loaded ahead at run start. The mod or the boss can also be changed mid-run in InLobbyConfig.
+        private AsyncOperationHandle<CharacterSpawnCard> LoadBossSpawnCard()
+        {
+            var boss = BepConfig.BossStageBoss.Value;
+            if (boss != loadedBoss || !bossSpawnCard.IsValid())
+            {
+                bossSpawnCard = Addressables.LoadAssetAsync<CharacterSpawnCard>(BossNames[boss]);
+                loadedBoss = boss;
+            }
+            return bossSpawnCard;
         }
 
         private void InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer1(ILContext il)
@@ -350,7 +363,7 @@ namespace SimulacrumBossStageMod
                     self.waveController.combatDirector.onSpawnedWithDirectorServer.AddListener(bossSpawnedListener);
                     for (int i = 0; i < BepConfig.BossStageBossCount.Value; i++)
                     {
-                        self.waveController.combatDirector.Spawn(bossSpawnCard.WaitForCompletion(), eliteDef, self.waveController.spawnTarget.transform, DirectorCore.MonsterSpawnDistance.Far, false);
+                        self.waveController.combatDirector.Spawn(LoadBossSpawnCard().WaitForCompletion(), eliteDef, self.waveController.spawnTarget.transform, DirectorCore.MonsterSpawnDistance.Far, false);
                     }
                     self.waveController.combatDirector.onSpawnedWithDirectorServer.RemoveListener(bossSpawnedListener);
                 }
