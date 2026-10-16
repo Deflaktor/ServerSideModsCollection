@@ -51,7 +51,6 @@ namespace SimulacrumNormalStages
         }
         private void OnEnable()
         {
-            IL.RoR2.ArenaMissionController.OnStartServer      += ArenaMissionController_OnStartServer;
             IL.RoR2.VoidStageMissionController.OnEnable       += VoidStageMissionController_OnEnable;
             IL.RoR2.VoidStageMissionController.Start          += VoidStageMissionController_Start;
             IL.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer += InfiniteTowerRun_OnPrePopulateSceneServer;
@@ -78,7 +77,6 @@ namespace SimulacrumNormalStages
 
         private void OnDisable()
         {
-            IL.RoR2.ArenaMissionController.OnStartServer      -= ArenaMissionController_OnStartServer;
             IL.RoR2.VoidStageMissionController.OnEnable       -= VoidStageMissionController_OnEnable;
             IL.RoR2.VoidStageMissionController.Start          -= VoidStageMissionController_Start;
             IL.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer -= InfiniteTowerRun_OnPrePopulateSceneServer;
@@ -326,30 +324,6 @@ namespace SimulacrumNormalStages
             c.Emit(OpCodes.Ret);
             c.MarkLabel(methodContinue);
         }
-        private void ArenaMissionController_OnStartServer(ILContext il)
-        {
-            ReturnImmediately(il, (ArenaMissionController self) =>
-            {
-                if (Run.instance.GetType() == typeof(InfiniteTowerRun))
-                {
-                    // remove the portal in void locus
-                    GameObject obj = GameObject.Find("PortalArena");
-                    if (obj != null)
-                    {
-                        Destroy(obj);
-                    }
-                    // remove the null wards in void locus
-                    foreach (GameObject obj2 in self.nullWards)
-                    {
-                        Destroy(obj2);
-                    }
-                    self.nullWards = new GameObject[0];
-                    self.enabled = false;
-                    return true;
-                }
-                return false;
-            });
-        }
         private void VoidStageMissionController_OnEnable(ILContext il)
         {
             ReturnImmediately(il, (VoidStageMissionController self) =>
@@ -405,12 +379,14 @@ namespace SimulacrumNormalStages
         {
             if (Run.instance.GetType() == typeof(InfiniteTowerRun))
             {
-                self.gameObject.SetActive(false);
+                // Void Fields' portal, and the null wards, which are children of the controller. Destroying them on
+                // the host removes them for clients too, unlike SetActive.
                 GameObject PortalArena = GameObject.Find("/PortalArena");
                 if (PortalArena)
                 {
-                    PortalArena.transform.GetChild(0).gameObject.SetActive(false);
+                    Destroy(PortalArena);
                 }
+                Destroy(self.gameObject);
                 return;
             }
             orig(self);
