@@ -99,12 +99,14 @@ namespace ItemStringParser
             return list[UnityEngine.Random.RandomRangeInt(0, list.Count)];
         }
 
-        // Parses input, replaces outer curly braces with placeholders, returns transformed string and dict mapping placeholders to originals
-        private static (string replacedString, Dictionary<string, string> replacements) ReplaceOuterBraces(string input)
+        // Parses input, replaces outer curly braces with placeholders, gives transformed string and dict mapping placeholders to originals; false if the braces don't match
+        private static bool TryReplaceOuterBraces(string input, out string replacedString, out Dictionary<string, string> replacements)
         {
             var sb = new StringBuilder();
             int depth = 0;
             List<(int start, int end)> outerBracesPositions = new List<(int start, int end)>();
+            replacedString = input;
+            replacements = new Dictionary<string, string>();
 
             for (int i = 0; i < input.Length; i++)
             {
@@ -116,6 +118,8 @@ namespace ItemStringParser
                 }
                 else if (input[i] == '}')
                 {
+                    if (depth == 0)
+                        return false;
                     depth--;
                     if (depth == 0)
                     {
@@ -125,7 +129,9 @@ namespace ItemStringParser
                 }
             }
 
-            var replacements = new Dictionary<string, string>();
+            if (depth != 0)
+                return false;
+
             int currentPos = 0;
 
             foreach (var br in outerBracesPositions)
@@ -144,7 +150,8 @@ namespace ItemStringParser
 
             sb.Append(input.Substring(currentPos));
 
-            return (sb.ToString(), replacements);
+            replacedString = sb.ToString();
+            return true;
         }
 
         /// <summary>
@@ -406,8 +413,13 @@ namespace ItemStringParser
             ItemStringFormat format = ItemStringFormat.DEFAULT;
 
             itemString = itemString.Trim();
-            // step 1: Replace curly brackets with a random string -> will handle that later
-            (itemString, var replacements) = ReplaceOuterBraces(itemString);
+            // step 1: Replace curly brackets with placeholders -> will handle that later
+            if (!TryReplaceOuterBraces(itemString, out var replacedString, out var replacements))
+            {
+                HandleWarning(log, $"Unbalanced braces in '{itemString}'");
+                return false;
+            }
+            itemString = replacedString;
             // step 2: Handle the tokens
             string[] parts;
             bool and;
