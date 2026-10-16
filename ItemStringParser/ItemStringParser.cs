@@ -34,8 +34,9 @@ namespace ItemStringParser
 
         private static readonly Dictionary<string, AsyncOperationHandle<PickupDropTable>> loadedDropTables = new Dictionary<string, AsyncOperationHandle<PickupDropTable>>();
         private static Dictionary<string, string> dropTables;
-        // for drop tables without a weighted selection; separate from the run's seeded generators
-        private static readonly Xoroshiro128Plus dropTableRng = new Xoroshiro128Plus((ulong)DateTime.UtcNow.Ticks);
+        // for weighted picks and drop tables without a weighted selection; separate from the run's seeded generators.
+        // Its floats stay below 1; UnityEngine.Random can return exactly 1, which WeightedSelection can't evaluate
+        private static readonly Xoroshiro128Plus rng = new Xoroshiro128Plus((ulong)DateTime.UtcNow.Ticks);
 
         private void Awake()
         {
@@ -254,7 +255,7 @@ namespace ItemStringParser
                         HandleWarning(log, $"ResolveItemKey: Droptable {itemkey} does not support blacklisting items.");
                     while (repeat > 0)
                     {
-                        var uniquePickup = dropTable.GeneratePickup(dropTableRng);
+                        var uniquePickup = dropTable.GeneratePickup(rng);
                         if (!uniquePickup.isValid)
                         {
                             HandleWarning(log, $"ResolveItemKey: Could not get pickup from droptable: {itemkey}");
@@ -282,7 +283,7 @@ namespace ItemStringParser
                 }
                 while (repeat > 0)
                 {
-                    var uniquePickup = selection.Evaluate(UnityEngine.Random.Range(0, 1f));
+                    var uniquePickup = selection.Evaluate(rng.nextNormalizedFloat);
                     if (uniquePickup.Equals(UniquePickup.none))
                     {
                         HandleWarning(log, $"ResolveItemKey: Could not get pickup from droptable: {itemkey}");
@@ -465,6 +466,11 @@ namespace ItemStringParser
                     HandleWarning(log, $"Cannot parse the weight in segment '{part.Trim()}'");
                     return false;
                 }
+                if (entry.weight < 0f)
+                {
+                    HandleWarning(log, $"The weight cannot be negative in segment '{part.Trim()}'");
+                    return false;
+                }
 
                 if (format == ItemStringFormat.WEIGHTED_OR_ONLY)
                 {
@@ -504,6 +510,12 @@ namespace ItemStringParser
 
                 selection.AddChoice(entry, entry.weight);
                 selectionList.Add(entry);
+            }
+            // a random pick needs at least one weight above 0
+            if (!and && index < 0 && selection.GetTotalWeight() <= 0f)
+            {
+                HandleWarning(log, $"All weights are 0 in '{itemString}'");
+                return false;
             }
             while (repeat > 0)
             {
@@ -552,7 +564,7 @@ namespace ItemStringParser
                         else
                         {
                             // select at random
-                            entry = selection.Evaluate(UnityEngine.Random.Range(0, 1f));
+                            entry = selection.Evaluate(rng.nextNormalizedFloat);
                         }
                         Dictionary<PickupIndex, int> subResolvedItems = new Dictionary<PickupIndex, int>();
                         if (replacements.ContainsKey(entry.itemKey))
