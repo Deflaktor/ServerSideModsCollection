@@ -5,6 +5,7 @@ using RoR2;
 using RoR2.EntitlementManagement;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -462,8 +463,12 @@ namespace ItemStringParser
                 var tokenParts = token.Split(":", 2);
                 token = tokenParts[0].Trim();
 
-                if (tokenParts.Length > 1)
-                    entry.weight = float.Parse(tokenParts[1].Trim());
+                // the game sets the current culture to its language, which may use a decimal comma
+                if (tokenParts.Length > 1 && !float.TryParse(tokenParts[1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out entry.weight))
+                {
+                    HandleWarning(log, $"Cannot parse the weight in segment '{part.Trim()}'");
+                    return false;
+                }
 
                 if (format == ItemStringFormat.WEIGHTED_OR_ONLY)
                 {
@@ -473,8 +478,11 @@ namespace ItemStringParser
                 {
                     tokenParts = token.Split("*", 2);
                     token = tokenParts[0].Trim();
-                    if (tokenParts.Length > 1)
-                        entry.multiplier = int.Parse(tokenParts[1].Trim());
+                    if (tokenParts.Length > 1 && !int.TryParse(tokenParts[1].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out entry.multiplier))
+                    {
+                        HandleWarning(log, $"Cannot parse the multiplier in segment '{part.Trim()}'");
+                        return false;
+                    }
 
                     var match = tokenPattern.Match(token);
                     if (!match.Success)
@@ -483,8 +491,11 @@ namespace ItemStringParser
                         return false;
                     }
 
-                    if (match.Groups[1].Success)
-                        entry.repeat = int.Parse(match.Groups[1].Value);
+                    if (match.Groups[1].Success && !int.TryParse(match.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out entry.repeat))
+                    {
+                        HandleWarning(log, $"Cannot parse the amount in segment '{part.Trim()}'");
+                        return false;
+                    }
 
                     if (match.Groups[2].Success)
                         entry.itemKey = match.Groups[2].Value;
