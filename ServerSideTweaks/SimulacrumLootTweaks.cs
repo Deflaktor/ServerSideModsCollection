@@ -105,6 +105,7 @@ namespace ServerSideTweaks
             On.RoR2.InfiniteTowerWaveController.DropRewards -= InfiniteTowerWaveController_DropRewards;
             IL.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3;
             On.RoR2.PickupDropletController.CreatePickup -= PickupDropletController_CreatePickup;
+            IL.RoR2.PickupDropletController.CreateCommandCube -= PickupDropletController_CreateCommandCube;
             IL.RoR2.GenericPickupController.CreatePickup -= GenericPickupController_CreatePickup;
             On.RoR2.PickupPickerController.CreatePickup_UniquePickup -= PickupPickerController_CreatePickup_UniquePickup;
             On.RoR2.GenericPickupController.OnInteractionBegin -= GenericPickupController_OnInteractionBegin;
