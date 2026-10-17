@@ -8,14 +8,14 @@
     </ItemGroup>
     <Delete Files="@(FilesToDelete)" Condition="'$(Configuration)' == 'Release'" />
 
-    <!-- Copy output to profile plugin folder -->
+    <!-- Copy output to profile plugin folder; not ShareSuite, a third-party mod the profiles install from Thunderstore -->
     <ItemGroup>
       <OutputFiles Include="$(TargetDir)**\*" />
     </ItemGroup>
     <Copy SourceFiles="@(OutputFiles)"
           DestinationFiles="@(OutputFiles->'$(ProfilePath)/BepInEx/plugins/Def-$(ProjectName)/%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true"
-          Condition="Exists('$(ProfilePath)')" />
+          Condition="Exists('$(ProfilePath)') And '$(ProjectName)' != 'ShareSuite'" />
 
     <!-- Remove old zip to avoid including it in the new zip -->
     <Delete Files="$(TargetDir)$(TargetName).zip" />
