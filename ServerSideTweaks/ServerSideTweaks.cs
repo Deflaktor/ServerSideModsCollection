@@ -81,7 +81,6 @@ namespace ServerSideTweaks
             On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer              += InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
             On.RoR2.InfiniteTowerRun.AdvanceWave                                 += InfiniteTowerRun_AdvanceWave;
             IL.RoR2.CombatDirector.AttemptSpawnOnTarget                          += CombatDirector_AttemptSpawnOnTarget;
-            On.RoR2.Run.FixedUpdate                                              += Run_FixedUpdate;
 
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray += RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus += RandomlyLunarUtils_CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus;
@@ -142,7 +141,6 @@ namespace ServerSideTweaks
             On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer              -= InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
             On.RoR2.InfiniteTowerRun.AdvanceWave                                 -= InfiniteTowerRun_AdvanceWave;
             IL.RoR2.CombatDirector.AttemptSpawnOnTarget                          -= CombatDirector_AttemptSpawnOnTarget;
-            On.RoR2.Run.FixedUpdate                                              -= Run_FixedUpdate;
 
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus -= RandomlyLunarUtils_CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray -= RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
@@ -231,39 +229,26 @@ namespace ServerSideTweaks
             directorEnemyPowerBiasOverride = -1;
         }
 
-        private void Run_FixedUpdate(On.RoR2.Run.orig_FixedUpdate orig, Run self)
-        {
-            orig(self);
-
-            if (!NetworkServer.active)
-                return;
-
 #if DEBUG
-
-            if (Input.GetKeyDown(KeyCode.F3))
+        [ConCommand(commandName = "sst_power_bias", flags = ConVarFlags.ExecuteOnServer, helpText = "Shows the enemy power bias of the Simulacrum and classic directors, or sets both to the given value. Debug builds only.")]
+        private static void CCPowerBias(ConCommandArgs args)
+        {
+            if (args.Count > 0)
             {
-                BepConfig.SimulacrumDirectorEnemyPowerBias.Value -= 0.1f;
-                BepConfig.ClassicDirectorEnemyPowerBias.Value -= 0.1f;
-                Log.LogDebug($"Player pressed F3. SimulacrumDirectorEnemyPowerBias: " + BepConfig.SimulacrumDirectorEnemyPowerBias.Value);
-                Log.LogDebug($"Player pressed F3. ClassicDirectorEnemyPowerBias: " + BepConfig.ClassicDirectorEnemyPowerBias.Value);
+                BepConfig.SimulacrumDirectorEnemyPowerBias.Value = args.GetArgFloat(0);
+                BepConfig.ClassicDirectorEnemyPowerBias.Value = args.GetArgFloat(0);
             }
-            if (Input.GetKeyDown(KeyCode.F4))
-            {
-                BepConfig.SimulacrumDirectorEnemyPowerBias.Value += 0.1f;
-                BepConfig.ClassicDirectorEnemyPowerBias.Value += 0.1f;
-                Log.LogDebug($"Player pressed F4. SimulacrumDirectorEnemyPowerBias: " + BepConfig.SimulacrumDirectorEnemyPowerBias.Value);
-                Log.LogDebug($"Player pressed F4. ClassicDirectorEnemyPowerBias: " + BepConfig.ClassicDirectorEnemyPowerBias.Value);
-            }
-            if (Input.GetKeyDown(KeyCode.F5))
-            {
-                simulacrumLootTweaks.GiveAllPlayersItemCredit(-1f);
-            }
-            if (Input.GetKeyDown(KeyCode.F6))
-            {
-                simulacrumLootTweaks.GiveAllPlayersItemCredit(+1f);
-            }
-#endif
+            Debug.Log($"SimulacrumDirectorEnemyPowerBias: {BepConfig.SimulacrumDirectorEnemyPowerBias.Value}, ClassicDirectorEnemyPowerBias: {BepConfig.ClassicDirectorEnemyPowerBias.Value}");
         }
+
+        [ConCommand(commandName = "sst_item_credit", flags = ConVarFlags.ExecuteOnServer, helpText = "Gives all players the given Simulacrum item credit, or takes it with a negative value. Debug builds only.")]
+        private static void CCItemCredit(ConCommandArgs args)
+        {
+            args.CheckArgumentCount(1);
+            simulacrumLootTweaks.GiveAllPlayersItemCredit(args.GetArgFloat(0));
+        }
+#endif
+
         private bool SkipWithPowerBias(float costMultipliedByMaximumNumberToSpawnBeforeSkipping, CombatDirector combatDirector, float powerBias)
         {
             float cost = costMultipliedByMaximumNumberToSpawnBeforeSkipping / combatDirector.maximumNumberToSpawnBeforeSkipping;
