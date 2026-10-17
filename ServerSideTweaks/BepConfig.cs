@@ -29,6 +29,7 @@ namespace ServerSideTweaks
         public static ConfigEntry<int> SimulacrumMaxSquadSize;
         public static ConfigEntry<float> SimulacrumWavePeriodSecondsFactor;
         public static ConfigEntry<bool> SimulacrumFastVoidCrab;
+        public static ConfigEntry<float> SimulacrumEmptyWaveDirectorSpeedup;
         // classic tweaks
         public static ConfigEntry<float> ClassicDirectorEnemyPowerBias;
 
@@ -58,6 +59,7 @@ namespace ServerSideTweaks
                 SimulacrumMaxSquadSize = config.Bind("Simulacrum", "Max squad size", 30, new ConfigDescription("No more than this many enemies shall be spawned at the same time (30 = vanilla)."));
                 SimulacrumWavePeriodSecondsFactor = config.Bind("Simulacrum", "Wave Period Seconds Factor", 1.0f, new ConfigDescription("A factor on how long each wave takes. A value smaller than 1.0 makes the wave go faster, but also with stronger enemies. A value higher than 1.0 makes the wave take longer but the enemies are weaker. (1.0 = vanilla)."));
                 SimulacrumFastVoidCrab = config.Bind("Simulacrum", "Void Crab picks up speed", false, new ConfigDescription("Makes the Void Crab faster the more waves you complete."));
+                SimulacrumEmptyWaveDirectorSpeedup = config.Bind("Simulacrum", "Director: Speed-up without enemies", 3f, new ConfigDescription("While no enemy of the wave is alive, the director earns its credits this many times faster, so the next enemies come sooner. (1.0 = vanilla)."));
             }
             // --- Classic Run ---
             {

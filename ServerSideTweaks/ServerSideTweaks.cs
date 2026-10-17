@@ -85,6 +85,7 @@ namespace ServerSideTweaks
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray += RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus += RandomlyLunarUtils_CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus;
             On.RoR2.InfiniteTowerWaveController.Initialize                       += InfiniteTowerWaveController_Initialize;
+            On.RoR2.InfiniteTowerWaveController.FixedUpdate                      += InfiniteTowerWaveController_FixedUpdate;
             
             On.RoR2.ChildMonsterController.RegisterTeleport += ChildMonsterController_RegisterTeleport;
             On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.OnServerCardSpawnedGlobal += MonsterTeamGainsItemsArtifactManager_OnServerCardSpawnedGlobal;
@@ -145,6 +146,7 @@ namespace ServerSideTweaks
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus -= RandomlyLunarUtils_CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray -= RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
             On.RoR2.InfiniteTowerWaveController.Initialize                       -= InfiniteTowerWaveController_Initialize;
+            On.RoR2.InfiniteTowerWaveController.FixedUpdate                      -= InfiniteTowerWaveController_FixedUpdate;
 
             On.RoR2.ChildMonsterController.RegisterTeleport -= ChildMonsterController_RegisterTeleport;
             On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.OnServerCardSpawnedGlobal -= MonsterTeamGainsItemsArtifactManager_OnServerCardSpawnedGlobal;
@@ -194,6 +196,27 @@ namespace ServerSideTweaks
                 self.wavePeriodSeconds *= BepConfig.SimulacrumWavePeriodSecondsFactor.Value;
             }
             orig(self, waveIndex, enemyInventory, spawnTarget);
+        }
+
+        // while none of the wave's enemies is alive, the director earns its credits faster for the next ones
+        private void InfiniteTowerWaveController_FixedUpdate(On.RoR2.InfiniteTowerWaveController.orig_FixedUpdate orig, InfiniteTowerWaveController self)
+        {
+            var speedup = BepConfig.SimulacrumEmptyWaveDirectorSpeedup.Value;
+            if (!NetworkServer.active || !BepConfig.Enabled.Value || speedup == 1f || self.combatSquad == null || self.combatSquad.memberCount > 0)
+            {
+                orig(self);
+                return;
+            }
+            var creditsPerSecond = self.creditsPerSecond;
+            self.creditsPerSecond = creditsPerSecond * Math.Max(0f, speedup);
+            try
+            {
+                orig(self);
+            }
+            finally
+            {
+                self.creditsPerSecond = creditsPerSecond;
+            }
         }
 
         private void Run_Start(On.RoR2.Run.orig_Start orig, Run self)

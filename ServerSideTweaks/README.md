@@ -20,3 +20,4 @@ A small list of server-side configurable tweaks.
 - In Commencement, each wave has a chance to turn on the Artifact of Dissonance for more enemy variety.
 - Set the most enemies at once and how long a wave lasts.
 - The Void Crab can get faster with every wave.
+- While a wave has no enemies alive, the next ones come sooner.
