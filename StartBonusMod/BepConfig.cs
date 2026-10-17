@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace StartBonusMod
 {
@@ -24,6 +25,8 @@ namespace StartBonusMod
         public static Dictionary<string, ItemIndex> englishNameToItemIndex = new Dictionary<string, ItemIndex>();
         public static Dictionary<string, EquipmentIndex> englishNameToEquipmentIndex = new Dictionary<string, EquipmentIndex>();
         public static Dictionary<ItemTier, List<string>> itemTierToItemEnglishNames = new Dictionary<ItemTier, List<string>>();
+        // for migrating choices saved before 3.1.0
+        private static Dictionary<string, string> internalNameToChoice = new Dictionary<string, string>();
 
         private static bool initialized = false;
 
@@ -37,16 +40,9 @@ namespace StartBonusMod
             foreach (var itemDef in ItemCatalog.allItemDefs)
             {
                 if (itemDef == null || itemDef.nameToken == null) continue;
-                var englishName = Language.GetString(itemDef.nameToken, "en");
-                if(string.IsNullOrWhiteSpace(englishName) || englishName.Equals(itemDef.nameToken))
-                {
-                    englishName = $"{(int)itemDef.itemIndex}: {itemDef.name}";
-                }
-                else
-                {
-                    englishName = $"{englishName} ({(int)itemDef.itemIndex}: {itemDef.name})";
-                }
+                var englishName = GetChoiceName(itemDef.nameToken, itemDef.name);
                 englishNameToItemIndex.Add(englishName, itemDef.itemIndex);
+                internalNameToChoice[itemDef.name] = englishName;
                 if (!itemTierToItemEnglishNames.TryGetValue(itemDef.tier, out var list))
                 {
                     itemTierToItemEnglishNames[itemDef.tier] = list = new List<string>();
@@ -63,16 +59,9 @@ namespace StartBonusMod
             foreach (var equipmentDef in EquipmentCatalog.equipmentDefs)
             {
                 if (equipmentDef == null || equipmentDef.nameToken == null) continue;
-                var englishName = Language.GetString(equipmentDef.nameToken, "en");
-                if (string.IsNullOrWhiteSpace(englishName) || englishName.Equals(equipmentDef.nameToken))
-                {
-                    englishName = $"{(int)equipmentDef.equipmentIndex}: {equipmentDef.name}";
-                }
-                else
-                {
-                    englishName = $"{englishName} ({(int)equipmentDef.equipmentIndex}: {equipmentDef.name})";
-                }
+                var englishName = GetChoiceName(equipmentDef.nameToken, equipmentDef.name);
                 englishNameToEquipmentIndex.Add(englishName, equipmentDef.equipmentIndex);
+                internalNameToChoice[equipmentDef.name] = englishName;
             }
             // --- Main ---
             Enabled = config.Bind("00 Main", "Enabled", true, "Enable Mod");
@@ -89,16 +78,14 @@ namespace StartBonusMod
             sortedEquipmentList.Sort();
             sortedEquipmentList.Insert(0, "None");
             sortedEquipmentList.Insert(1, "Random");
-            AcceptableValueList<string> acceptableEquipmentList = new AcceptableValueList<string>(sortedEquipmentList.ToArray());
-            StartingEquipment = config.Bind("02 Simple Item List", "Equipment", "None", new ConfigDescription("Which equipment each player shall receive at the start.", acceptableEquipmentList));
+            StartingEquipment = BindChoice(config, "02 Simple Item List", "Equipment", "Which equipment each player shall receive at the start.", sortedEquipmentList);
 
             foreach (var tierDef in ItemTierCatalog.allItemTierDefs)
             {
                 // a tier without items, e.g. from another mod, gets no setting
                 if (!itemTierToItemEnglishNames.TryGetValue(tierDef.tier, out var tierItemNames))
                     continue;
-                AcceptableValueList<string> acceptableItemList = new AcceptableValueList<string>(tierItemNames.ToArray());
-                StartingItemByTier[tierDef.tier] = config.Bind("02 Simple Item List", $"{tierDef.tier.ToString()} Item", "None", new ConfigDescription($"Which {tierDef.tier.ToString()} item each player shall receive at the start.", acceptableItemList));
+                StartingItemByTier[tierDef.tier] = BindChoice(config, "02 Simple Item List", $"{tierDef.tier.ToString()} Item", $"Which {tierDef.tier.ToString()} item each player shall receive at the start.", tierItemNames);
                 StartingItemByTierAmount[tierDef.tier] = config.Bind("02 Simple Item List", $"{tierDef.tier.ToString()} Amount", 0, new ConfigDescription($"How many of the {tierDef.tier.ToString()} item each player shall receive."));
             }
 
@@ -115,6 +102,41 @@ namespace StartBonusMod
             {
                 ModCompatibilityInLobbyConfig.CreateFromBepInExConfigFile(config, "Start Bonus");
             }
+        }
+
+        // "English name (internal name)", or the internal name alone. Unlike the item and equipment indices, the internal
+        // name stays the same when the game or another mod adds items.
+        private static string GetChoiceName(string nameToken, string internalName)
+        {
+            var englishName = Language.GetString(nameToken, "en");
+            if (string.IsNullOrWhiteSpace(englishName) || englishName.Equals(nameToken))
+            {
+                return internalName;
+            }
+            return $"{englishName} ({internalName})";
+        }
+
+        // Before 3.1.0 a choice was saved with its index, as "English name (index: internal name)" or "index: internal name".
+        // Binding with the choices would reset such a value to None, so it is read without them first.
+        private static ConfigEntry<string> BindChoice(ConfigFile config, string section, string key, string description, List<string> choices)
+        {
+            var definition = new ConfigDefinition(section, key);
+            var saved = config.Bind(definition, "None", new ConfigDescription(description)).Value;
+            config.Remove(definition);
+            var entry = config.Bind(definition, "None", new ConfigDescription(description, new AcceptableValueList<string>(choices.ToArray())));
+            if (choices.Contains(saved))
+            {
+                entry.Value = saved;
+            }
+            else
+            {
+                var match = Regex.Match(saved ?? "", @"(?:^|\()\d+: ([^()]+)\)?$");
+                if (match.Success && internalNameToChoice.TryGetValue(match.Groups[1].Value, out var choice) && choices.Contains(choice))
+                {
+                    entry.Value = choice;
+                }
+            }
+            return entry;
         }
     }
 }
