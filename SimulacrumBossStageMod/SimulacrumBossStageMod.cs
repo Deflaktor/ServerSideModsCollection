@@ -51,8 +51,6 @@ namespace SimulacrumBossStageMod
         public static CombatDirector.EliteTierDef poisonEliteTier;
         private readonly HashSet<ArtifactDef> artifactsEnabledByMod = new HashSet<ArtifactDef>();
 
-        public BossEnum debug_enemyTypeToSpawn = BossEnum.None;
-        public EliteEnum debug_eliteTypeToSpawn = EliteEnum.None;
 
         public void Awake()
         {
@@ -291,6 +289,22 @@ namespace SimulacrumBossStageMod
             orig(self, waveIndex, enemyInventory, spawnTarget);
         }
 
+#if DEBUG
+        // advancing the wave and spawning a boss as an elite are DebugToolkit's next_wave and spawn_ai
+        [ConCommand(commandName = "sbsm_move_safe_ward", flags = ConVarFlags.ExecuteOnServer, helpText = "Moves Simulacrum's safe ward to a new place. Debug builds only.")]
+        private static void CCMoveSafeWard(ConCommandArgs args)
+        {
+            if (Run.instance is InfiniteTowerRun infiniteTowerRun)
+            {
+                infiniteTowerRun.MoveSafeWard();
+            }
+            else
+            {
+                Debug.Log("Not in a Simulacrum run.");
+            }
+        }
+#endif
+
         private bool IsBossStageStarted(int waveIndex)
         {
             return waveIndex > BepConfig.BossStageStartWave.Value && !bossStageCompleted && BepConfig.Enabled.Value;
@@ -300,50 +314,6 @@ namespace SimulacrumBossStageMod
             orig(self);
             if (!NetworkServer.active)
                 return;
-#if DEBUG
-            if (Input.GetKeyDown(KeyCode.F2))
-            {
-                Log.LogDebug($"Player pressed F2. Advancing to next wave");
-                self.AdvanceWave();
-            }
-            if(Input.GetKeyDown(KeyCode.F12))
-            {
-                Log.LogDebug($"Player pressed F12. Moving safe ward");
-                self.MoveSafeWard();
-            }
-            if (Input.GetKeyDown(KeyCode.F7))
-            {
-                debug_enemyTypeToSpawn = DecrementEnumValue(debug_enemyTypeToSpawn);
-                Log.LogDebug($"Player pressed F7. Selected enemy: " + debug_enemyTypeToSpawn.ToString() + " (" + ((int)debug_enemyTypeToSpawn) + ")");
-            }
-            if (Input.GetKeyDown(KeyCode.F8))
-            {
-                debug_enemyTypeToSpawn = IncrementEnumValue(debug_enemyTypeToSpawn);
-                Log.LogDebug($"Player pressed F8. Selected enemy: " + debug_enemyTypeToSpawn.ToString() + " (" + ((int)debug_enemyTypeToSpawn) + ")");
-            }
-            if (Input.GetKeyDown(KeyCode.F9))
-            {
-                Log.LogDebug($"Player pressed F9. Spawning! " + debug_enemyTypeToSpawn.ToString() + " (" + ((int)debug_enemyTypeToSpawn) + ") as: " + debug_eliteTypeToSpawn.ToString() + " (" + ((int)debug_eliteTypeToSpawn) + ")");
-                EliteDef eliteDef = null;
-                if (debug_eliteTypeToSpawn != EliteEnum.None)
-                {
-                    eliteDef = EliteDefs[debug_eliteTypeToSpawn];
-                }
-                if (debug_enemyTypeToSpawn != BossEnum.None) { 
-                    self.waveController.combatDirector.Spawn(Addressables.LoadAssetAsync<CharacterSpawnCard>(BossNames[debug_enemyTypeToSpawn]).WaitForCompletion(), eliteDef, self.waveController.spawnTarget.transform, DirectorCore.MonsterSpawnDistance.Far, false); 
-                }
-            }
-            if (Input.GetKeyDown(KeyCode.F10))
-            {
-                debug_eliteTypeToSpawn = DecrementEnumValue(debug_eliteTypeToSpawn);
-                Log.LogDebug($"Player pressed F10. Selected elite: " + debug_eliteTypeToSpawn.ToString() + " (" + ((int)debug_eliteTypeToSpawn) + ")");
-            }
-            if (Input.GetKeyDown(KeyCode.F11))
-            {
-                debug_eliteTypeToSpawn = IncrementEnumValue(debug_eliteTypeToSpawn);
-                Log.LogDebug($"Player pressed F11. Selected elite: " + debug_eliteTypeToSpawn.ToString() + " (" + ((int)debug_eliteTypeToSpawn) + ")");
-            }
-#endif
             if (!BepConfig.Enabled.Value)
                 return;
 

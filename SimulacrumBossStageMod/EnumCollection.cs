@@ -10,40 +10,6 @@ namespace SimulacrumBossStageMod
 {
     public class EnumCollection
     {
-        public static T DecrementEnumValue<T>(T value) where T : struct, IConvertible
-        {
-            if (!typeof(T).IsEnum)
-            {
-                throw new ArgumentException("T must be an enumerated type");
-            }
-            // Get the total number of enum values
-            int enumCount = Enum.GetValues(typeof(T)).Length;
-
-            // Calculate the previous enum value and wrap around if necessary
-            int previousValue = ((int)(object)value - 1 + enumCount) % enumCount;
-
-            // Cast the integer back to enum type and return
-            return (T)(object)previousValue;
-        }
-
-        public static T IncrementEnumValue<T>(T value) where T : struct, IConvertible
-        {
-            if (!typeof(T).IsEnum)
-            {
-                throw new ArgumentException("T must be an enumerated type");
-            }
-
-            // Get the total number of enum values
-            int enumCount = Enum.GetValues(typeof(T)).Length;
-
-            // Calculate the next enum value and wrap around if necessary
-            int nextValue = ((int)(object)value + 1) % enumCount;
-
-            // Cast the integer back to enum type and return
-            return (T)(object)nextValue;
-        }
-
-
         public enum BossEnum
         {
             None,
