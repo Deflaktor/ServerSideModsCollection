@@ -21,3 +21,4 @@ A small list of server-side configurable tweaks.
 - Set the most enemies at once and how long a wave lasts.
 - The Void Crab can get faster with every wave.
 - While a wave has no enemies alive, the next ones come sooner.
+- Captains get their beacons back after each boss wave.

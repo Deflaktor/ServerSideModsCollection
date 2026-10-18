@@ -86,6 +86,7 @@ namespace ServerSideTweaks
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus += RandomlyLunarUtils_CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus;
             On.RoR2.InfiniteTowerWaveController.Initialize                       += InfiniteTowerWaveController_Initialize;
             On.RoR2.InfiniteTowerWaveController.FixedUpdate                      += InfiniteTowerWaveController_FixedUpdate;
+            On.RoR2.InfiniteTowerWaveController.OnAllEnemiesDefeatedServer       += InfiniteTowerWaveController_OnAllEnemiesDefeatedServer;
             
             On.RoR2.ChildMonsterController.RegisterTeleport += ChildMonsterController_RegisterTeleport;
             On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.OnServerCardSpawnedGlobal += MonsterTeamGainsItemsArtifactManager_OnServerCardSpawnedGlobal;
@@ -147,6 +148,7 @@ namespace ServerSideTweaks
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray -= RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
             On.RoR2.InfiniteTowerWaveController.Initialize                       -= InfiniteTowerWaveController_Initialize;
             On.RoR2.InfiniteTowerWaveController.FixedUpdate                      -= InfiniteTowerWaveController_FixedUpdate;
+            On.RoR2.InfiniteTowerWaveController.OnAllEnemiesDefeatedServer       -= InfiniteTowerWaveController_OnAllEnemiesDefeatedServer;
 
             On.RoR2.ChildMonsterController.RegisterTeleport -= ChildMonsterController_RegisterTeleport;
             On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.OnServerCardSpawnedGlobal -= MonsterTeamGainsItemsArtifactManager_OnServerCardSpawnedGlobal;
@@ -216,6 +218,26 @@ namespace ServerSideTweaks
             finally
             {
                 self.creditsPerSecond = creditsPerSecond;
+            }
+        }
+
+        // The beacons only come back with a new body, as at the start of a stage, and the Captain's client keeps their
+        // stock. So a Captain whose beacon is used up, which the synced skill mask tells, is respawned in place.
+        private void InfiniteTowerWaveController_OnAllEnemiesDefeatedServer(On.RoR2.InfiniteTowerWaveController.orig_OnAllEnemiesDefeatedServer orig, InfiniteTowerWaveController self)
+        {
+            orig(self);
+            if (!NetworkServer.active || !BepConfig.Enabled.Value || !BepConfig.SimulacrumCaptainBeaconsAfterBossWave.Value || !self.isBossWave)
+            {
+                return;
+            }
+            foreach (var pc in PlayerCharacterMasterController.instances)
+            {
+                var master = pc.master;
+                var body = master != null ? master.GetBody() : null;
+                if (body != null && body.healthComponent.alive && body.TryGetComponent(out CaptainSupplyDropController supplyDrop) && supplyDrop.netEnabledSkillsMask != 3)
+                {
+                    master.Respawn(body.transform.position, body.transform.rotation);
+                }
             }
         }
 
