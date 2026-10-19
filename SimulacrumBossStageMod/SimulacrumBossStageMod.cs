@@ -166,9 +166,13 @@ namespace SimulacrumBossStageMod
                     canSelectWithoutAvailableEliteDef = false
                 };
             }
+            // The director picks the last tier in the list that it can afford, so the tier goes before the first one that
+            // costs more, e.g. Tier 2 after the first loop. At the end, it would be picked instead of those.
             if (!CombatDirector.eliteTiers.Contains(poisonEliteTier)) {
-                Array.Resize(ref CombatDirector.eliteTiers, CombatDirector.eliteTiers.Length + 1);
-                CombatDirector.eliteTiers[CombatDirector.eliteTiers.Length - 1] = poisonEliteTier;
+                var tiers = CombatDirector.eliteTiers.ToList();
+                var index = tiers.FindIndex(1, tier => tier != null && tier.costMultiplier > poisonEliteTier.costMultiplier);
+                tiers.Insert(index < 0 ? tiers.Count : index, poisonEliteTier);
+                CombatDirector.eliteTiers = tiers.ToArray();
             }
 
             if (ModCompatibilityServerSideTweaks.enabled)
