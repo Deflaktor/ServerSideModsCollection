@@ -31,6 +31,7 @@ namespace ServerSideTweaks
         public static ConfigEntry<bool> SimulacrumFastVoidCrab;
         public static ConfigEntry<float> SimulacrumEmptyWaveDirectorSpeedup;
         public static ConfigEntry<bool> SimulacrumCaptainBeaconsAfterBossWave;
+        public static ConfigEntry<bool> SimulacrumAllowDrones;
         // classic tweaks
         public static ConfigEntry<float> ClassicDirectorEnemyPowerBias;
 
@@ -62,6 +63,7 @@ namespace ServerSideTweaks
                 SimulacrumFastVoidCrab = config.Bind("Simulacrum", "Void Crab picks up speed", false, new ConfigDescription("Makes the Void Crab faster the more waves you complete."));
                 SimulacrumEmptyWaveDirectorSpeedup = config.Bind("Simulacrum", "Director: Speed-up without enemies", 3f, new ConfigDescription("While no enemy of the wave is alive, the director earns its credits this many times faster, so the next enemies come sooner. (1.0 = vanilla)."));
                 SimulacrumCaptainBeaconsAfterBossWave = config.Bind("Simulacrum", "Captain: Beacons after boss waves", true, new ConfigDescription("Gives Captains their beacons back after each boss wave. A Captain who used a beacon is respawned in place, since only a new body gets them back, which also restores their health."));
+                SimulacrumAllowDrones = config.Bind("Simulacrum", "Allow drones", false, new ConfigDescription("Lets broken drones appear on Simulacrum's stages, as on normal stages, to repair with gold."));
             }
             // --- Classic Run ---
             {

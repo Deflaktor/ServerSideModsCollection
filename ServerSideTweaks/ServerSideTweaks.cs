@@ -87,6 +87,7 @@ namespace ServerSideTweaks
             On.RoR2.InfiniteTowerWaveController.Initialize                       += InfiniteTowerWaveController_Initialize;
             On.RoR2.InfiniteTowerWaveController.FixedUpdate                      += InfiniteTowerWaveController_FixedUpdate;
             On.RoR2.InfiniteTowerWaveController.OnAllEnemiesDefeatedServer       += InfiniteTowerWaveController_OnAllEnemiesDefeatedServer;
+            On.RoR2.SceneDirector.GenerateInteractableCardSelection              += SceneDirector_GenerateInteractableCardSelection;
             
             On.RoR2.ChildMonsterController.RegisterTeleport += ChildMonsterController_RegisterTeleport;
             On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.OnServerCardSpawnedGlobal += MonsterTeamGainsItemsArtifactManager_OnServerCardSpawnedGlobal;
@@ -149,6 +150,7 @@ namespace ServerSideTweaks
             On.RoR2.InfiniteTowerWaveController.Initialize                       -= InfiniteTowerWaveController_Initialize;
             On.RoR2.InfiniteTowerWaveController.FixedUpdate                      -= InfiniteTowerWaveController_FixedUpdate;
             On.RoR2.InfiniteTowerWaveController.OnAllEnemiesDefeatedServer       -= InfiniteTowerWaveController_OnAllEnemiesDefeatedServer;
+            On.RoR2.SceneDirector.GenerateInteractableCardSelection              -= SceneDirector_GenerateInteractableCardSelection;
 
             On.RoR2.ChildMonsterController.RegisterTeleport -= ChildMonsterController_RegisterTeleport;
             On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.OnServerCardSpawnedGlobal -= MonsterTeamGainsItemsArtifactManager_OnServerCardSpawnedGlobal;
@@ -239,6 +241,38 @@ namespace ServerSideTweaks
                     master.Respawn(body.transform.position, body.transform.rotation);
                 }
             }
+        }
+
+        // how much of the interactables broken drones make up, about as much as on a normal stage
+        private const float SimulacrumDronesWeight = 14f;
+
+        // Simulacrum's own interactables have no drones, and other mods may remove those of the normal stages, e.g.
+        // SimulacrumNormalStages. So they're added to the finished selection, unless it has drones.
+        private WeightedSelection<DirectorCard> SceneDirector_GenerateInteractableCardSelection(On.RoR2.SceneDirector.orig_GenerateInteractableCardSelection orig, SceneDirector self)
+        {
+            var selection = orig(self);
+            if (!NetworkServer.active || !BepConfig.Enabled.Value || !BepConfig.SimulacrumAllowDrones.Value || !(Run.instance is InfiniteTowerRun) || selection == null)
+            {
+                return selection;
+            }
+            for (int i = 0; i < selection.Count; i++)
+            {
+                if (selection.GetChoice(i).value?.GetSpawnCard() is InteractableSpawnCard spawnCard && spawnCard.skipSpawnWhenDevotionArtifactEnabled)
+                {
+                    return selection;
+                }
+            }
+            // the more common the drone, the more often it appears
+            var drones = DroneCatalog.allDroneDefs
+                .Where(droneDef => droneDef != null && droneDef.droneBrokenSpawnCard != null && droneDef.CheckRequiredExpansionEnabled())
+                .Select(droneDef => (droneDef.droneBrokenSpawnCard, weight: droneDef.tier == ItemTier.Tier1 ? 4f : droneDef.tier == ItemTier.Tier2 ? 2f : 1f))
+                .ToList();
+            var totalWeight = drones.Sum(drone => drone.weight);
+            foreach (var (spawnCard, weight) in drones)
+            {
+                selection.AddChoice(new DirectorCard { spawnCard = spawnCard, selectionWeight = 1 }, SimulacrumDronesWeight * weight / totalWeight);
+            }
+            return selection;
         }
 
         private void Run_Start(On.RoR2.Run.orig_Start orig, Run self)

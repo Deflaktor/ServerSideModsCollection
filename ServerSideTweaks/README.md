@@ -22,3 +22,4 @@ A small list of server-side configurable tweaks.
 - The Void Crab can get faster with every wave.
 - While a wave has no enemies alive, the next ones come sooner.
 - Captains get their beacons back after each boss wave.
+- Broken drones can appear, as on normal stages.
