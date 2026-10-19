@@ -38,6 +38,7 @@ namespace SimulacrumNormalStages
         private static bool pickingStartingStage = false;
 
         public AsyncOperationHandle<SpawnCard> iscShopPortal;
+        public AsyncOperationHandle<SpawnCard> iscHallowedShrine;
         //public static SceneDef arena = Addressables.LoadAssetAsync<SceneDef>(key: "RoR2/Base/arena/arena.asset").WaitForCompletion();
         //public static SceneDef voidStage = Addressables.LoadAssetAsync<SceneDef>(key: "RoR2/DLC1/voidstage/voidstage.asset").WaitForCompletion();
         public void Awake()
@@ -48,6 +49,7 @@ namespace SimulacrumNormalStages
             BepConfig.Init();
 
             iscShopPortal = Addressables.LoadAssetAsync<SpawnCard>("RoR2/Base/PortalShop/iscShopPortal.asset");
+            iscHallowedShrine = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC4/iscHallowedShrine.asset");
         }
         private void OnEnable()
         {
@@ -181,7 +183,33 @@ namespace SimulacrumNormalStages
                     }
                 }
                 gameObjectsToDestroy.ForEach(GameObject.Destroy);
+                PlaceHallowedShrine();
             }
+        }
+
+        // Lets other mods leave out the Hallowed Shrine on a stage, e.g. SimulacrumBossStageMod on its boss stage, which
+        // places its own.
+        public static Func<bool> skipHallowedShrine;
+
+        // near the safe ward, around which the players spawn
+        private void PlaceHallowedShrine()
+        {
+            if (!NetworkServer.active || !BepConfig.Enabled.Value || !BepConfig.PlaceHallowedShrine.Value || IsCurrentMapInBazaar()
+                || (skipHallowedShrine != null && skipHallowedShrine())
+                || DLC4Content.DLC4 == null || !Run.instance.IsExpansionEnabled(DLC4Content.DLC4)
+                || !(Run.instance is InfiniteTowerRun infiniteTowerRun) || infiniteTowerRun.safeWardController == null)
+            {
+                return;
+            }
+            var safeWard = infiniteTowerRun.safeWardController.transform;
+            DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(iscHallowedShrine.WaitForCompletion(), new DirectorPlacementRule
+            {
+                minDistance = 10f,
+                maxDistance = 40f,
+                placementMode = DirectorPlacementRule.PlacementMode.Approximate,
+                position = safeWard.position,
+                spawnOnTarget = safeWard
+            }, Run.instance.stageRng));
         }
 
 
@@ -679,7 +707,8 @@ namespace SimulacrumNormalStages
 
         public static System.Predicate<DirectorCard> trimmer = new System.Predicate<DirectorCard>(SimulacrumTrimmer);
         // Hallowed Concepts' interactables that give Hexes or Hallowed items, by their spawn cards: the Concept Reliquary,
-        // the Hallowed Shrines and the shrines that offer a Hallowed item.
+        // the Hallowed Shrines and the shrines that offer a Hallowed item. The setting Place Hallowed Shrine places one
+        // directly instead.
         private static readonly HashSet<string> HexInteractables = new HashSet<string>
         {
             "iscHollowChest", "iscHallowedShrine", "iscBetterHallowedShrine", "iscShrineCompulsion", "iscShrineCompulsionRare"
