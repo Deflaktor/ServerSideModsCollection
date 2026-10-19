@@ -38,6 +38,26 @@ namespace SimulacrumBossStageMod
         public const string PluginVersion = "1.3.2";
 
         public AsyncOperationHandle<SpawnCard> iscVoidPortal;
+        // the printers that can be placed at the portal to the boss stage, with how likely each is
+        private static readonly (string address, float weight)[] PortalPrinters =
+        {
+            ("RoR2/Base/Duplicator/iscDuplicator.asset", 6f),
+            ("RoR2/Base/DuplicatorLarge/iscDuplicatorLarge.asset", 3f),
+            ("RoR2/Base/DuplicatorMilitary/iscDuplicatorMilitary.asset", 1f),
+            ("RoR2/Base/DuplicatorWild/iscDuplicatorWild.asset", 1f),
+        };
+        private static readonly string[] PortalCauldrons =
+        {
+            "RoR2/Base/LunarCauldrons/LunarCauldron, WhiteToGreen.prefab",
+            "RoR2/Base/LunarCauldrons/LunarCauldron, GreenToRed Variant.prefab",
+            "RoR2/Base/LunarCauldrons/LunarCauldron, RedToWhite Variant.prefab",
+        };
+        private const int PortalCauldronCount = 2;
+        private static AsyncOperationHandle<SpawnCard> iscHallowedShrine;
+        // the cauldrons have no spawn cards of their own, only the Bazaar's placed ones
+        private static readonly Dictionary<string, InteractableSpawnCard> cauldronSpawnCards = new Dictionary<string, InteractableSpawnCard>();
+        // whether the portal being spawned leads to the boss stage
+        private static bool spawningBossStagePortal;
         // gives the boss stage's boss a boss health bar
         private AsyncOperationHandle<GameObject> bossCombatSquadPrefab;
         private GameObject bossSquad;
@@ -61,8 +81,14 @@ namespace SimulacrumBossStageMod
             instance = this;
             Log.Init(Logger);
             BepConfig.Init();
+            // the boss stage gets its own Hallowed Shrine, with only the Hand of Life, at the portal there
+            if (ModCompatibilitySimulacrumNormalStages.enabled)
+            {
+                ModCompatibilitySimulacrumNormalStages.SetSkipHallowedShrine(IsBossStage);
+            }
 
             iscVoidPortal = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC1/PortalVoid/iscVoidPortal.asset");
+            iscHallowedShrine = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC4/iscHallowedShrine.asset");
             bossCombatSquadPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab");
             iscVoidOutroPortal = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC1/VoidOutroPortal/iscVoidOutroPortal.asset");
             edBead = Addressables.LoadAssetAsync<EliteDef>(key: "RoR2/DLC2/Elites/EliteBead/edBead.asset");
@@ -228,6 +254,7 @@ namespace SimulacrumBossStageMod
             c.Remove();
             c.EmitDelegate<Func<InfiniteTowerRun, SpawnCard>>((self) =>
             {
+                spawningBossStagePortal = false;
                 if (!BepConfig.Enabled.Value)
                     return self.stageTransitionPortalCard;
                 if (BepConfig.BossStage.Value == StageEnum.None)
@@ -238,6 +265,7 @@ namespace SimulacrumBossStageMod
                     return self.stageTransitionPortalCard;
                 // increase the max spawn distance from 30f to 45f to attempt to fix issues with the portal not spawning
                 self.stageTransitionPortalMaxDistance = 45f;
+                spawningBossStagePortal = true;
                 return iscVoidPortal.WaitForCompletion();
             });
 
@@ -253,7 +281,72 @@ namespace SimulacrumBossStageMod
                 {
                     sceneExitController.useRunNextStageScene = true;
                 }
+                if (portal && spawningBossStagePortal && BepConfig.BossStagePortalShop.Value)
+                {
+                    PlacePortalShop(portal.transform);
+                }
+                spawningBossStagePortal = false;
             });
+        }
+
+        // a random printer and different random cauldrons
+        private static void PlacePortalShop(Transform portal)
+        {
+            var selection = new WeightedSelection<string>();
+            foreach (var (address, weight) in PortalPrinters)
+            {
+                selection.AddChoice(address, weight);
+            }
+            PlaceNearPortal(Addressables.LoadAssetAsync<SpawnCard>(selection.Evaluate(Run.instance.stageRng.nextNormalizedFloat)).WaitForCompletion(), portal);
+            foreach (var address in PortalCauldrons.OrderBy(_ => Run.instance.stageRng.nextNormalizedFloat).Take(PortalCauldronCount))
+            {
+                PlaceNearPortal(GetCauldronSpawnCard(address), portal);
+            }
+            if (DLC4Content.DLC4 != null && Run.instance.IsExpansionEnabled(DLC4Content.DLC4))
+            {
+                var shrine = PlaceNearPortal(iscHallowedShrine.WaitForCompletion(), portal);
+                // only the Hand of Life, which turns Hexes into Hallowed items: the shrine spawns its hands when it starts
+                if (shrine != null && shrine.TryGetComponent(out HallowingShrineSplitBase splitBase) && splitBase.NodePrefabsToSpawn != null)
+                {
+                    splitBase.NodePrefabsToSpawn = splitBase.NodePrefabsToSpawn.Where(node => node != null && node.name.Contains("Life")).ToArray();
+                }
+            }
+        }
+
+        private static InteractableSpawnCard GetCauldronSpawnCard(string address)
+        {
+            if (!cauldronSpawnCards.TryGetValue(address, out var spawnCard))
+            {
+                spawnCard = ScriptableObject.CreateInstance<InteractableSpawnCard>();
+                spawnCard.prefab = Addressables.LoadAssetAsync<GameObject>(address).WaitForCompletion();
+                spawnCard.sendOverNetwork = true;
+                spawnCard.hullSize = HullClassification.Golem;
+                spawnCard.nodeGraphType = RoR2.Navigation.MapNodeGroup.GraphType.Ground;
+                spawnCard.occupyPosition = true;
+                spawnCard.orientToFloor = true;
+                cauldronSpawnCards[address] = spawnCard;
+            }
+            return spawnCard;
+        }
+
+        private static GameObject PlaceNearPortal(SpawnCard spawnCard, Transform portal)
+        {
+            // clear of the portal, so that nothing blocks it or is entered by accident
+            return DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(spawnCard, new DirectorPlacementRule
+            {
+                minDistance = 15f,
+                maxDistance = 40f,
+                placementMode = DirectorPlacementRule.PlacementMode.Approximate,
+                position = portal.position,
+                spawnOnTarget = portal
+            }, Run.instance.stageRng));
+        }
+
+        // whether the current stage is the boss stage
+        private static bool IsBossStage()
+        {
+            return Run.instance is InfiniteTowerRun && BepConfig.Enabled.Value && BepConfig.BossStage.Value != StageEnum.None
+                && SceneCatalog.currentSceneDef != null && SceneCatalog.currentSceneDef == FindSceneDef(BepConfig.BossStage.Value);
         }
 
         private static bool checkEliteAvailable(SpawnCard.EliteRules rules)

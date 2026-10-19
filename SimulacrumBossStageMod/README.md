@@ -10,6 +10,7 @@
 - These waves are harder, Malachite elites appear, and artifacts turn on: Dissonance for waves 41 to 45, Honor for the boss waves.
 - Voidling appears in the final wave.
 - Beating it rewards 100 Lunar Coins and ends the run.
+- Optionally, a random printer, two random Lunar Cauldrons and a Hallowed Shrine with only the Hand of Life appear next to the portal to Void Locus.
 
 Everything is configurable, also with [InLobbyConfig](https://thunderstore.io/package/KingEnderBrine/InLobbyConfig/). Works with [ProperSave](https://thunderstore.io/c/riskofrain2/p/KingEnderBrine/ProperSave/).
 
