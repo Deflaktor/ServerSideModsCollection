@@ -286,6 +286,12 @@ namespace SimulacrumBossStageMod
                     self.wavePeriodSeconds *= 2.5f;
                 }
             }
+            // A final boss wave raises the power bias, which goes back at the wave's end only if all its enemies are
+            // defeated; it may end otherwise, e.g. when its time runs out. Its own Initialize raises it again after this.
+            if (NetworkServer.active && ModCompatibilityServerSideTweaks.enabled)
+            {
+                ModCompatibilityServerSideTweaks.ResetOverridePowerBias();
+            }
             orig(self, waveIndex, enemyInventory, spawnTarget);
         }
 
