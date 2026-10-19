@@ -38,6 +38,9 @@ namespace SimulacrumBossStageMod
         public const string PluginVersion = "1.3.2";
 
         public AsyncOperationHandle<SpawnCard> iscVoidPortal;
+        // gives the boss stage's boss a boss health bar
+        private AsyncOperationHandle<GameObject> bossCombatSquadPrefab;
+        private GameObject bossSquad;
         public AsyncOperationHandle<SpawnCard> iscVoidOutroPortal;
         public AsyncOperationHandle<CharacterSpawnCard> bossSpawnCard;
         private BossEnum loadedBoss = BossEnum.None;
@@ -60,6 +63,7 @@ namespace SimulacrumBossStageMod
             BepConfig.Init();
 
             iscVoidPortal = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC1/PortalVoid/iscVoidPortal.asset");
+            bossCombatSquadPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab");
             iscVoidOutroPortal = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC1/VoidOutroPortal/iscVoidOutroPortal.asset");
             edBead = Addressables.LoadAssetAsync<EliteDef>(key: "RoR2/DLC2/Elites/EliteBead/edBead.asset");
             RegisterSaveData();
@@ -151,6 +155,7 @@ namespace SimulacrumBossStageMod
             bonusCounter = 0;
             nextBonusTime = 0f;
             bossSpawned.Clear();
+            RemoveBossSquad();
             bossStageCompleted = false;
             nextStageBeforeBoss = null;
             zoneRadiusBoss = 1.0f;
@@ -346,7 +351,13 @@ namespace SimulacrumBossStageMod
                         self.waveController.combatDirector.Spawn(LoadBossSpawnCard().WaitForCompletion(), eliteDef, self.waveController.spawnTarget.transform, DirectorCore.MonsterSpawnDistance.Far, false);
                     }
                     self.waveController.combatDirector.onSpawnedWithDirectorServer.RemoveListener(bossSpawnedListener);
+                    ShowBossHealthBar();
                 }
+            }
+
+            if (bossSquad && bossSquad.GetComponent<CombatSquad>().memberCount == 0)
+            {
+                RemoveBossSquad();
             }
 
             if (!bossStageCompleted)
@@ -358,6 +369,7 @@ namespace SimulacrumBossStageMod
 
             zoneRadiusBoss = 1f;
             bossSpawned.Clear();
+            RemoveBossSquad();
             if (bonusCounter >= BepConfig.BossStageLunarCoinsReward.Value)
             {
                 nextBonusTime = 0f;
@@ -572,6 +584,40 @@ namespace SimulacrumBossStageMod
             {
                 wantedArtifacts.Add(GetArtifactDef(artifact));
             }
+        }
+
+        // The boss also belongs to a boss squad, as at a teleporter, which shows its health bar to every player. The wave
+        // still counts it as one of its monsters. The squad drops no extra item.
+        private void ShowBossHealthBar()
+        {
+            if (bossSpawned.Count == 0)
+            {
+                return;
+            }
+            RemoveBossSquad();
+            bossSquad = UnityEngine.Object.Instantiate(bossCombatSquadPrefab.WaitForCompletion());
+            bossSquad.GetComponent<BossGroup>().dropPosition = null;
+            // never defeated, which would count as a teleporter boss, e.g. for ReadyUp's vote; it's removed instead
+            // once the boss is dead
+            bossSquad.GetComponent<CombatSquad>().delayDefeat = true;
+            NetworkServer.Spawn(bossSquad);
+            var combatSquad = bossSquad.GetComponent<CombatSquad>();
+            foreach (var boss in bossSpawned)
+            {
+                if (boss && boss.TryGetComponent(out CharacterMaster master))
+                {
+                    combatSquad.AddMember(master);
+                }
+            }
+        }
+
+        private void RemoveBossSquad()
+        {
+            if (bossSquad)
+            {
+                UnityEngine.Object.Destroy(bossSquad);
+            }
+            bossSquad = null;
         }
 
         private void FogDamageController_EvaluateTeam(On.RoR2.FogDamageController.orig_EvaluateTeam orig, FogDamageController self, TeamIndex teamIndex)
