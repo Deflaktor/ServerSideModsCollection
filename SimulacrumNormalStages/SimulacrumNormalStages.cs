@@ -706,12 +706,17 @@ namespace SimulacrumNormalStages
         }
 
         public static System.Predicate<DirectorCard> trimmer = new System.Predicate<DirectorCard>(SimulacrumTrimmer);
-        // Hallowed Concepts' interactables that give Hexes or Hallowed items, by their spawn cards: the Concept Reliquary,
-        // the Hallowed Shrines and the shrines that offer a Hallowed item. The setting Place Hallowed Shrine places one
-        // directly instead.
-        private static readonly HashSet<string> HexInteractables = new HashSet<string>
+        // Hallowed Concepts' interactables, by their spawn cards, which all stay out of Simulacrum's stages but the Concept
+        // Reliquary. The setting Place Hallowed Shrine places one directly instead.
+        private const string ConceptReliquary = "iscHollowChest";
+        private static readonly HashSet<string> HallowedConceptsInteractables = new HashSet<string>
         {
-            "iscHollowChest", "iscHallowedShrine", "iscBetterHallowedShrine", "iscShrineCompulsion", "iscShrineCompulsionRare"
+            "iscChampRushExitPortal", "iscChampRushPortal", "iscShrineCatastrophe", "iscShrineCombatPoison", "iscBetterHallowedShrine",
+            "iscHallowedShrine", "iscShrineCompulsion", "iscShrineCompulsionRare", "iscChest1StealthedQuest", "iscHauntedVendingMachine",
+            "iscShrineRestackQuest", "iscShrineDeath", "iscShrineDread", "iscChest1SadObjective", "iscTrialCategoryChest2Damage",
+            "iscTrialCategoryChestDamage", "iscTrialTripleShop", "iscTrialTripleShopLarge", "iscTrialPortalEntry", "iscTrialPortalEntryDanger",
+            "iscTrialPortalExit", "iscWakeGrave", "iscWakeGrave_Turret", "iscPeaceFlower", "iscSignalFlare", "iscWake", "iscWakePage",
+            "iscWakeStop", "iscWarpGate", "iscChestCamp"
         };
         public static bool SimulacrumTrimmer(DirectorCard card)
         {
@@ -727,7 +732,10 @@ namespace SimulacrumNormalStages
                 //Skip Drones only if Devo not active
                 return false;
             }
-            if (HexInteractables.Contains(spawnCard.name))
+            // also those the list misses, by the expansion they need
+            var expansion = prefab.GetComponent<RoR2.ExpansionManagement.ExpansionRequirementComponent>();
+            if (spawnCard.name != ConceptReliquary && (HallowedConceptsInteractables.Contains(spawnCard.name)
+                || (expansion != null && expansion.requiredExpansion != null && expansion.requiredExpansion == DLC4Content.DLC4)))
             {
                 return false;
             }
