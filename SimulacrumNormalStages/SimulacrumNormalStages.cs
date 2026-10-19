@@ -678,6 +678,12 @@ namespace SimulacrumNormalStages
         }
 
         public static System.Predicate<DirectorCard> trimmer = new System.Predicate<DirectorCard>(SimulacrumTrimmer);
+        // Hallowed Concepts' interactables that give Hexes or Hallowed items, by their spawn cards: the Concept Reliquary,
+        // the Hallowed Shrines and the shrines that offer a Hallowed item.
+        private static readonly HashSet<string> HexInteractables = new HashSet<string>
+        {
+            "iscHollowChest", "iscHallowedShrine", "iscBetterHallowedShrine", "iscShrineCompulsion", "iscShrineCompulsionRare"
+        };
         public static bool SimulacrumTrimmer(DirectorCard card)
         {
             SpawnCard spawnCard = card.GetSpawnCard();
@@ -690,6 +696,10 @@ namespace SimulacrumNormalStages
             if (spawnCard is InteractableSpawnCard interactableSpawnCard && interactableSpawnCard.skipSpawnWhenDevotionArtifactEnabled && !RunArtifactManager.instance.IsArtifactEnabled(CU8Content.Artifacts.Devotion))
             {
                 //Skip Drones only if Devo not active
+                return false;
+            }
+            if (HexInteractables.Contains(spawnCard.name))
+            {
                 return false;
             }
             return !(prefab.GetComponent<ShrineCombatBehavior>() | prefab.GetComponent<HalcyoniteShrineInteractable>() | prefab.GetComponent<OutsideInteractableLocker>() | prefab.GetComponent<ShrineBossBehavior>() | prefab.GetComponent<SeerStationController>() | prefab.GetComponent<PortalStatueBehavior>());
