@@ -71,6 +71,7 @@ namespace SimulacrumNormalStages
             SceneDirector.onGenerateInteractableCardSelection += AddAndRemoveInteractables;
             On.RoR2.DirectorCard.IsAvailable                  += Allow_Earlier_Spawns;
             On.RoR2.SceneDirector.Start                       += DoReality;
+            On.RoR2.CombatDirector.OnEnable                   += CombatDirector_OnEnable;
             On.RoR2.Run.PickNextStageScene                    += ChooseRealityStages;
             On.RoR2.Run.Start                                 += Run_Start;
             On.RoR2.ArenaMissionController.OnStartServer      += ArenaMissionController_OnStartServer;
@@ -97,6 +98,7 @@ namespace SimulacrumNormalStages
             SceneDirector.onGenerateInteractableCardSelection -= AddAndRemoveInteractables;
             On.RoR2.DirectorCard.IsAvailable                  -= Allow_Earlier_Spawns;
             On.RoR2.SceneDirector.Start                       -= DoReality;
+            On.RoR2.CombatDirector.OnEnable                   -= CombatDirector_OnEnable;
             On.RoR2.Run.PickNextStageScene                    -= ChooseRealityStages;
             On.RoR2.Run.Start                                 -= Run_Start;
             On.RoR2.ArenaMissionController.OnStartServer      -= ArenaMissionController_OnStartServer;
@@ -486,6 +488,17 @@ namespace SimulacrumNormalStages
             finally
             {
                 pickingStartingStage = false;
+            }
+        }
+
+        // Only the waves spawn monsters. Besides the scene director's own combat directors, some stages have others, or
+        // turn one on later, e.g. for a mission, which would spawn monsters next to the waves.
+        private static void CombatDirector_OnEnable(On.RoR2.CombatDirector.orig_OnEnable orig, CombatDirector self)
+        {
+            orig(self);
+            if (NetworkServer.active && BepConfig.Enabled.Value && Run.instance is InfiniteTowerRun && self.GetComponentInParent<InfiniteTowerWaveController>() == null)
+            {
+                self.enabled = false;
             }
         }
 
