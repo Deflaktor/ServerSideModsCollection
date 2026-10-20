@@ -1,6 +1,7 @@
 using BepInEx;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using R2API;
 using R2API.Utils;
 using RoR2;
@@ -80,7 +81,10 @@ namespace ServerSideTweaks
             On.RoR2.Run.Start                                                    += Run_Start;
             On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer              += InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
             On.RoR2.InfiniteTowerRun.AdvanceWave                                 += InfiniteTowerRun_AdvanceWave;
-            IL.RoR2.CombatDirector.AttemptSpawnOnTarget                          += CombatDirector_AttemptSpawnOnTarget;
+            // a private property, for which there is no generated hook
+            finalMonsterCardsSelectionHook = new Hook(typeof(CombatDirector).GetProperty("finalMonsterCardsSelection", BindingFlags.Instance | BindingFlags.NonPublic).GetGetMethod(true),
+                typeof(ServerSideTweaks).GetMethod(nameof(CombatDirector_get_finalMonsterCardsSelection), BindingFlags.Static | BindingFlags.NonPublic));
+            On.RoR2.CombatDirector.Awake                                         += CombatDirector_Awake;
 
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray += RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus += RandomlyLunarUtils_CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus;
@@ -143,7 +147,9 @@ namespace ServerSideTweaks
             On.RoR2.Run.Start                                                    -= Run_Start;
             On.RoR2.InfiniteTowerRun.OnWaveAllEnemiesDefeatedServer              -= InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer;
             On.RoR2.InfiniteTowerRun.AdvanceWave                                 -= InfiniteTowerRun_AdvanceWave;
-            IL.RoR2.CombatDirector.AttemptSpawnOnTarget                          -= CombatDirector_AttemptSpawnOnTarget;
+            finalMonsterCardsSelectionHook?.Dispose();
+            finalMonsterCardsSelectionHook = null;
+            On.RoR2.CombatDirector.Awake                                         -= CombatDirector_Awake;
 
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus -= RandomlyLunarUtils_CheckForLunarReplacement_UniquePickup_Xoroshiro128Plus;
             On.RoR2.Items.RandomlyLunarUtils.CheckForLunarReplacementUniqueArray -= RandomlyLunarUtils_CheckForLunarReplacementUniqueArray;
@@ -328,85 +334,76 @@ namespace ServerSideTweaks
         }
 #endif
 
-        private bool SkipWithPowerBias(float costMultipliedByMaximumNumberToSpawnBeforeSkipping, CombatDirector combatDirector, float powerBias)
-        {
-            float cost = costMultipliedByMaximumNumberToSpawnBeforeSkipping / combatDirector.maximumNumberToSpawnBeforeSkipping;
-            // bias < 0.5f: we want to skip when enemies are too expensive
-            if (cost > combatDirector.mostExpensiveMonsterCostInDeck * (0.5f + powerBias) * (0.5f + powerBias) * (0.5f + powerBias))
-            {
-                // but only sometimes
-                float safetyMargin = Math.Max(0f, 0.1f - powerBias);
-                if (2f * (0.5f - powerBias) - safetyMargin > RoR2Application.rng.nextNormalizedFloat)
-                    return true;
-            }
-            // bias > 0.5f: we want to skip more often when enemies are cheap
-            // bias < 0.5f: we want to skip less often when enemies are cheap
-            return costMultipliedByMaximumNumberToSpawnBeforeSkipping * (1.5f - powerBias) * (1.5f - powerBias) < combatDirector.monsterCredit;
-        }
-        private void CombatDirector_AttemptSpawnOnTarget(ILContext il)
-        {
-            ILCursor c = new ILCursor(il);
-            var label = c.DefineLabel();
-            // IL_017c: ldloc.1
-            // IL_017d: ldarg.0
-            // IL_017e: ldfld int32 RoR2.CombatDirector::maximumNumberToSpawnBeforeSkipping
-            // IL_0183: mul
-            // IL_0184: conv.r4
-            // IL_0185: ldarg.0
-            // IL_0186: ldfld float32 RoR2.CombatDirector::monsterCredit
-            c.GotoNext(
-            x => x.MatchLdloc(1),
-            x => x.MatchLdarg(0),
-            x => x.MatchLdfld<CombatDirector>("maximumNumberToSpawnBeforeSkipping"),
-            x => x.MatchMul(),
-            x => x.MatchConvR4(),
-            x => x.MatchLdarg(0),
-            x => x.MatchLdfld<CombatDirector>("monsterCredit")
-            );
-            c.Index += 6;
-            c.Remove();
-            c.Remove();
-            c.EmitDelegate<Func<float, CombatDirector, bool>>((costMultipliedByMaximumNumberToSpawnBeforeSkipping, combatDirector) =>
-            {
-                if(directorEnemyPowerBiasOverride >= 0)
-                {
-                    return SkipWithPowerBias(costMultipliedByMaximumNumberToSpawnBeforeSkipping, combatDirector, directorEnemyPowerBiasOverride);
-                }
-                else if (Run.instance.GetType() == typeof(InfiniteTowerRun) && BepConfig.Enabled.Value)
-                {
-                    return SkipWithPowerBias(costMultipliedByMaximumNumberToSpawnBeforeSkipping, combatDirector, BepConfig.SimulacrumDirectorEnemyPowerBias.Value);
-                } else if(BepConfig.Enabled.Value)
-                {
-                    return SkipWithPowerBias(costMultipliedByMaximumNumberToSpawnBeforeSkipping, combatDirector, BepConfig.ClassicDirectorEnemyPowerBias.Value);
-                }
-                // vanilla
-                return costMultipliedByMaximumNumberToSpawnBeforeSkipping < combatDirector.monsterCredit;
-            });
-            c.Emit(OpCodes.Brfalse, label);
-            c.Index += 2;
-            /*
-            c.Index = 222;
-            c.GotoNext(x => x.MatchLdarg(0));
-            Debug.Log(c.ToString());
-            c.GotoNext(x => x.MatchLdfld<CombatDirector>("currentMonsterCard"));
-            Debug.Log(c.ToString());
-            c.GotoNext(x => x.MatchCallvirt<DirectorCard>("GetSpawnCard"));
-            Debug.Log(c.ToString());
-            c.GotoNext(x => x.MatchStloc(4));
-            Debug.Log(c.ToString());*/
+        // The power bias decides which monsters the director picks: each card's weight is multiplied by its cost to a
+        // power that grows with the bias, 0 at 0.5 (vanilla), so strong monsters come more often towards 1 and weak ones
+        // towards 0. The director keeps its own rules for when to spend, so it always spends what it earns.
+        private const float PowerBiasExponent = 4f;
+        // the reweighted copy of each card selection, made again when the selection or the bias changes
+        private static readonly ConditionalWeakTable<WeightedSelection<DirectorCard>, BiasedSelection> biasedSelections = new ConditionalWeakTable<WeightedSelection<DirectorCard>, BiasedSelection>();
 
-            // IL_0250: ldarg.0
-            // IL_0251: ldfld class RoR2.DirectorCard RoR2.CombatDirector::currentMonsterCard
-            // IL_0256: callvirt instance class RoR2.SpawnCard RoR2.DirectorCard::GetSpawnCard()
-            // IL_025b: stloc.s 4
-            c.GotoNext(
-                x => x.MatchLdarg(0),
-                x => x.MatchLdfld<CombatDirector>("currentMonsterCard"),
-                x => x.MatchCallvirt<DirectorCard>("GetSpawnCard"),
-                x => x.MatchStloc(4)
-            );
-            c.MarkLabel(label);
+        private class BiasedSelection
+        {
+            public float powerBias;
+            public float signature;
+            public WeightedSelection<DirectorCard> selection;
         }
+
+        private static float GetPowerBias()
+        {
+            if (directorEnemyPowerBiasOverride >= 0)
+            {
+                return directorEnemyPowerBiasOverride;
+            }
+            return Run.instance != null ? GetCurrentPowerBias() : 0.5f;
+        }
+
+        private static Hook finalMonsterCardsSelectionHook;
+
+        private static WeightedSelection<DirectorCard> CombatDirector_get_finalMonsterCardsSelection(Func<CombatDirector, WeightedSelection<DirectorCard>> orig, CombatDirector self)
+        {
+            var selection = orig(self);
+            var powerBias = GetPowerBias();
+            if (selection == null || !NetworkServer.active || Mathf.Approximately(powerBias, 0.5f))
+            {
+                return selection;
+            }
+            // pools change in place, e.g. by events that filter the monsters, which this notices
+            float signature = selection.Count;
+            for (int i = 0; i < selection.Count; i++)
+            {
+                var choice = selection.GetChoice(i);
+                signature = signature * 31f + choice.weight * 7f + (choice.value != null ? choice.value.cost : 0);
+            }
+            if (biasedSelections.TryGetValue(selection, out var biased) && biased.powerBias == powerBias && biased.signature == signature)
+            {
+                return biased.selection;
+            }
+            var exponent = PowerBiasExponent * (powerBias - 0.5f);
+            var reweighted = new WeightedSelection<DirectorCard>(selection.Count);
+            for (int i = 0; i < selection.Count; i++)
+            {
+                var choice = selection.GetChoice(i);
+                var cost = choice.value != null ? Mathf.Max(1, choice.value.cost) : 1;
+                reweighted.AddChoice(choice.value, choice.weight * Mathf.Pow(cost, exponent));
+            }
+            biasedSelections.Remove(selection);
+            biasedSelections.Add(selection, new BiasedSelection { powerBias = powerBias, signature = signature, selection = reweighted });
+            return reweighted;
+        }
+
+        // A director skips monsters too cheap for its credits while its deck has dearer ones, without limit. If none of
+        // the dearer ones can be bought, e.g. elites that an event keeps out, it would never spend again.
+        private const int MaxConsecutiveCheapSkips = 4;
+
+        private static void CombatDirector_Awake(On.RoR2.CombatDirector.orig_Awake orig, CombatDirector self)
+        {
+            orig(self);
+            if (BepConfig.Enabled.Value)
+            {
+                self.maxConsecutiveCheapSkips = Math.Min(self.maxConsecutiveCheapSkips, MaxConsecutiveCheapSkips);
+            }
+        }
+
         private void InfiniteTowerRun_OnWaveAllEnemiesDefeatedServer(On.RoR2.InfiniteTowerRun.orig_OnWaveAllEnemiesDefeatedServer orig, InfiniteTowerRun self, InfiniteTowerWaveController wc)
         {
             orig(self, wc);
