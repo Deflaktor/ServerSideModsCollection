@@ -55,6 +55,8 @@ namespace SimulacrumBossStageMod
         private const int PortalPrinterCount = 2;
         private const int PortalCauldronCount = 1;
         private static AsyncOperationHandle<SpawnCard> iscHallowedShrine;
+        // the burst of Hallowed Concepts' curses, which shows each part of the shop appearing
+        private static AsyncOperationHandle<GameObject> shopSpawnEffect;
         // the cauldrons have no spawn cards of their own, only the Bazaar's placed ones
         private static readonly Dictionary<string, InteractableSpawnCard> cauldronSpawnCards = new Dictionary<string, InteractableSpawnCard>();
         // whether the portal being spawned leads to the boss stage
@@ -90,6 +92,7 @@ namespace SimulacrumBossStageMod
 
             iscVoidPortal = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC1/PortalVoid/iscVoidPortal.asset");
             iscHallowedShrine = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC4/iscHallowedShrine.asset");
+            shopSpawnEffect = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC4/ProvUltPulseCurseBurstVFX.prefab");
             bossCombatSquadPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Core/BossCombatSquad.prefab");
             iscVoidOutroPortal = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC1/VoidOutroPortal/iscVoidOutroPortal.asset");
             edBead = Addressables.LoadAssetAsync<EliteDef>(key: "RoR2/DLC2/Elites/EliteBead/edBead.asset");
@@ -338,7 +341,7 @@ namespace SimulacrumBossStageMod
         private static GameObject PlaceNearPortal(SpawnCard spawnCard, Transform portal)
         {
             // clear of the portal, so that nothing blocks it or is entered by accident
-            return DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(spawnCard, new DirectorPlacementRule
+            var spawned = DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(spawnCard, new DirectorPlacementRule
             {
                 minDistance = 15f,
                 maxDistance = 40f,
@@ -346,6 +349,15 @@ namespace SimulacrumBossStageMod
                 position = portal.position,
                 spawnOnTarget = portal
             }, Run.instance.stageRng));
+            if (spawned != null)
+            {
+                EffectManager.SpawnEffect(shopSpawnEffect.WaitForCompletion(), new EffectData
+                {
+                    origin = spawned.transform.position,
+                    scale = 6f
+                }, transmit: true);
+            }
+            return spawned;
         }
 
         // whether the current stage is the boss stage
