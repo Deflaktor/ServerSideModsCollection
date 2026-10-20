@@ -73,7 +73,7 @@ namespace SimulacrumBossStageMod
                 BossStageBossCount = config.Bind("Boss Stage", "Boss Count", 1, new ConfigDescription("How many bosses to spawn during the final boss stage wave."));
                 BossStageBossRadius = config.Bind("Boss Stage", "Boss Battleground Radius", 1.5f, new ConfigDescription("Whether to increase or decrease the normal radius of the battleground for the final boss stage wave (1.0 = vanilla)."));
                 BossStageLunarCoinsReward = config.Bind("Boss Stage", "Boss Stage Lunar Coins Reward", 100, new ConfigDescription("How many Lunar Coins to drop once the final stage has been completed."));
-                BossStagePortalShop = config.Bind("Boss Stage", "Shop at the Boss Stage Portal", false, new ConfigDescription("Places a random printer, two random Lunar Cauldrons and, with Hallowed Concepts enabled, a Hallowed Shrine with only the Hand of Life next to the portal to the boss stage. The printer is common, uncommon, legendary or boss, the rarer the less likely."));
+                BossStagePortalShop = config.Bind("Boss Stage", "Shop at the Boss Stage Portal", false, new ConfigDescription("Places two different random printers, a random Lunar Cauldron and, with Hallowed Concepts enabled, a Hallowed Shrine with only the Hand of Life next to the portal to the boss stage. The printers are common, uncommon, legendary or boss, the rarer the less likely."));
                 BossStageCompleteEndRun = config.Bind("Boss Stage", "Completing Boss Stage ends Run", true, new ConfigDescription("If the boss stage is completed, the run will end."));
             }
             // --- Artifacts ---

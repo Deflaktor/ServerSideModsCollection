@@ -52,7 +52,8 @@ namespace SimulacrumBossStageMod
             "RoR2/Base/LunarCauldrons/LunarCauldron, GreenToRed Variant.prefab",
             "RoR2/Base/LunarCauldrons/LunarCauldron, RedToWhite Variant.prefab",
         };
-        private const int PortalCauldronCount = 2;
+        private const int PortalPrinterCount = 2;
+        private const int PortalCauldronCount = 1;
         private static AsyncOperationHandle<SpawnCard> iscHallowedShrine;
         // the cauldrons have no spawn cards of their own, only the Bazaar's placed ones
         private static readonly Dictionary<string, InteractableSpawnCard> cauldronSpawnCards = new Dictionary<string, InteractableSpawnCard>();
@@ -289,7 +290,7 @@ namespace SimulacrumBossStageMod
             });
         }
 
-        // a random printer and different random cauldrons
+        // different random printers and cauldrons
         private static void PlacePortalShop(Transform portal)
         {
             var selection = new WeightedSelection<string>();
@@ -297,7 +298,12 @@ namespace SimulacrumBossStageMod
             {
                 selection.AddChoice(address, weight);
             }
-            PlaceNearPortal(Addressables.LoadAssetAsync<SpawnCard>(selection.Evaluate(Run.instance.stageRng.nextNormalizedFloat)).WaitForCompletion(), portal);
+            for (int i = 0; i < PortalPrinterCount && selection.Count > 0; i++)
+            {
+                var choice = selection.EvaluateToChoiceIndex(Run.instance.stageRng.nextNormalizedFloat);
+                PlaceNearPortal(Addressables.LoadAssetAsync<SpawnCard>(selection.GetChoice(choice).value).WaitForCompletion(), portal);
+                selection.RemoveChoice(choice);
+            }
             foreach (var address in PortalCauldrons.OrderBy(_ => Run.instance.stageRng.nextNormalizedFloat).Take(PortalCauldronCount))
             {
                 PlaceNearPortal(GetCauldronSpawnCard(address), portal);
