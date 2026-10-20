@@ -1,3 +1,19 @@
+# 2.2.2
+
+- Update for the latest game version
+- Fix the Void Jailer and Voidling cooldown options doing nothing
+- The Void Jailer, Solus Invalidator and Voidling cooldown options also work in Simulacrum
+- Fix the Artifact of Dissonance turning off in Commencement when chosen in the lobby
+- Fix the Void Crab traveling further than in vanilla with its speed-up off
+- Fix chat spam when a greedy player stands on an item
+- Fix a player losing a loot credit when another player takes the item at the same time
+- Lunar equipment no longer turns into Pearls
+- Works with ProperSave: loading a save keeps the Simulacrum loot credits
+- New setting: while a Simulacrum wave has no enemies alive, the director earns credits 3 times faster, so the next enemies come sooner
+- New setting: Captains get their beacons back after each Simulacrum boss wave
+- New setting: broken drones can appear in Simulacrum
+- The enemy power bias now changes which monsters the director picks rather than when it spends, so the director no longer stops spawning while it saves up for monsters it can't get
+
 # 2.2.1
 
 - Fix error being thrown in console
