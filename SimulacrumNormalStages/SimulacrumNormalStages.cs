@@ -39,6 +39,8 @@ namespace SimulacrumNormalStages
 
         public AsyncOperationHandle<SpawnCard> iscShopPortal;
         public AsyncOperationHandle<SpawnCard> iscHallowedShrine;
+        // the burst of Hallowed Concepts' curses, which shows the shrine appearing
+        public AsyncOperationHandle<GameObject> hallowedShrineSpawnEffect;
         //public static SceneDef arena = Addressables.LoadAssetAsync<SceneDef>(key: "RoR2/Base/arena/arena.asset").WaitForCompletion();
         //public static SceneDef voidStage = Addressables.LoadAssetAsync<SceneDef>(key: "RoR2/DLC1/voidstage/voidstage.asset").WaitForCompletion();
         public void Awake()
@@ -50,6 +52,7 @@ namespace SimulacrumNormalStages
 
             iscShopPortal = Addressables.LoadAssetAsync<SpawnCard>("RoR2/Base/PortalShop/iscShopPortal.asset");
             iscHallowedShrine = Addressables.LoadAssetAsync<SpawnCard>("RoR2/DLC4/iscHallowedShrine.asset");
+            hallowedShrineSpawnEffect = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC4/ProvUltPulseCurseBurstVFX.prefab");
         }
         private void OnEnable()
         {
@@ -185,7 +188,6 @@ namespace SimulacrumNormalStages
                     }
                 }
                 gameObjectsToDestroy.ForEach(GameObject.Destroy);
-                PlaceHallowedShrine();
             }
         }
 
@@ -193,18 +195,19 @@ namespace SimulacrumNormalStages
         // places its own.
         public static Func<bool> skipHallowedShrine;
 
-        // near the safe ward, around which the players spawn
-        private void PlaceHallowedShrine()
+        // Near the safe ward, where the portal to the next stage appears, once the stage's last wave is beaten. Not if the
+        // stage already has one, e.g. SimulacrumBossStageMod's at the portal to its boss stage.
+        private void PlaceHallowedShrine(InfiniteTowerRun infiniteTowerRun)
         {
             if (!NetworkServer.active || !BepConfig.Enabled.Value || !BepConfig.PlaceHallowedShrine.Value || IsCurrentMapInBazaar()
                 || (skipHallowedShrine != null && skipHallowedShrine())
                 || DLC4Content.DLC4 == null || !Run.instance.IsExpansionEnabled(DLC4Content.DLC4)
-                || !(Run.instance is InfiniteTowerRun infiniteTowerRun) || infiniteTowerRun.safeWardController == null)
+                || infiniteTowerRun.safeWardController == null || UnityEngine.Object.FindObjectOfType<HallowingShrineSplitBase>() != null)
             {
                 return;
             }
             var safeWard = infiniteTowerRun.safeWardController.transform;
-            DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(iscHallowedShrine.WaitForCompletion(), new DirectorPlacementRule
+            var shrine = DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(iscHallowedShrine.WaitForCompletion(), new DirectorPlacementRule
             {
                 minDistance = 10f,
                 maxDistance = 40f,
@@ -212,6 +215,14 @@ namespace SimulacrumNormalStages
                 position = safeWard.position,
                 spawnOnTarget = safeWard
             }, Run.instance.stageRng));
+            if (shrine != null)
+            {
+                EffectManager.SpawnEffect(hallowedShrineSpawnEffect.WaitForCompletion(), new EffectData
+                {
+                    origin = shrine.transform.position,
+                    scale = 6f
+                }, transmit: true);
+            }
         }
 
 
@@ -222,6 +233,7 @@ namespace SimulacrumNormalStages
             {
                 return;
             }
+            PlaceHallowedShrine(self);
             if (shouldAttemptToSpawnShopPortal && self.safeWardController != null)
             {
                 var portal = DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(iscShopPortal.WaitForCompletion(), new DirectorPlacementRule
