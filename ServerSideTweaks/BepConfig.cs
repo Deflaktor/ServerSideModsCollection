@@ -20,6 +20,7 @@ namespace ServerSideTweaks
         public static ConfigEntry<bool> VoidJailerNoCooldownReductions;
         public static ConfigEntry<bool> SolusInvalidatorNoCooldownReductions;
         public static ConfigEntry<bool> VoidlingNoCooldownReductions;
+        public static ConfigEntry<float> MonsterGoldMultiplier;
         // simulacrum tweaks
         public static ConfigEntry<bool> SimulacrumNonSharedLoot;
         public static ConfigEntry<int> SimulacrumLootMaxItemDebt;
@@ -50,6 +51,7 @@ namespace ServerSideTweaks
                 VoidJailerNoCooldownReductions = config.Bind("Main", "Void Jailer: No cooldown reductions", true, new ConfigDescription("Prevents Void Jailer from getting its cooldown reduced by items like Alien Head for balancing purposes."));
                 SolusInvalidatorNoCooldownReductions = config.Bind("Main", "Solus Invalidator: No cooldown reductions", true, new ConfigDescription("Prevents Solus Invalidator from getting its cooldown reduced by items like Alien Head for balancing purposes."));
                 VoidlingNoCooldownReductions = config.Bind("Main", "Voidling: No cooldown reductions", true, new ConfigDescription("Prevents Voidling from getting its cooldown reduced by items like Alien Head for balancing purposes."));
+                MonsterGoldMultiplier = config.Bind("Main", "Monster gold multiplier", 1f, new ConfigDescription("Multiplies the gold monsters give when killed. A value smaller than 1.0 gives less gold. (1.0 = vanilla)."));
             }
             // --- Simulacrum ---
             {

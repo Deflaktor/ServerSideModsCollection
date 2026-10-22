@@ -11,6 +11,7 @@ A small list of server-side configurable tweaks.
 - Lunar items can turn into a Pearl or an Irradiant Pearl, except in the Bazaar.
 - Children teleport a shorter distance and are no longer invincible while teleporting.
 - With the Artifact of Evolution, Void Jailers, Solus Invalidators and Voidling get no Alien Heads.
+- Monsters can give less gold, or more.
 - The combat director can lean towards many weak enemies or a few strong ones, separately for normal runs and Simulacrum.
 
 ## Simulacrum Tweaks

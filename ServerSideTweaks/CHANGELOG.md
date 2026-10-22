@@ -12,6 +12,7 @@
 - New setting: while a Simulacrum wave has no enemies alive, the director earns credits 3 times faster, so the next enemies come sooner
 - New setting: Captains get their beacons back after each Simulacrum boss wave
 - New setting: broken drones can appear in Simulacrum
+- New setting: a multiplier for the gold monsters give
 - The enemy power bias now changes which monsters the director picks rather than when it spends, so the director no longer stops spawning while it saves up for monsters it can't get
 
 # 2.2.1

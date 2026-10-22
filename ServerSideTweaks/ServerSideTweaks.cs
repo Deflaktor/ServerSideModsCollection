@@ -96,6 +96,7 @@ namespace ServerSideTweaks
             On.RoR2.ChildMonsterController.RegisterTeleport += ChildMonsterController_RegisterTeleport;
             On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.OnServerCardSpawnedGlobal += MonsterTeamGainsItemsArtifactManager_OnServerCardSpawnedGlobal;
             On.RoR2.InfiniteTowerWaveController.OnCombatSquadMemberDiscovered    += InfiniteTowerWaveController_OnCombatSquadMemberDiscovered;
+            On.RoR2.DeathRewards.OnKilledServer                                  += DeathRewards_OnKilledServer;
 
             simulacrumLootTweaks.Hook();
             FastSimulacrumVrab.Enable();
@@ -161,9 +162,22 @@ namespace ServerSideTweaks
             On.RoR2.ChildMonsterController.RegisterTeleport -= ChildMonsterController_RegisterTeleport;
             On.RoR2.Artifacts.MonsterTeamGainsItemsArtifactManager.OnServerCardSpawnedGlobal -= MonsterTeamGainsItemsArtifactManager_OnServerCardSpawnedGlobal;
             On.RoR2.InfiniteTowerWaveController.OnCombatSquadMemberDiscovered    -= InfiniteTowerWaveController_OnCombatSquadMemberDiscovered;
+            On.RoR2.DeathRewards.OnKilledServer                                  -= DeathRewards_OnKilledServer;
 
             simulacrumLootTweaks.Unhook();
             FastSimulacrumVrab.Disable();
+        }
+
+        // The gold a monster gives is its master's money, paid out when it dies. Scaled just before, so that what else
+        // pays out by it at its death, e.g. the coins it shows, goes by the scaled amount too.
+        private void DeathRewards_OnKilledServer(On.RoR2.DeathRewards.orig_OnKilledServer orig, DeathRewards self, DamageReport damageReport)
+        {
+            var multiplier = BepConfig.MonsterGoldMultiplier.Value;
+            if (NetworkServer.active && BepConfig.Enabled.Value && multiplier != 1f)
+            {
+                self.goldReward = (uint)Mathf.Max(0, Mathf.RoundToInt(self.goldReward * multiplier));
+            }
+            orig(self, damageReport);
         }
 
         private void ChildMonsterController_RegisterTeleport(On.RoR2.ChildMonsterController.orig_RegisterTeleport orig, ChildMonsterController self, bool addInvincibility)
