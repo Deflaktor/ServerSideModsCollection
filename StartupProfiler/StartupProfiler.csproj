@@ -6,6 +6,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- a preloader patcher, so that it starts before the plugins -->
     <BepInExFolder>patchers</BepInExFolder>
+    <!-- BepInEx runs the patchers in the order of their assembly names, so this one comes first, before MonoDetour's
+         0.com.github.MonoDetour.BepInEx.5 -->
+    <AssemblyName>0.0.Def.StartupProfiler</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

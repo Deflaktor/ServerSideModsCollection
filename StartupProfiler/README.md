@@ -2,7 +2,7 @@
 
 Finds out what makes Risk of Rain 2 slow to start. It times the start-up up to the main menu and writes a report to `BepInEx/StartupProfile.txt`. A summary also goes to the log.
 
-It is a preloader patcher, so it starts before any plugin and goes into `BepInEx/patchers`. It changes nothing in the game and is only needed while you look into a slow start.
+It is a preloader patcher, which goes into `BepInEx/patchers`, and the first one to run, so it starts before the other patchers and every plugin. It changes nothing in the game and is only needed while you look into a slow start.
 
 ## The report
 
