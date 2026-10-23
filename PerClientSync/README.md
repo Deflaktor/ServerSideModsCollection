@@ -1,10 +1,10 @@
 # PerClientSync
 
-Normally every player in a multiplayer game sees the same world. PerClientSync lets a host-side mod break that rule on purpose: each client can get its own version of a synced object. It intentionally causes a desync in a controlled way.
+Normally every player in a multiplayer game sees the same world. PerClientSync lets a host-side mod break that rule on purpose: each client can get its own version of a synced object, and an object can be hidden from some clients altogether. It intentionally causes a desync in a controlled way.
 
 The clients don't need the mod. They get the same messages an unmodded host would send, just with different values in them.
 
-It's meant for things like shops where every player buys for themselves. It's a library, so it does nothing on its own and is only needed when another mod depends on it.
+It's meant for things like shops where every player buys for themselves, or a price sign that only disappears for the player who bought the item. It's a library, so it does nothing on its own and is only needed when another mod depends on it.
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/E1E71PHUJ2)
 
@@ -59,6 +59,11 @@ Fields are referred to by the component's dirty bits. Unity's networking gives e
 - `OnPlayerLinked(client)`: called when a player gets linked to the client after the object already spawned for it, e.g. someone who joined late or reconnected. By default the client just gets every field again.
 
 Objects spawn for each client with that client's values, and that includes players who join late and every scene change. There can only be one view per component. A view added after the object has spawned should send what it changes with `SetDirtyForAll`, and one that is removed should send the real values back.
+
+### Hiding objects
+
+- `PerClient.Hide(identity, client)`: removes the object from that client's game using the vanilla message, and keeps it from spawning there again. From then on, nothing about the object reaches that client.
+- `PerClient.Show(identity, client)`: spawns it for the client again.
 
 ### Single updates
 

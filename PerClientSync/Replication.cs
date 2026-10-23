@@ -10,10 +10,11 @@ namespace PerClientSync
 {
     // Unity's networking writes an object's changed fields once and sends that update to every client that has the object.
     // Objects with client views are written for each client instead, with that client's values, and they spawn for each
-    // client with its values too.
+    // client with its values too. Hidden objects don't spawn for their clients at all, so nothing about them reaches them.
     internal static class Replication
     {
         private static readonly Dictionary<NetworkIdentity, List<ClientView>> views = new Dictionary<NetworkIdentity, List<ClientView>>();
+        private static readonly Dictionary<NetworkIdentity, HashSet<NetworkConnection>> hidden = new Dictionary<NetworkIdentity, HashSet<NetworkConnection>>();
         private static readonly List<Hook> hooks = new List<Hook>();
         // an update for one client
         private static readonly NetworkWriter update = new NetworkWriter();
@@ -27,6 +28,7 @@ namespace PerClientSync
         {
             Detour(typeof(NetworkIdentity), nameof(NetworkIdentity.UNetUpdate), Type.EmptyTypes, nameof(NetworkIdentity_UNetUpdate));
             Detour(typeof(NetworkIdentity), nameof(NetworkIdentity.UNetSerializeAllVars), new[] { typeof(NetworkWriter) }, nameof(NetworkIdentity_UNetSerializeAllVars));
+            Detour(typeof(NetworkIdentity), nameof(NetworkIdentity.AddObserver), new[] { typeof(NetworkConnection) }, nameof(NetworkIdentity_AddObserver));
             Detour(typeof(NetworkServer), nameof(NetworkServer.SendSpawnMessage), new[] { typeof(NetworkIdentity), typeof(NetworkConnection) }, nameof(NetworkServer_SendSpawnMessage));
             PlayerCharacterMasterController.onLinkedToNetworkUserServerGlobal += OnPlayerLinked;
         }
@@ -177,6 +179,7 @@ namespace PerClientSync
                 var requestedBits = new uint[count];
                 var leadingBits = new uint[count];
                 var otherBits = new uint[count];
+                // a view's Apply may hide the object from a client
                 foreach (var client in observers.ToArray())
                 {
                     if (client == null || !client.isReady || PerClient.IsLocal(client))
@@ -363,6 +366,10 @@ namespace PerClientSync
         // Every spawn message is written for one client, so it carries that client's values
         private static void NetworkServer_SendSpawnMessage(Action<NetworkServer, NetworkIdentity, NetworkConnection> orig, NetworkServer self, NetworkIdentity identity, NetworkConnection client)
         {
+            if (client != null && IsHidden(identity, client))
+            {
+                return;
+            }
             if (client == null || PerClient.IsLocal(client) || !views.TryGetValue(identity, out var objectViews))
             {
                 orig(self, identity, client);
@@ -409,6 +416,16 @@ namespace PerClientSync
             }
         }
 
+        // A client that becomes ready, e.g. after loading a scene, or a new object gets its observers here
+        private static void NetworkIdentity_AddObserver(Action<NetworkIdentity, NetworkConnection> orig, NetworkIdentity self, NetworkConnection client)
+        {
+            if (client != null && IsHidden(self, client))
+            {
+                return;
+            }
+            orig(self, client);
+        }
+
         private static void OnPlayerLinked(PlayerCharacterMasterController player)
         {
             var client = PerClient.GetConnection(player);
@@ -426,6 +443,55 @@ namespace PerClientSync
                 {
                     PerClientSyncPlugin.Log.LogError($"{view.GetType().Name} on {view.name} could not handle a linked player: {exception}");
                 }
+            }
+        }
+
+        internal static bool IsHidden(NetworkIdentity identity, NetworkConnection client)
+        {
+            return hidden.Count > 0 && client != null && hidden.TryGetValue(identity, out var clients) && clients.Contains(client);
+        }
+
+        internal static void Hide(NetworkIdentity identity, NetworkConnection client)
+        {
+            if (!NetworkServer.active || !identity || client == null || PerClient.IsLocal(client))
+            {
+                return;
+            }
+            ForgetDestroyedObjects();
+            if (!hidden.TryGetValue(identity, out var clients))
+            {
+                clients = new HashSet<NetworkConnection>();
+                hidden[identity] = clients;
+            }
+            if (clients.Add(client) && identity.m_Observers != null && identity.m_Observers.Contains(client))
+            {
+                // the vanilla message that hides an object from a client, which destroys it there
+                identity.RemoveObserver(client);
+            }
+        }
+
+        internal static void Show(NetworkIdentity identity, NetworkConnection client)
+        {
+            if (!NetworkServer.active || !identity || client == null || !hidden.TryGetValue(identity, out var clients) || !clients.Remove(client))
+            {
+                return;
+            }
+            if (clients.Count == 0)
+            {
+                hidden.Remove(identity);
+            }
+            // an object that has spawned, for a client that is in the scene
+            if (identity.m_Observers != null && client.isReady && !identity.m_Observers.Contains(client) && identity.OnCheckObserver(client))
+            {
+                identity.AddObserver(client);
+            }
+        }
+
+        private static void ForgetDestroyedObjects()
+        {
+            foreach (var identity in hidden.Keys.Where(identity => !identity).ToList())
+            {
+                hidden.Remove(identity);
             }
         }
     }

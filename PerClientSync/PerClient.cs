@@ -3,7 +3,8 @@ using UnityEngine.Networking;
 
 namespace PerClientSync
 {
-    // Sends single clients what Unity's networking sends everyone, with vanilla messages only. Use it on the host.
+    // Sends single clients what Unity's networking sends everyone, with vanilla messages only: a client's own object
+    // updates, and objects some clients don't get. Use it on the host.
     public static class PerClient
     {
         // The connection of a player's client, the host's own included
@@ -40,6 +41,24 @@ namespace PerClientSync
         public static bool IsLocal(NetworkConnection client)
         {
             return client != null && Util.ConnectionIsLocal(client);
+        }
+
+        // Removes the object from this client's game and keeps it from spawning there again, also when the client loads
+        // the next scene. Nothing about the object reaches the client any more. Not for the host's own connection.
+        public static void Hide(NetworkIdentity identity, NetworkConnection client)
+        {
+            Replication.Hide(identity, client);
+        }
+
+        // Spawns a hidden object for this client again
+        public static void Show(NetworkIdentity identity, NetworkConnection client)
+        {
+            Replication.Show(identity, client);
+        }
+
+        public static bool IsHidden(NetworkIdentity identity, NetworkConnection client)
+        {
+            return identity && Replication.IsHidden(identity, client);
         }
 
         // An update of only these fields of the component, as the dirty bits it uses for them, for this client with its

@@ -2,6 +2,6 @@
 	"name": "PerClientSync",
 	"version_number": "1.0.0",
 	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
-	"description": "A library for host-side mods: shows each client its own version of synced objects, with vanilla messages only. Does nothing on its own.",
+	"description": "A library for host-side mods: shows each client its own version of synced objects, or hides objects from some clients, with vanilla messages only. Does nothing on its own.",
 	"dependencies": []
 }
