@@ -62,6 +62,7 @@ namespace StartupProfiler
                 {
                     Lines.Add(line);
                 }
+                BootstrapPatches.OnLogLine(line);
             }
 
             public void Dispose()

@@ -1,38 +1,39 @@
-using BepInEx.Bootstrap;
 using HarmonyLib;
 using System;
 using System.Runtime.CompilerServices;
 
 namespace StartupProfiler
 {
-    // Hooks BepInEx's loading of the plugins. Only once they are loaded are the game and Unity hooked: touching their
-    // assemblies from the preloader would load them before BepInEx has patched them.
+    // Follows BepInEx's loading of the plugins by its log, as the lines come in. Only once they are loaded are the game
+    // and Unity hooked: touching their assemblies from the preloader, also by hooking BepInEx's chainloader, which uses
+    // Unity, would load them before BepInEx has patched them, and the game wouldn't start.
     public static class BootstrapPatches
     {
         public static readonly Harmony Harmony = new Harmony("com.Def.StartupProfiler");
+        private static bool hooked;
 
-        public static void Apply()
+        public static void OnLogLine(Timeline.LogLine line)
         {
-            Harmony.Patch(AccessTools.Method(typeof(Chainloader), nameof(Chainloader.Start)),
-                prefix: new HarmonyMethod(typeof(BootstrapPatches), nameof(ChainloaderStartPrefix)),
-                postfix: new HarmonyMethod(typeof(BootstrapPatches), nameof(ChainloaderStartPostfix)));
-        }
-
-        private static void ChainloaderStartPrefix()
-        {
-            Timeline.Mark("Chainloader started: loading the plugins");
-        }
-
-        private static void ChainloaderStartPostfix()
-        {
-            Timeline.Mark("Chainloader finished: all plugins loaded");
-            try
+            if (line.source != "BepInEx")
             {
-                HookGame();
+                return;
             }
-            catch (Exception exception)
+            if (line.text == "Chainloader started")
             {
-                Timeline.Log.LogError($"Could not hook the game's start-up: {exception}");
+                Timeline.Mark("Chainloader started: loading the plugins");
+            }
+            else if (line.text.StartsWith("Chainloader startup complete") && !hooked)
+            {
+                hooked = true;
+                Timeline.Mark("Chainloader finished: all plugins loaded");
+                try
+                {
+                    HookGame();
+                }
+                catch (Exception exception)
+                {
+                    Timeline.Log.LogError($"Could not hook the game's start-up: {exception}");
+                }
             }
         }
 
