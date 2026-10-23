@@ -1,0 +1,7 @@
+{
+	"name": "StartupProfiler",
+	"version_number": "1.0.0",
+	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
+	"description": "Finds out what makes the game slow to start: times Unity, every plugin, content pack and system initializer up to the main menu.",
+	"dependencies": []
+}
