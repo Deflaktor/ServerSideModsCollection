@@ -15,6 +15,7 @@
 - New setting: a multiplier for the gold monsters give
 - Without ProperSave installed, the game no longer searches for it while scanning this mod at its start
 - The enemy power bias now changes which monsters the director picks rather than when it spends, so the director no longer stops spawning while it saves up for monsters it can't get
+- No longer needs R2API
 
 # 2.2.1
 

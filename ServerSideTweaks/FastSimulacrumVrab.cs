@@ -1,5 +1,4 @@
 ﻿using HG;
-using R2API;
 using RoR2;
 using RoR2.Hologram;
 using RoR2.Navigation;
