@@ -13,6 +13,7 @@
 - Fix the spelling of the Void Eradicators setting
 - Hallowed Concepts' interactables no longer appear, except the Concept Reliquary
 - New setting: places a Hallowed Shrine near the safe ward once each stage's last wave is beaten
+- No longer needs R2API
 
 # 1.1.0
 

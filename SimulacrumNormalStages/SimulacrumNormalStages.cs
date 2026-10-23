@@ -1,8 +1,6 @@
 using BepInEx;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using R2API;
-using R2API.Utils;
 using RoR2;
 using RoR2.Hologram;
 using System;
@@ -20,9 +18,7 @@ using static RoR2.SceneCollection;
 
 namespace SimulacrumNormalStages
 {
-    [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class SimulacrumNormalStages : BaseUnityPlugin
     {
         public static PluginInfo PInfo { get; private set; }
