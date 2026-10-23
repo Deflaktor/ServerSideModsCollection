@@ -4,6 +4,7 @@
 - A bad number, an unbalanced brace or a negative weight gives a warning instead of an error, and the item string is skipped
 - Fix a rare error when picking among weighted options, and a short stall when an item string has several `{}` groups
 - `ParseItemString` returns false when an entry of an `&` group couldn't be resolved; the other entries are still given
+- No longer needs R2API
 
 # 2.1.0
 

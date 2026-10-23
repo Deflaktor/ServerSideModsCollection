@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
-using R2API.Utils;
 using RoR2;
 using RoR2.EntitlementManagement;
 using System;
@@ -16,9 +15,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace ItemStringParser
 {
-    [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class ItemStringParser : BaseUnityPlugin
     {
         public static PluginInfo PInfo { get; private set; }
