@@ -166,11 +166,10 @@ namespace ServerSideItems
                 x => x.MatchLdarg(0),
                 x => x.MatchLdarg(0),
                 x => x.MatchCall<CharacterBody>("get_armor")
-            ); ;
+            );
             c.Index += 1;
             c.Remove();
             c.EmitDelegate(isSprinting);
-            Debug.Log(il.ToString());
         }
     }
 }
