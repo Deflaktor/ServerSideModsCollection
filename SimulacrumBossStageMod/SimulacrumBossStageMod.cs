@@ -3,8 +3,6 @@ using HarmonyLib;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using Newtonsoft.Json.Linq;
-using R2API;
-using R2API.Utils;
 using RoR2;
 using ServerSideTweaks;
 using System;
@@ -20,13 +18,11 @@ using static SimulacrumBossStageMod.EnumCollection;
 
 namespace SimulacrumBossStageMod
 {
-    [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("Def.ServerSideTweaks", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("Def.SimulacrumNormalStages", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.KingEnderBrine.ProperSave", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class SimulacrumBossStageMod : BaseUnityPlugin
     {
         public static PluginInfo PInfo { get; private set; }

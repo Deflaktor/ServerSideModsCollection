@@ -4,7 +4,6 @@
 	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
 	"description": "Ends Simulacrum with a boss stage in Void Locus and a fight against Voidling.",
 	"dependencies": [
-		"RiskofThunder-R2API_Core-5.3.0",
 		"Def-SimulacrumNormalStages-1.1.0"
 	]
 }

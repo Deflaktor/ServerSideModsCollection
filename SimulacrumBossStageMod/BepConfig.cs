@@ -1,7 +1,6 @@
 ﻿using BepInEx.Configuration;
 using RoR2;
 using UnityEngine;
-using R2API;
 using System.Collections.Generic;
 using static SimulacrumBossStageMod.BepConfig;
 using System.Linq;

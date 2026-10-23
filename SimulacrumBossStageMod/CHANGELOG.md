@@ -13,6 +13,7 @@
 - The boss stage's boss has a boss health bar
 - New setting: places two different random printers, a random Lunar Cauldron and a Hallowed Shrine with only the Hand of Life next to the portal to the boss stage
 - Works with ProperSave: loading a save keeps the boss stage progress
+- No longer needs R2API
 
 # 1.3.2
 
