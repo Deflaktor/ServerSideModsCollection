@@ -9,6 +9,7 @@
 - Simple Item List: choices no longer reset to None when the game or a mod adds items. Saved choices are converted.
 - Fix a random Lunar starting item sometimes giving nothing.
 - Works with ProperSave: loading a save no longer gives the starting items again.
+- No longer needs R2API.
 
 # 3.0.3
 

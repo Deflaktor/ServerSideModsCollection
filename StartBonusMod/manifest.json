@@ -4,7 +4,6 @@
 	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
 	"description": "Gives each player a configurable set of items and starting gold at the beginning of a run.",
 	"dependencies": [
-		"RiskofThunder-R2API_Core-5.3.0",
 		"Def-ItemStringParser-2.1.0"
 	]
 }
