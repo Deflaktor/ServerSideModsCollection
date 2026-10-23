@@ -44,6 +44,15 @@ namespace StartupProfiler
             var executeCoroutine = AccessTools.Method(typeof(SystemInitializerAttribute), nameof(SystemInitializerAttribute.ExecuteCoroutine));
             Patch(harmony, executeCoroutine != null ? AccessTools.EnumeratorMoveNext(executeCoroutine) : null, transpiler: nameof(InvokeTranspiler));
             Patch(harmony, AccessTools.Method(typeof(SystemInitializerAttribute), nameof(SystemInitializerAttribute.Execute)), transpiler: nameof(InvokeTranspiler));
+            // RoR2BepInExPack replaces the coroutine with its own, which never calls the game's. Looked up in its own
+            // assembly: AccessTools.TypeByName would go through the types of every assembly, MMHOOK's included, for a minute.
+            var bepInExPack = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => assembly.GetName().Name == "RoR2BepInExPack");
+            var bepInExPackInitializers = AccessTools.Method(bepInExPack?.GetType("RoR2BepInExPack.VanillaFixes.FixSystemInitializer"), "LogBadCycle");
+            if (bepInExPackInitializers != null)
+            {
+                PatchPhase(harmony, bepInExPackInitializers, "System initializers (RoR2BepInExPack)");
+                Patch(harmony, AccessTools.EnumeratorMoveNext(bepInExPackInitializers), transpiler: nameof(InvokeTranspiler));
+            }
 
             // each content pack provider, which the content manager calls in its nested helpers
             foreach (var method in ContentManagerMethods())
