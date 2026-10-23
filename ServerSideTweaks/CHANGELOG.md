@@ -13,6 +13,7 @@
 - New setting: Captains get their beacons back after each Simulacrum boss wave
 - New setting: broken drones can appear in Simulacrum
 - New setting: a multiplier for the gold monsters give
+- Without ProperSave installed, the game no longer searches for it while scanning this mod at its start
 - The enemy power bias now changes which monsters the director picks rather than when it spends, so the director no longer stops spawning while it saves up for monsters it can't get
 
 # 2.2.1

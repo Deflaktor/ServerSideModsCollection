@@ -39,12 +39,31 @@ namespace ServerSideTweaks
             }
         }
 
-        // Kept apart, so a changed ProperSave fails inside the try block above
+        // Kept apart, so a changed ProperSave fails inside the try block above. Only method bodies name ProperSave's types,
+        // never a signature: the game looks through the members of the mod's types for attributes at its start, and with
+        // ProperSave missing, a member whose signature named its types would have the runtime search for it on disk each time.
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         private static void RegisterWithProperSave(string key, Func<object> save, Action<object> load)
         {
-            ProperSave.SaveFile.OnGatherSaveData += data => data[key] = save();
-            ProperSave.Loading.OnLoadingEnded += saveFile =>
+            var handler = new SaveDataHandler { key = key, save = save, load = load };
+            ProperSave.SaveFile.OnGatherSaveData += handler.GatherSaveData;
+            // the handler takes the save file as an object, which a delegate for the save file binds to
+            ProperSave.Loading.OnLoadingEnded += (Action<ProperSave.SaveFile>)Delegate.CreateDelegate(typeof(Action<ProperSave.SaveFile>), handler,
+                typeof(SaveDataHandler).GetMethod(nameof(SaveDataHandler.OnLoadingEnded)));
+        }
+
+        private class SaveDataHandler
+        {
+            public string key;
+            public Func<object> save;
+            public Action<object> load;
+
+            public void GatherSaveData(Dictionary<string, object> data)
+            {
+                data[key] = save();
+            }
+
+            public void OnLoadingEnded(object saveFile)
             {
                 if (saveFile == null)
                 {
@@ -53,7 +72,7 @@ namespace ServerSideTweaks
                 object value;
                 try
                 {
-                    value = saveFile.GetModdedData<object>(key);
+                    value = GetModdedData(saveFile);
                 }
                 catch (KeyNotFoundException)
                 {
@@ -61,7 +80,13 @@ namespace ServerSideTweaks
                     return;
                 }
                 load(value);
-            };
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            private object GetModdedData(object saveFile)
+            {
+                return ((ProperSave.SaveFile)saveFile).GetModdedData<object>(key);
+            }
         }
     }
 }
