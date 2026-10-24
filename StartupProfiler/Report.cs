@@ -121,6 +121,23 @@ namespace StartupProfiler
             }
             summary.AppendLine();
 
+            var typeScans = Timeline.GetTimings(TypeScanPatches.TypeScanCategory).OrderByDescending(timing => timing.Milliseconds).ToList();
+            summary.AppendLine($"== Slowest assemblies in post-processing's type scan, CPU ({typeScans.Count} assemblies, {Format(typeScans.Sum(timing => timing.Milliseconds))} in all) ==");
+            foreach (var timing in typeScans.Take(10))
+            {
+                Row(summary, timing.Milliseconds, timing.name);
+            }
+            summary.AppendLine();
+
+            // a lookup inside another counts for both
+            var lookups = Timeline.GetTimings(TypeScanPatches.LookupCategory).OrderByDescending(timing => timing.Milliseconds).ToList();
+            summary.AppendLine($"== Slowest assembly lookups by BepInEx, CPU ({lookups.Sum(timing => timing.calls)} lookups of {lookups.Count} assemblies, {Format(lookups.Sum(timing => timing.Milliseconds))} in all) ==");
+            foreach (var timing in lookups.Take(10))
+            {
+                Row(summary, timing.Milliseconds, $"{timing.name} ({timing.calls} times)");
+            }
+            summary.AppendLine();
+
             details.AppendLine("== Timeline ==");
             details.AppendLine("Marks, and the game's start-up phases with how long they took and their CPU time.");
             var events = marks.Select(mark => (time: mark.time, text: mark.name)).ToList();
@@ -163,6 +180,20 @@ namespace StartupProfiler
             foreach (var timing in initializers.Take(TopCount))
             {
                 Row(details, timing.Milliseconds, $"{timing.name} ({timing.assembly})");
+            }
+            details.AppendLine();
+
+            details.AppendLine("== Assemblies in post-processing's type scan, CPU ==");
+            foreach (var timing in typeScans.Take(TopCount))
+            {
+                Row(details, timing.Milliseconds, timing.name);
+            }
+            details.AppendLine();
+
+            details.AppendLine("== Assembly lookups by BepInEx, CPU, with when they first and last happened ==");
+            foreach (var timing in lookups.Take(TopCount))
+            {
+                Row(details, timing.Milliseconds, $"{timing.name} ({timing.calls} times, at {Format(timing.firstStart)} to {Format(timing.lastEnd)})");
             }
             details.AppendLine();
 

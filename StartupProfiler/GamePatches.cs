@@ -39,6 +39,7 @@ namespace StartupProfiler
             // the game's own milestones, which it doesn't log
             Patch(harmony, AccessTools.Method(typeof(RoR2Application), nameof(RoR2Application.PrintSW)), prefix: nameof(PrintSWPrefix));
             Patch(harmony, AccessTools.Method(typeof(MainMenuController), "Start"), postfix: nameof(MainMenuStartPostfix));
+            TypeScanPatches.ApplyGame(harmony);
 
             // each initializer, which the game calls by reflection
             var executeCoroutine = AccessTools.Method(typeof(SystemInitializerAttribute), nameof(SystemInitializerAttribute.ExecuteCoroutine));

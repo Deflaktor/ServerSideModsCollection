@@ -16,6 +16,7 @@ namespace StartupProfiler
         public static void Initialize()
         {
             Timeline.Start();
+            TypeScanPatches.ApplyResolver(BootstrapPatches.Harmony);
         }
 
         public static void Finish()
