@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StartupProfiler", "StartupP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerClientSync", "PerClientSync\PerClientSync.csproj", "{4D2EEC02-359D-4B83-B013-50292597B6A0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigPresets", "ConfigPresets\ConfigPresets.csproj", "{689FB391-58F6-405D-A383-3208158E2466}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{4D2EEC02-359D-4B83-B013-50292597B6A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D2EEC02-359D-4B83-B013-50292597B6A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D2EEC02-359D-4B83-B013-50292597B6A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{689FB391-58F6-405D-A383-3208158E2466}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{689FB391-58F6-405D-A383-3208158E2466}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{689FB391-58F6-405D-A383-3208158E2466}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{689FB391-58F6-405D-A383-3208158E2466}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
