@@ -57,4 +57,10 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ConfigPresets\ConfigPresets.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+
 </Project>
