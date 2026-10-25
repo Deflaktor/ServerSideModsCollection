@@ -43,7 +43,7 @@ The setting is bound in your config file as usual. If a preset that is on sets i
 - Its `SettingChanged` event only fires when your mod changes it, not when the player does.
 - Looking the setting up in the config file, e.g. with `TryGetEntry`, gives you the player's entry.
 
-`PresetConfig.IsPreset(entry)` tells you whether an entry has a preset's value. `PresetConfig.PlayerEntry(entry)` gives you the player's entry in the config file, e.g. to update an old config file to new settings.
+`PresetConfig.IsPreset(entry)` tells you whether an entry has a preset's value, and `PresetConfig.IsPreset(config, definition)` whether a preset sets a setting at all, even one that isn't bound yet. `PresetConfig.PlayerEntry(entry)` gives you the player's entry in the config file, e.g. to update an old config file to new settings.
 
 Players don't need ConfigPresets for your mod, only modpacks with presets do. So make it a soft dependency, which loads it before your mod when it's installed:
 

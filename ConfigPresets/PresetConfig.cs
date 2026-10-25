@@ -54,6 +54,14 @@ namespace ConfigPresets
         }
 
         /// <summary>
+        /// Whether a preset that is on sets the setting, also before it is bound.
+        /// </summary>
+        public static bool IsPreset(ConfigFile config, ConfigDefinition definition)
+        {
+            return Presets.TryGetValue(config, definition, out _);
+        }
+
+        /// <summary>
         /// The entry in the config file, with the player's value, e.g. to update an older config file. The entry itself
         /// if no preset sets it.
         /// </summary>
