@@ -1,10 +1,5 @@
 <Project>
 
-  <PropertyGroup>
-    <!-- the profile folder the output goes to; a preloader patcher sets it to patchers -->
-    <BepInExFolder Condition="'$(BepInExFolder)' == ''">plugins</BepInExFolder>
-  </PropertyGroup>
-
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(IsTestProject)' != 'true'">
     <!-- Clean up deps.json and pdb files for Release builds -->
     <ItemGroup Condition="'$(Configuration)' == 'Release'">
@@ -13,12 +8,12 @@
     </ItemGroup>
     <Delete Files="@(FilesToDelete)" Condition="'$(Configuration)' == 'Release'" />
 
-    <!-- Copy output to the profile's plugin or patcher folder; not ShareSuite, a third-party mod the profiles install from Thunderstore -->
+    <!-- Copy output to profile plugin folder; not ShareSuite, a third-party mod the profiles install from Thunderstore -->
     <ItemGroup>
       <OutputFiles Include="$(TargetDir)**\*" />
     </ItemGroup>
     <Copy SourceFiles="@(OutputFiles)"
-          DestinationFiles="@(OutputFiles->'$(ProfilePath)/BepInEx/$(BepInExFolder)/Def-$(ProjectName)/%(RecursiveDir)%(Filename)%(Extension)')"
+          DestinationFiles="@(OutputFiles->'$(ProfilePath)/BepInEx/plugins/Def-$(ProjectName)/%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true"
           Condition="Exists('$(ProfilePath)') And '$(ProjectName)' != 'ShareSuite'" />
 
