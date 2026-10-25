@@ -61,55 +61,55 @@ namespace SimulacrumBossStageMod
         {
             var config = SimulacrumBossStageMod.instance.Config;
 
-            Enabled = config.Bind("Main", "Enabled", true, "Enable Mod");
+            Enabled = ModCompatibilityConfigPresets.Bind(config, "Main", "Enabled", true, "Enable Mod");
             // --- Boss Stage ---
             {
-                BossStage = config.Bind("Boss Stage", "Boss Stage", StageEnum.VoidLocus, new ConfigDescription("To which stage to warp."));
-                BossStageStartWave = config.Bind("Boss Stage", "Boss Stage Warp Wave", 40, new ConfigDescription("At which wave to warp to this stage. Must be multiple of 10."));
-                BossStageTier2Elite = config.Bind("Boss Stage", "Malachite Elites", true, new ConfigDescription("Enables Malachite elites once the boss stage has been reached."));
-                BossStageBoss = config.Bind("Boss Stage", "Boss", BossEnum.Voidling, new ConfigDescription("Which boss to spawn during the final boss stage wave."));
-                BossStageBossElite = config.Bind("Boss Stage", "Boss Elite Aspect", EliteEnum.None, new ConfigDescription("Which elite aspect the boss shall have."));
-                BossStageBossCount = config.Bind("Boss Stage", "Boss Count", 1, new ConfigDescription("How many bosses to spawn during the final boss stage wave."));
-                BossStageBossRadius = config.Bind("Boss Stage", "Boss Battleground Radius", 1.5f, new ConfigDescription("Whether to increase or decrease the normal radius of the battleground for the final boss stage wave (1.0 = vanilla)."));
-                BossStageLunarCoinsReward = config.Bind("Boss Stage", "Boss Stage Lunar Coins Reward", 100, new ConfigDescription("How many Lunar Coins to drop once the final stage has been completed."));
-                BossStagePortalShop = config.Bind("Boss Stage", "Shop at the Boss Stage Portal", false, new ConfigDescription("Places two different random printers, a random Lunar Cauldron and, with Hallowed Concepts enabled, a Hallowed Shrine with only the Hand of Life next to the portal to the boss stage. The printers are common, uncommon, legendary or boss, the rarer the less likely."));
-                BossStageCompleteEndRun = config.Bind("Boss Stage", "Completing Boss Stage ends Run", true, new ConfigDescription("If the boss stage is completed, the run will end."));
+                BossStage = ModCompatibilityConfigPresets.Bind(config, "Boss Stage", "Boss Stage", StageEnum.VoidLocus, new ConfigDescription("To which stage to warp."));
+                BossStageStartWave = ModCompatibilityConfigPresets.Bind(config, "Boss Stage", "Boss Stage Warp Wave", 40, new ConfigDescription("At which wave to warp to this stage. Must be multiple of 10."));
+                BossStageTier2Elite = ModCompatibilityConfigPresets.Bind(config, "Boss Stage", "Malachite Elites", true, new ConfigDescription("Enables Malachite elites once the boss stage has been reached."));
+                BossStageBoss = ModCompatibilityConfigPresets.Bind(config, "Boss Stage", "Boss", BossEnum.Voidling, new ConfigDescription("Which boss to spawn during the final boss stage wave."));
+                BossStageBossElite = ModCompatibilityConfigPresets.Bind(config, "Boss Stage", "Boss Elite Aspect", EliteEnum.None, new ConfigDescription("Which elite aspect the boss shall have."));
+                BossStageBossCount = ModCompatibilityConfigPresets.Bind(config, "Boss Stage", "Boss Count", 1, new ConfigDescription("How many bosses to spawn during the final boss stage wave."));
+                BossStageBossRadius = ModCompatibilityConfigPresets.Bind(config, "Boss Stage", "Boss Battleground Radius", 1.5f, new ConfigDescription("Whether to increase or decrease the normal radius of the battleground for the final boss stage wave (1.0 = vanilla)."));
+                BossStageLunarCoinsReward = ModCompatibilityConfigPresets.Bind(config, "Boss Stage", "Boss Stage Lunar Coins Reward", 100, new ConfigDescription("How many Lunar Coins to drop once the final stage has been completed."));
+                BossStagePortalShop = ModCompatibilityConfigPresets.Bind(config, "Boss Stage", "Shop at the Boss Stage Portal", false, new ConfigDescription("Places two different random printers, a random Lunar Cauldron and, with Hallowed Concepts enabled, a Hallowed Shrine with only the Hand of Life next to the portal to the boss stage. The printers are common, uncommon, legendary or boss, the rarer the less likely."));
+                BossStageCompleteEndRun = ModCompatibilityConfigPresets.Bind(config, "Boss Stage", "Completing Boss Stage ends Run", true, new ConfigDescription("If the boss stage is completed, the run will end."));
             }
             // --- Artifacts ---
             {
-                Artifact1 = config.Bind("Artifacts", "Artifact A", ArtifactEnum.Dissonance, new ConfigDescription("Which artifact to add."));
-                Artifact1StartWave = config.Bind("Artifacts", "Artifact A Start Wave", 41, new ConfigDescription("At which wave to add this artifact."));
-                Artifact1EndWave = config.Bind("Artifacts", "Artifact A End Wave", 45, new ConfigDescription("After which wave to remove this artifact."));
+                Artifact1 = ModCompatibilityConfigPresets.Bind(config, "Artifacts", "Artifact A", ArtifactEnum.Dissonance, new ConfigDescription("Which artifact to add."));
+                Artifact1StartWave = ModCompatibilityConfigPresets.Bind(config, "Artifacts", "Artifact A Start Wave", 41, new ConfigDescription("At which wave to add this artifact."));
+                Artifact1EndWave = ModCompatibilityConfigPresets.Bind(config, "Artifacts", "Artifact A End Wave", 45, new ConfigDescription("After which wave to remove this artifact."));
 
-                Artifact2 = config.Bind("Artifacts", "Artifact B", ArtifactEnum.Honor, new ConfigDescription("Which artifact to add."));
-                Artifact2StartWave = config.Bind("Artifacts", "Artifact B Start Wave", 45, new ConfigDescription("At which wave to add this artifact."));
-                Artifact2EndWave = config.Bind("Artifacts", "Artifact B End Wave", 45, new ConfigDescription("After which wave to remove this artifact."));
+                Artifact2 = ModCompatibilityConfigPresets.Bind(config, "Artifacts", "Artifact B", ArtifactEnum.Honor, new ConfigDescription("Which artifact to add."));
+                Artifact2StartWave = ModCompatibilityConfigPresets.Bind(config, "Artifacts", "Artifact B Start Wave", 45, new ConfigDescription("At which wave to add this artifact."));
+                Artifact2EndWave = ModCompatibilityConfigPresets.Bind(config, "Artifacts", "Artifact B End Wave", 45, new ConfigDescription("After which wave to remove this artifact."));
 
-                Artifact3 = config.Bind("Artifacts", "Artifact C", ArtifactEnum.Honor, new ConfigDescription("Which artifact to add."));
-                Artifact3StartWave = config.Bind("Artifacts", "Artifact C Start Wave", 50, new ConfigDescription("At which wave to add this artifact."));
-                Artifact3EndWave = config.Bind("Artifacts", "Artifact C End Wave", 50, new ConfigDescription("After which wave to remove this artifact."));
+                Artifact3 = ModCompatibilityConfigPresets.Bind(config, "Artifacts", "Artifact C", ArtifactEnum.Honor, new ConfigDescription("Which artifact to add."));
+                Artifact3StartWave = ModCompatibilityConfigPresets.Bind(config, "Artifacts", "Artifact C Start Wave", 50, new ConfigDescription("At which wave to add this artifact."));
+                Artifact3EndWave = ModCompatibilityConfigPresets.Bind(config, "Artifacts", "Artifact C End Wave", 50, new ConfigDescription("After which wave to remove this artifact."));
 
-                Artifact4 = config.Bind("Artifacts", "Artifact D", ArtifactEnum.None, new ConfigDescription("Which artifact to add."));
-                Artifact4StartWave = config.Bind("Artifacts", "Artifact D Start Wave", 50, new ConfigDescription("At which wave to add this artifact."));
-                Artifact4EndWave = config.Bind("Artifacts", "Artifact D End Wave", 50, new ConfigDescription("After which wave to remove this artifact."));
+                Artifact4 = ModCompatibilityConfigPresets.Bind(config, "Artifacts", "Artifact D", ArtifactEnum.None, new ConfigDescription("Which artifact to add."));
+                Artifact4StartWave = ModCompatibilityConfigPresets.Bind(config, "Artifacts", "Artifact D Start Wave", 50, new ConfigDescription("At which wave to add this artifact."));
+                Artifact4EndWave = ModCompatibilityConfigPresets.Bind(config, "Artifacts", "Artifact D End Wave", 50, new ConfigDescription("After which wave to remove this artifact."));
             }
             // --- Difficulty Mods ---
             {
-                DifficultyMultiplier1 = config.Bind("Difficulty", "DifficultyMultiplier A", 1.25f, new ConfigDescription("Which DifficultyMultiplier to add."));
-                DifficultyMultiplier1StartWave = config.Bind("Difficulty", "DifficultyMultiplier A Start Wave", 41, new ConfigDescription("At which wave to add this DifficultyMultiplier."));
-                DifficultyMultiplier1EndWave = config.Bind("Difficulty", "DifficultyMultiplier A End Wave", 49, new ConfigDescription("After which wave to remove this DifficultyMultiplier."));
+                DifficultyMultiplier1 = ModCompatibilityConfigPresets.Bind(config, "Difficulty", "DifficultyMultiplier A", 1.25f, new ConfigDescription("Which DifficultyMultiplier to add."));
+                DifficultyMultiplier1StartWave = ModCompatibilityConfigPresets.Bind(config, "Difficulty", "DifficultyMultiplier A Start Wave", 41, new ConfigDescription("At which wave to add this DifficultyMultiplier."));
+                DifficultyMultiplier1EndWave = ModCompatibilityConfigPresets.Bind(config, "Difficulty", "DifficultyMultiplier A End Wave", 49, new ConfigDescription("After which wave to remove this DifficultyMultiplier."));
 
-                DifficultyMultiplier2 = config.Bind("Difficulty", "DifficultyMultiplier B", 1.5f, new ConfigDescription("Which DifficultyMultiplier to add."));
-                DifficultyMultiplier2StartWave = config.Bind("Difficulty", "DifficultyMultiplier B Start Wave", 50, new ConfigDescription("At which wave to add this DifficultyMultiplier."));
-                DifficultyMultiplier2EndWave = config.Bind("Difficulty", "DifficultyMultiplier B End Wave", 50, new ConfigDescription("After which wave to remove this DifficultyMultiplier."));
+                DifficultyMultiplier2 = ModCompatibilityConfigPresets.Bind(config, "Difficulty", "DifficultyMultiplier B", 1.5f, new ConfigDescription("Which DifficultyMultiplier to add."));
+                DifficultyMultiplier2StartWave = ModCompatibilityConfigPresets.Bind(config, "Difficulty", "DifficultyMultiplier B Start Wave", 50, new ConfigDescription("At which wave to add this DifficultyMultiplier."));
+                DifficultyMultiplier2EndWave = ModCompatibilityConfigPresets.Bind(config, "Difficulty", "DifficultyMultiplier B End Wave", 50, new ConfigDescription("After which wave to remove this DifficultyMultiplier."));
 
-                DifficultyMultiplier3 = config.Bind("Difficulty", "DifficultyMultiplier C", 1f, new ConfigDescription("Which DifficultyMultiplier to add."));
-                DifficultyMultiplier3StartWave = config.Bind("Difficulty", "DifficultyMultiplier C Start Wave", 50, new ConfigDescription("At which wave to add this DifficultyMultiplier."));
-                DifficultyMultiplier3EndWave = config.Bind("Difficulty", "DifficultyMultiplier C End Wave", 50, new ConfigDescription("After which wave to remove this DifficultyMultiplier."));
+                DifficultyMultiplier3 = ModCompatibilityConfigPresets.Bind(config, "Difficulty", "DifficultyMultiplier C", 1f, new ConfigDescription("Which DifficultyMultiplier to add."));
+                DifficultyMultiplier3StartWave = ModCompatibilityConfigPresets.Bind(config, "Difficulty", "DifficultyMultiplier C Start Wave", 50, new ConfigDescription("At which wave to add this DifficultyMultiplier."));
+                DifficultyMultiplier3EndWave = ModCompatibilityConfigPresets.Bind(config, "Difficulty", "DifficultyMultiplier C End Wave", 50, new ConfigDescription("After which wave to remove this DifficultyMultiplier."));
 
-                DifficultyMultiplier4 = config.Bind("Difficulty", "DifficultyMultiplier D", 1f, new ConfigDescription("Which DifficultyMultiplier to add."));
-                DifficultyMultiplier4StartWave = config.Bind("Difficulty", "DifficultyMultiplier D Start Wave", 50, new ConfigDescription("At which wave to add this DifficultyMultiplier."));
-                DifficultyMultiplier4EndWave = config.Bind("Difficulty", "DifficultyMultiplier D End Wave", 50, new ConfigDescription("After which wave to remove this DifficultyMultiplier."));
+                DifficultyMultiplier4 = ModCompatibilityConfigPresets.Bind(config, "Difficulty", "DifficultyMultiplier D", 1f, new ConfigDescription("Which DifficultyMultiplier to add."));
+                DifficultyMultiplier4StartWave = ModCompatibilityConfigPresets.Bind(config, "Difficulty", "DifficultyMultiplier D Start Wave", 50, new ConfigDescription("At which wave to add this DifficultyMultiplier."));
+                DifficultyMultiplier4EndWave = ModCompatibilityConfigPresets.Bind(config, "Difficulty", "DifficultyMultiplier D End Wave", 50, new ConfigDescription("After which wave to remove this DifficultyMultiplier."));
             }
             if (ModCompatibilityInLobbyConfig.enabled)
             {
