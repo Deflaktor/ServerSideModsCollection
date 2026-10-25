@@ -39,36 +39,36 @@ namespace ServerSideTweaks
         {
             var config = ServerSideTweaks.instance.Config;
 
-            Enabled = config.Bind("Main", "Enabled", true, "Enable Mod");
+            Enabled = ModCompatibilityConfigPresets.Bind(config, "Main", "Enabled", true, "Enable Mod");
             // --- General ---
             {
-                PearlReplacesLunarItemChance = config.Bind("Main", "Pearl replaces Lunar Item chance", 0.1f, new ConfigDescription("Adds a chance for lunar items to be replaced by a pearl."));
-                IrradiantPearlReplacesLunarItemChance = config.Bind("Main", "Irradiant Pearl replaces Lunar Item chance", 0.02f, new ConfigDescription("Adds a chance for lunar items to be replaced by an irradiant pearl."));
-                NoPearlsInBazaar = config.Bind("Main", "No Pearl replacements in the Bazaar between Times", true, new ConfigDescription("Prevents pearls from appearing in the Bazaar to prevent hoarding."));
-                ChildReducedTeleportRange = config.Bind("Main", "Child: Reduced teleport range", true, new ConfigDescription("Reduces the range children can teleport away."));
-                ChildRemoveInvincibility = config.Bind("Main", "Child: Remove invincibility", true, new ConfigDescription("Removes the invincibility buff that children get before teleporting."));
-                VoidJailerNoCooldownReductions = config.Bind("Main", "Void Jailer: No cooldown reductions", true, new ConfigDescription("Prevents Void Jailer from getting its cooldown reduced by items like Alien Head for balancing purposes."));
-                SolusInvalidatorNoCooldownReductions = config.Bind("Main", "Solus Invalidator: No cooldown reductions", true, new ConfigDescription("Prevents Solus Invalidator from getting its cooldown reduced by items like Alien Head for balancing purposes."));
-                VoidlingNoCooldownReductions = config.Bind("Main", "Voidling: No cooldown reductions", true, new ConfigDescription("Prevents Voidling from getting its cooldown reduced by items like Alien Head for balancing purposes."));
-                MonsterGoldMultiplier = config.Bind("Main", "Monster gold multiplier", 1f, new ConfigDescription("Multiplies the gold monsters give when killed. A value smaller than 1.0 gives less gold. (1.0 = vanilla)."));
+                PearlReplacesLunarItemChance = ModCompatibilityConfigPresets.Bind(config, "Main", "Pearl replaces Lunar Item chance", 0.1f, new ConfigDescription("Adds a chance for lunar items to be replaced by a pearl."));
+                IrradiantPearlReplacesLunarItemChance = ModCompatibilityConfigPresets.Bind(config, "Main", "Irradiant Pearl replaces Lunar Item chance", 0.02f, new ConfigDescription("Adds a chance for lunar items to be replaced by an irradiant pearl."));
+                NoPearlsInBazaar = ModCompatibilityConfigPresets.Bind(config, "Main", "No Pearl replacements in the Bazaar between Times", true, new ConfigDescription("Prevents pearls from appearing in the Bazaar to prevent hoarding."));
+                ChildReducedTeleportRange = ModCompatibilityConfigPresets.Bind(config, "Main", "Child: Reduced teleport range", true, new ConfigDescription("Reduces the range children can teleport away."));
+                ChildRemoveInvincibility = ModCompatibilityConfigPresets.Bind(config, "Main", "Child: Remove invincibility", true, new ConfigDescription("Removes the invincibility buff that children get before teleporting."));
+                VoidJailerNoCooldownReductions = ModCompatibilityConfigPresets.Bind(config, "Main", "Void Jailer: No cooldown reductions", true, new ConfigDescription("Prevents Void Jailer from getting its cooldown reduced by items like Alien Head for balancing purposes."));
+                SolusInvalidatorNoCooldownReductions = ModCompatibilityConfigPresets.Bind(config, "Main", "Solus Invalidator: No cooldown reductions", true, new ConfigDescription("Prevents Solus Invalidator from getting its cooldown reduced by items like Alien Head for balancing purposes."));
+                VoidlingNoCooldownReductions = ModCompatibilityConfigPresets.Bind(config, "Main", "Voidling: No cooldown reductions", true, new ConfigDescription("Prevents Voidling from getting its cooldown reduced by items like Alien Head for balancing purposes."));
+                MonsterGoldMultiplier = ModCompatibilityConfigPresets.Bind(config, "Main", "Monster gold multiplier", 1f, new ConfigDescription("Multiplies the gold monsters give when killed. A value smaller than 1.0 gives less gold. (1.0 = vanilla)."));
             }
             // --- Simulacrum ---
             {
-                SimulacrumNonSharedLoot = config.Bind("Simulacrum", "Non-shared loot", false, new ConfigDescription("(ShareSuite only) Forces the loot dropped at the end of each wave to be non-shared."));
-                SimulacrumLootMaxItemDebt = config.Bind("Simulacrum", "Max loot debt", 2, new ConfigDescription("Prevents greedy players from taking too much of the loot dropped at the end of each wave."));
-                SimulacrumLootSkullTokens = config.Bind("Simulacrum", "Max loot debt - Skull Tokens", true, new ConfigDescription("Indicate to players how many void potentials they can take by assigning Skull Tokens."));
-                SimulacrumCommencementArtifactDissonanceChance = config.Bind("Simulacrum", "Commencement Artifact of Dissonance Chance", 0.5f, new ConfigDescription("The chance for Artifact of Dissonance to be activated each wave when in the commencement stage to increase enemy variety."));
-                SimulacrumDirectorEnemyPowerBias = config.Bind("Simulacrum", "Director: Enemy Power Bias", 0.5f, new ConfigDescription("Bias towards many,weak enemies (=0) or few,strong enemies (=1). Value between 0 and 1, 0.5 = vanilla."));
-                SimulacrumMaxSquadSize = config.Bind("Simulacrum", "Max squad size", 30, new ConfigDescription("No more than this many enemies shall be spawned at the same time (30 = vanilla)."));
-                SimulacrumWavePeriodSecondsFactor = config.Bind("Simulacrum", "Wave Period Seconds Factor", 1.0f, new ConfigDescription("A factor on how long each wave takes. A value smaller than 1.0 makes the wave go faster, but also with stronger enemies. A value higher than 1.0 makes the wave take longer but the enemies are weaker. (1.0 = vanilla)."));
-                SimulacrumFastVoidCrab = config.Bind("Simulacrum", "Void Crab picks up speed", false, new ConfigDescription("Makes the Void Crab faster the more waves you complete."));
-                SimulacrumEmptyWaveDirectorSpeedup = config.Bind("Simulacrum", "Director: Speed-up without enemies", 3f, new ConfigDescription("While no enemy of the wave is alive, the director earns its credits this many times faster, so the next enemies come sooner. (1.0 = vanilla)."));
-                SimulacrumCaptainBeaconsAfterBossWave = config.Bind("Simulacrum", "Captain: Beacons after boss waves", true, new ConfigDescription("Gives Captains their beacons back after each boss wave. A Captain who used a beacon is respawned in place, since only a new body gets them back, which also restores their health."));
-                SimulacrumAllowDrones = config.Bind("Simulacrum", "Allow drones", false, new ConfigDescription("Lets broken drones appear on Simulacrum's stages, as on normal stages, to repair with gold."));
+                SimulacrumNonSharedLoot = ModCompatibilityConfigPresets.Bind(config, "Simulacrum", "Non-shared loot", false, new ConfigDescription("(ShareSuite only) Forces the loot dropped at the end of each wave to be non-shared."));
+                SimulacrumLootMaxItemDebt = ModCompatibilityConfigPresets.Bind(config, "Simulacrum", "Max loot debt", 2, new ConfigDescription("Prevents greedy players from taking too much of the loot dropped at the end of each wave."));
+                SimulacrumLootSkullTokens = ModCompatibilityConfigPresets.Bind(config, "Simulacrum", "Max loot debt - Skull Tokens", true, new ConfigDescription("Indicate to players how many void potentials they can take by assigning Skull Tokens."));
+                SimulacrumCommencementArtifactDissonanceChance = ModCompatibilityConfigPresets.Bind(config, "Simulacrum", "Commencement Artifact of Dissonance Chance", 0.5f, new ConfigDescription("The chance for Artifact of Dissonance to be activated each wave when in the commencement stage to increase enemy variety."));
+                SimulacrumDirectorEnemyPowerBias = ModCompatibilityConfigPresets.Bind(config, "Simulacrum", "Director: Enemy Power Bias", 0.5f, new ConfigDescription("Bias towards many,weak enemies (=0) or few,strong enemies (=1). Value between 0 and 1, 0.5 = vanilla."));
+                SimulacrumMaxSquadSize = ModCompatibilityConfigPresets.Bind(config, "Simulacrum", "Max squad size", 30, new ConfigDescription("No more than this many enemies shall be spawned at the same time (30 = vanilla)."));
+                SimulacrumWavePeriodSecondsFactor = ModCompatibilityConfigPresets.Bind(config, "Simulacrum", "Wave Period Seconds Factor", 1.0f, new ConfigDescription("A factor on how long each wave takes. A value smaller than 1.0 makes the wave go faster, but also with stronger enemies. A value higher than 1.0 makes the wave take longer but the enemies are weaker. (1.0 = vanilla)."));
+                SimulacrumFastVoidCrab = ModCompatibilityConfigPresets.Bind(config, "Simulacrum", "Void Crab picks up speed", false, new ConfigDescription("Makes the Void Crab faster the more waves you complete."));
+                SimulacrumEmptyWaveDirectorSpeedup = ModCompatibilityConfigPresets.Bind(config, "Simulacrum", "Director: Speed-up without enemies", 3f, new ConfigDescription("While no enemy of the wave is alive, the director earns its credits this many times faster, so the next enemies come sooner. (1.0 = vanilla)."));
+                SimulacrumCaptainBeaconsAfterBossWave = ModCompatibilityConfigPresets.Bind(config, "Simulacrum", "Captain: Beacons after boss waves", true, new ConfigDescription("Gives Captains their beacons back after each boss wave. A Captain who used a beacon is respawned in place, since only a new body gets them back, which also restores their health."));
+                SimulacrumAllowDrones = ModCompatibilityConfigPresets.Bind(config, "Simulacrum", "Allow drones", false, new ConfigDescription("Lets broken drones appear on Simulacrum's stages, as on normal stages, to repair with gold."));
             }
             // --- Classic Run ---
             {
-                ClassicDirectorEnemyPowerBias = config.Bind("Classic", "Director: Enemy Power Bias", 0.5f, new ConfigDescription("Bias towards many,weak enemies (=0) or few,strong enemies (=1). Value between 0 and 1, 0.5 = vanilla."));
+                ClassicDirectorEnemyPowerBias = ModCompatibilityConfigPresets.Bind(config, "Classic", "Director: Enemy Power Bias", 0.5f, new ConfigDescription("Bias towards many,weak enemies (=0) or few,strong enemies (=1). Value between 0 and 1, 0.5 = vanilla."));
             }
             if (ModCompatibilityInLobbyConfig.enabled)
             {
