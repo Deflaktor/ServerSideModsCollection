@@ -15,6 +15,7 @@ This mod makes Simulacrum play through the normal stages instead of the special 
 - Removes the exit portal from the Void Fields stage
 - Removes the objectives from the Void Fields stage
 - Removes the objectives from the Void Locus stage
+- Removes the Access Nodes and Void Seeds, whose objectives don't belong in Simulacrum
 - Makes the Void Fields stage count as a normal stage in Simulacrum Mode
 - Compatibility with InLobbyConfig
 

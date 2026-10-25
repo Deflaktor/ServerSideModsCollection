@@ -12,6 +12,7 @@
 - Fix monsters spawning next to the waves on stages with more combat directors or ones that turn on later
 - Fix the spelling of the Void Eradicators setting
 - Hallowed Concepts' interactables no longer appear, except the Concept Reliquary
+- Remove the Access Nodes and Void Seeds, whose objectives don't belong in Simulacrum
 - New setting: places a Hallowed Shrine near the safe ward once each stage's last wave is beaten
 - No longer needs R2API
 - Works with the new ConfigPresets library, through which modpacks can set this mod's settings without changing your config file

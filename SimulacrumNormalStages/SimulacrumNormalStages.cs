@@ -124,7 +124,16 @@ namespace SimulacrumNormalStages
             {
                 if (Run.instance.GetType() == typeof(InfiniteTowerRun))
                 {
-                    self.enabled = false;
+                    // the Access Nodes, which lead to the Solus fights. Destroying them on the host removes them for
+                    // clients too, unlike SetActive.
+                    foreach (AccessCodesNodeData node in self.nodes)
+                    {
+                        if (node.node)
+                        {
+                            Destroy(node.node);
+                        }
+                    }
+                    Destroy(self.gameObject);
                     return true;
                 }
                 return false;
@@ -731,6 +740,8 @@ namespace SimulacrumNormalStages
         // Hallowed Concepts' interactables, by their spawn cards, which all stay out of Simulacrum's stages but the Concept
         // Reliquary. The setting Place Hallowed Shrine places one directly instead.
         private const string ConceptReliquary = "iscHollowChest";
+        // the Void Seed, whose monsters are an objective of their own
+        private const string VoidSeed = "VoidCamp";
         private static readonly HashSet<string> HallowedConceptsInteractables = new HashSet<string>
         {
             "iscChampRushExitPortal", "iscChampRushPortal", "iscShrineCatastrophe", "iscShrineCombatPoison", "iscBetterHallowedShrine",
@@ -752,6 +763,10 @@ namespace SimulacrumNormalStages
             if (spawnCard is InteractableSpawnCard interactableSpawnCard && interactableSpawnCard.skipSpawnWhenDevotionArtifactEnabled && !RunArtifactManager.instance.IsArtifactEnabled(CU8Content.Artifacts.Devotion))
             {
                 //Skip Drones only if Devo not active
+                return false;
+            }
+            if (prefab.name == VoidSeed)
+            {
                 return false;
             }
             // also those the list misses, by the expansion they need
