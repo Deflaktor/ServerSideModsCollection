@@ -18,6 +18,7 @@ using static RoR2.SceneCollection;
 
 namespace SimulacrumNormalStages
 {
+    [BepInDependency(ConfigPresets.ConfigPresetsPlugin.PluginGUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     public class SimulacrumNormalStages : BaseUnityPlugin
     {
