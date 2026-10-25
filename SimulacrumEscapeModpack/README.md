@@ -17,8 +17,17 @@ This modpack is focused on the Simulacrum mode, but it also affects normal runs.
 ## How to play
 
 1. Install modpack and dependencies
-2. Create a Simulacrum lobby
-3. Beat wave 50 to win
+2. Copy the files from the modpack's `RecommendedConfig` folder into `BepInEx/config`
+3. Create a Simulacrum lobby
+4. Beat wave 50 to win
+
+## Settings
+
+The modpack brings its own settings for its mods, without touching your config files. While it is on, the mods use the modpack's settings. Your config files and in-game config menus like InLobbyConfig keep showing your own values, which take effect again once you turn the modpack off.
+
+To turn it off, set `Enabled` to `false` in `BepInEx/config/Def-SimulacrumEscapeModpack.cfg` and restart the game. Mod managers show that file in their config editor.
+
+This works for the Def mods only. ShareSuite, BiggerBazaar, ItemBlacklist and ArtifactEvolutionPlusPlus read your config files as usual. The modpack's settings for them are in its `RecommendedConfig` folder: copy those files into `BepInEx/config` to use them, replacing your own settings for these mods.
 
 ## Mods
 
