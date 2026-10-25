@@ -64,14 +64,14 @@ namespace StartBonusMod
                 internalNameToChoice[equipmentDef.name] = englishName;
             }
             // --- Main ---
-            Enabled = config.Bind("00 Main", "Enabled", true, "Enable Mod");
+            Enabled = ModCompatibilityConfigPresets.Bind(config, "00 Main", "Enabled", true, "Enable Mod");
 
             // --- Start Cash ---
-            StartingCashEnabled = config.Bind("01 Cash", "SectionEnabled", false, new ConfigDescription("If starting cash shall be given to the player."));
-            StartingCash = config.Bind("01 Cash", "Cash", 0, new ConfigDescription("How much starting cash each player receives."));
+            StartingCashEnabled = ModCompatibilityConfigPresets.Bind(config, "01 Cash", "SectionEnabled", false, new ConfigDescription("If starting cash shall be given to the player."));
+            StartingCash = ModCompatibilityConfigPresets.Bind(config, "01 Cash", "Cash", 0, new ConfigDescription("How much starting cash each player receives."));
 
             // --- Simple Item List ---
-            SimpleEnabled = config.Bind("02 Simple Item List", "SectionEnabled", false, new ConfigDescription("Whether to enable Simple Start Bonus Item List"));
+            SimpleEnabled = ModCompatibilityConfigPresets.Bind(config, "02 Simple Item List", "SectionEnabled", false, new ConfigDescription("Whether to enable Simple Start Bonus Item List"));
 
             var sortedEquipmentList = englishNameToEquipmentIndex.Keys.ToList();
             sortedEquipmentList.Remove("None");
@@ -86,16 +86,16 @@ namespace StartBonusMod
                 if (!itemTierToItemEnglishNames.TryGetValue(tierDef.tier, out var tierItemNames))
                     continue;
                 StartingItemByTier[tierDef.tier] = BindChoice(config, "02 Simple Item List", $"{tierDef.tier.ToString()} Item", $"Which {tierDef.tier.ToString()} item each player shall receive at the start.", tierItemNames);
-                StartingItemByTierAmount[tierDef.tier] = config.Bind("02 Simple Item List", $"{tierDef.tier.ToString()} Amount", 0, new ConfigDescription($"How many of the {tierDef.tier.ToString()} item each player shall receive."));
+                StartingItemByTierAmount[tierDef.tier] = ModCompatibilityConfigPresets.Bind(config, "02 Simple Item List", $"{tierDef.tier.ToString()} Amount", 0, new ConfigDescription($"How many of the {tierDef.tier.ToString()} item each player shall receive."));
             }
 
             // --- Advanced Item List ---
-            AdvancedEnabled = config.Bind("03 Advanced Item List", "SectionEnabled", false, new ConfigDescription("Whether to enable Advanced Start Bonus Item List"));
+            AdvancedEnabled = ModCompatibilityConfigPresets.Bind(config, "03 Advanced Item List", "SectionEnabled", false, new ConfigDescription("Whether to enable Advanced Start Bonus Item List"));
             var items = "2xHealWhileSafe & Tier3 & 2xLunar & 4xdtChest2";
             var itemTiersString = "Tier1, Tier2, Tier3, Lunar, Boss, VoidTier1, VoidTier2, VoidTier3, VoidBoss, FoodTier, Cursed, Hex, Page";
             var dropListsString = "Equipment, LunarEquipment, LunarItem, PowerShape, KeyItem";
             var itemKeyWordsExplanation = $"Can use:\n - internal item, equipment, drone and key item names (see https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Items-and-Equipments-Data/)\n- item tier keywords ({itemTiersString})\n- other drop lists of the run ({dropListsString})\n- droptable names (see README.md)\nExample: {items}";
-            AdvancedItemList = config.Bind("03 Advanced Item List", "ItemList", "2xdtChest1 & Tier2", $"List of items in the format <amount1>x<item1> & <amount2>x<item2>. See README.md for more detailed description. {itemKeyWordsExplanation}");
+            AdvancedItemList = ModCompatibilityConfigPresets.Bind(config, "03 Advanced Item List", "ItemList", "2xdtChest1 & Tier2", $"List of items in the format <amount1>x<item1> & <amount2>x<item2>. See README.md for more detailed description. {itemKeyWordsExplanation}");
 
             // --- InLobbyConfig ---
             if (ModCompatibilityInLobbyConfig.enabled)
@@ -123,17 +123,17 @@ namespace StartBonusMod
             var definition = new ConfigDefinition(section, key);
             var saved = config.Bind(definition, "None", new ConfigDescription(description)).Value;
             config.Remove(definition);
-            var entry = config.Bind(definition, "None", new ConfigDescription(description, new AcceptableValueList<string>(choices.ToArray())));
+            var entry = ModCompatibilityConfigPresets.Bind(config, definition, "None", new ConfigDescription(description, new AcceptableValueList<string>(choices.ToArray())));
             if (choices.Contains(saved))
             {
-                entry.Value = saved;
+                ModCompatibilityConfigPresets.PlayerEntry(entry).Value = saved;
             }
             else
             {
                 var match = Regex.Match(saved ?? "", @"(?:^|\()\d+: ([^()]+)\)?$");
                 if (match.Success && internalNameToChoice.TryGetValue(match.Groups[1].Value, out var choice) && choices.Contains(choice))
                 {
-                    entry.Value = choice;
+                    ModCompatibilityConfigPresets.PlayerEntry(entry).Value = choice;
                 }
             }
             return entry;

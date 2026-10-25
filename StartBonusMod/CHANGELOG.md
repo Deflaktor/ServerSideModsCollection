@@ -10,6 +10,7 @@
 - Fix a random Lunar starting item sometimes giving nothing.
 - Works with ProperSave: loading a save no longer gives the starting items again.
 - No longer needs R2API.
+- Works with the new ConfigPresets library, through which modpacks can set this mod's settings without changing your config file.
 
 # 3.0.3
 
