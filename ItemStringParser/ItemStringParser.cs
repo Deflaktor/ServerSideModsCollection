@@ -201,6 +201,42 @@ namespace ItemStringParser
             }
         }
 
+        // Picks from a tier's or drop table's items without the blacklisted ones. As a drop table itself, mods that change what
+        // drop tables give change its picks too; they only change the picked item, which passed the blacklist
+        private class SelectionDropTable : PickupDropTable
+        {
+            public WeightedSelection<UniquePickup> selection;
+
+            public override int GetPickupCount()
+            {
+                return selection != null ? selection.Count : 0;
+            }
+
+            public override UniquePickup GeneratePickupPreReplacement(Xoroshiro128Plus rng)
+            {
+                return selection != null && selection.Count > 0 ? selection.Evaluate(rng.nextNormalizedFloat) : UniquePickup.none;
+            }
+        }
+
+        private static SelectionDropTable selectionDropTable;
+
+        // none if the selection is empty
+        private static UniquePickup PickThroughDropTable(WeightedSelection<UniquePickup> selection)
+        {
+            if (selection.Count == 0)
+            {
+                return UniquePickup.none;
+            }
+            if (!selectionDropTable)
+            {
+                selectionDropTable = UnityEngine.ScriptableObject.CreateInstance<SelectionDropTable>();
+                // the tier's or drop table's items, not lunar ones from Eulogy Zero
+                selectionDropTable.canDropBeReplaced = false;
+            }
+            selectionDropTable.selection = selection;
+            return selectionDropTable.GeneratePickup(rng);
+        }
+
         private static bool ResolveItemKey(string itemkey, int repeat, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, bool availableOnly)
         {
             List<PickupIndex> itemBlackList = [];
@@ -222,9 +258,14 @@ namespace ItemStringParser
             var tierDropList = GetTierDropList(itemkey);
             List<PickupIndex> candidates = tierDropList?.Except(itemBlackList).ToList();
             if (candidates != null) {
+                var tierSelection = new WeightedSelection<UniquePickup>();
+                foreach (var candidate in candidates)
+                {
+                    tierSelection.AddChoice(new UniquePickup(candidate), 1f);
+                }
                 while (repeat > 0)
                 {
-                    var pickupIndex = GetRandom(candidates, PickupIndex.none);
+                    var pickupIndex = PickThroughDropTable(tierSelection).pickupIndex;
                     if (pickupIndex == PickupIndex.none)
                     {
                         HandleWarning(log, $"ResolveItemKey: Could not get pickup from item tier: {itemkey}, as all candidates are either disabled or locked behind expansion");
@@ -280,8 +321,8 @@ namespace ItemStringParser
                 }
                 while (repeat > 0)
                 {
-                    var uniquePickup = selection.Evaluate(rng.nextNormalizedFloat);
-                    if (uniquePickup.Equals(UniquePickup.none))
+                    var uniquePickup = PickThroughDropTable(selection);
+                    if (!uniquePickup.isValid)
                     {
                         HandleWarning(log, $"ResolveItemKey: Could not get pickup from droptable: {itemkey}");
                         return false;

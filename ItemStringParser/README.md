@@ -166,7 +166,7 @@ You can use:
 
 ### Droptable Names
 
-Every drop table of the game can be used by its name, also ones added by a game update. Names are not case-sensitive. These are the most useful ones:
+Every drop table of the game can be used by its name, also ones added by a game update. Names are not case-sensitive. Mods that change what drop tables give change the items picked from them and from tiers too, also with a blacklist. These are the most useful ones:
 
 | Drop Table Name | Source | tier1 | tier2 | tier3 | boss | lunar | equipment | voidTier1 | voidTier2 | voidTier3 | voidBoss | cursed | page | requiredItemTags | bannedItemTags |
 |-----------------|--------|-------|-------|-------|------|-------|-----------|-----------|-----------|-----------|----------|--------|------|------------------|----------------|
