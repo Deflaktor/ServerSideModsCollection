@@ -173,7 +173,7 @@ namespace ItemStringParser
             return PickupIndex.none;
         }
 
-        // Tier keywords, plus the run's other drop lists; null if the key is none of them
+        // Tier keywords, plus the run's other drop lists and modded tiers; null if the key is none of them
         private static List<PickupIndex> GetTierDropList(string tier)
         {
             var run = Run.instance;
@@ -197,8 +197,60 @@ namespace ItemStringParser
                 case "page": return run.availablePageTierDropList;
                 case "powershape": return run.availablePowerShapeItemsDropList;
                 case "keyitem": return run.availableKeyItemsDropList;
-                default: return null;
             }
+            var tierDef = FindTierDef(tier);
+            if (!tierDef)
+            {
+                return null;
+            }
+            if (warnedTierNames.Add(tier) && (DropTables.ContainsKey(tier) || FindPickupByName(tier) != PickupIndex.none))
+            {
+                Log.LogWarning($"{tier} is the item tier {tierDef.name}, so the drop table or item of the same name can't be used by it.");
+            }
+            // like the run's other drop lists, without the items that never drop
+            return run.allAvailableTierDroplists.TryGetValue(tierDef.tier, out var dropList) ? dropList : new List<PickupIndex>();
+        }
+
+        private static readonly HashSet<string> warnedTierNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        // An item tier of the game or a mod by the name of its ItemTierDef, e.g. Tier1Def, or by that name without its
+        // trailing TierDef or Def. Case and characters other than letters, digits and _ don't count, since an item string
+        // can't contain them. Null if none fits, or if the short name fits several tiers
+        private static ItemTierDef FindTierDef(string name)
+        {
+            var key = NormalizeTierName(name);
+            var matches = new List<ItemTierDef>();
+            foreach (var tierDef in ItemTierCatalog.allItemTierDefs)
+            {
+                if (!tierDef)
+                    continue;
+                if (NormalizeTierName(tierDef.name) == key)
+                    return tierDef;
+                if (ShortTierName(tierDef.name) == key)
+                    matches.Add(tierDef);
+            }
+            if (matches.Count > 1 && warnedTierNames.Add(name))
+            {
+                Log.LogWarning($"{name} could be any of the item tiers {string.Join(", ", matches.Select(tierDef => tierDef.name))}; use one of these names.");
+            }
+            return matches.Count == 1 ? matches[0] : null;
+        }
+
+        private static string NormalizeTierName(string name)
+        {
+            return new string(name.Where(c => char.IsLetterOrDigit(c) || c == '_').ToArray()).ToLowerInvariant();
+        }
+
+        // The tier's name without its trailing TierDef or Def, e.g. tier1 for Tier1Def
+        private static string ShortTierName(string tierDefName)
+        {
+            var name = NormalizeTierName(tierDefName);
+            foreach (var suffix in new[] { "tierdef", "def" })
+            {
+                if (name.Length > suffix.Length && name.EndsWith(suffix))
+                    return name.Substring(0, name.Length - suffix.Length);
+            }
+            return name;
         }
 
         // Picks from a tier's or drop table's items without the blacklisted ones. As a drop table itself, mods that change what
@@ -783,6 +835,13 @@ namespace ItemStringParser
                 foreach (var entry in bodyNames)
                 {
                     writer.WriteLine($"{entry}");
+                }
+                writer.WriteLine("# Item Tiers");
+                writer.WriteLine("Besides the tier keywords, item strings can use these names or the names without TierDef or Def at the end.");
+                foreach (var tierDef in ItemTierCatalog.allItemTierDefs)
+                {
+                    if (tierDef)
+                        writer.WriteLine($"{tierDef.name}");
                 }
                 writer.WriteLine("# DropTables");
                 writer.WriteLine("| Drop Table Name                  | tier1 | tier2 | tier3 | boss | lunarEquipment | lunarItem | lunarCombined | equipment | voidTier1 | voidTier2 | voidTier3 | voidBoss | foodTier | powerShapes | cursed | hex | page | canDropBeReplaced | requiredItemTags | bannedItemTags |");
