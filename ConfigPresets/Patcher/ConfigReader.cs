@@ -1,6 +1,7 @@
 using BepInEx.Configuration;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace ConfigPresets
 {
@@ -34,6 +35,31 @@ namespace ConfigPresets
                 }
             }
             return settings;
+        }
+
+        // writes the settings as a config file that Read reads back, or deletes the file if there are none
+        public static void Write(string path, Dictionary<ConfigDefinition, string> settings)
+        {
+            if (settings.Count == 0)
+            {
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+                return;
+            }
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            var lines = new List<string>();
+            foreach (var section in settings.GroupBy(setting => setting.Key.Section).OrderBy(section => section.Key))
+            {
+                if (lines.Count > 0)
+                {
+                    lines.Add("");
+                }
+                lines.Add($"[{section.Key}]");
+                lines.AddRange(section.OrderBy(setting => setting.Key.Key).Select(setting => $"{setting.Key.Key} = {setting.Value}"));
+            }
+            File.WriteAllLines(path, lines);
         }
     }
 }

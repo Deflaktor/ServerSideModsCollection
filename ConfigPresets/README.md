@@ -24,7 +24,7 @@ You pick one preset for each package that has some, or Off to use your own setti
 
 A new pick applies right away. Before the title screen, mods always use your own settings, so anything they change while starting up, like updating an old config, is saved as usual.
 
-While a preset sets a setting, config menus show the preset's value. You can change it, but only until the game restarts or the mod reloads its config. Your own config files keep your own values.
+Each preset shows up twice: as it is, e.g. `Hard`, and with your own changes, `Hard (custom)`. If you change a setting that the preset sets, the change goes into the custom version, and that one gets picked. Your changes are stored in `BepInEx/config/Def.ConfigPresets/<package>/<preset>/`. Setting a value back to the preset's value removes your change. Your own config files are never touched.
 
 Settings that no preset sets work as usual and are saved to your config files.
 
@@ -34,7 +34,7 @@ If two picked presets set the same setting, the package that comes first alphabe
 
 Add a `ConfigPreset` folder to your package with one folder per preset. The folder name is the preset name players see. Inside go config files named like the ones in `BepInEx/config`, e.g. `ConfigPreset/Hard/Def.BazaarIsMyHaven.cfg`. Only put in the settings you want to set. Then add ConfigPresets as a dependency.
 
-Preset names can't be `Off`, can't start with a digit, `+` or `-`, can't contain a comma, and can't start or end with a space.
+Preset names can't be `Off`, can't start with a digit, `+` or `-`, can't contain a comma, can't start or end with a space, and can't end with ` (custom)`.
 
 Players start with Off. To pick a preset by default, like a modpack would, write its name into `ConfigPreset/default.txt`.
 
@@ -42,7 +42,7 @@ Don't put the config files in a `config` folder. Mod managers copy that folder o
 
 Mods don't need any changes, as long as they pick up setting changes while the game runs, i.e. read the value when they need it or listen to `SettingChanged`. A setting that a mod only reads at startup, e.g. to register an item or decide which hooks to add, keeps the player's value. So check that every setting in your preset actually does something.
 
-If a mod changes a setting that a preset sets, the change only lasts until the config file is loaded again.
+If a mod changes a setting that a preset sets, that counts as the player's change to the preset. It doesn't end up in the mod's config file.
 
 ## How it works
 

@@ -13,7 +13,7 @@ namespace ConfigPresets
     // For the settings the presets that are picked have, a mod's config file holds the presets' values: when the file is
     // loaded, on every reload, for settings bound later, and when the player picks another preset. So whatever way a mod
     // or a config menu reads them, it gets the preset's value. Saving writes the player's values instead, so the file
-    // never changes because of a preset, and changing such a setting in-game only lasts until the file is loaded again.
+    // never changes because of a preset. Changing such a setting in-game is kept as an edit of the preset.
     internal static class ConfigOverride
     {
         private class FileState
@@ -33,6 +33,9 @@ namespace ConfigPresets
         // the file being saved, whose entries write the player's values
         [ThreadStatic]
         private static FileState saving;
+        // while the entries get the values of the file or the presets, which aren't edits
+        [ThreadStatic]
+        private static int setting;
 
         public static void Apply()
         {
@@ -41,6 +44,9 @@ namespace ConfigPresets
             var harmony = new Harmony(Patcher.GUID);
             harmony.Patch(AccessTools.Constructor(typeof(ConfigFile), new[] { typeof(string), typeof(bool), typeof(BepInPlugin) }),
                 postfix: new HarmonyMethod(typeof(ConfigOverride), nameof(ConfigFile_Constructor)));
+            harmony.Patch(AccessTools.Method(typeof(ConfigFile), nameof(ConfigFile.Reload)),
+                prefix: new HarmonyMethod(typeof(ConfigOverride), nameof(ConfigFile_Reload)),
+                finalizer: new HarmonyMethod(typeof(ConfigOverride), nameof(ConfigFile_ReloadFinalizer)));
             harmony.Patch(AccessTools.Method(typeof(ConfigFile), "OnConfigReloaded"),
                 prefix: new HarmonyMethod(typeof(ConfigOverride), nameof(ConfigFile_OnConfigReloaded)));
             harmony.Patch(AccessTools.Method(typeof(ConfigFile), nameof(ConfigFile.Save)),
@@ -62,6 +68,7 @@ namespace ConfigPresets
                 state = new FileState { fileName = Path.GetFileName(file.ConfigFilePath) };
                 files.Add(file, state);
                 allFiles.Add(new WeakReference<ConfigFile>(file));
+                file.SettingChanged += ConfigFile_SettingChanged;
             }
             return state;
         }
@@ -74,6 +81,17 @@ namespace ConfigPresets
             {
                 Refresh(__instance, state);
             }
+        }
+
+        private static void ConfigFile_Reload()
+        {
+            setting++;
+        }
+
+        private static Exception ConfigFile_ReloadFinalizer(Exception __exception)
+        {
+            setting--;
+            return __exception;
         }
 
         // the file was loaded or reloaded, before the mods hear of it
@@ -114,6 +132,7 @@ namespace ConfigPresets
             // the file keeps the player's values anyway
             var saveOnConfigSet = file.SaveOnConfigSet;
             file.SaveOnConfigSet = false;
+            setting++;
             try
             {
                 foreach (var definition in previous.Keys)
@@ -150,6 +169,7 @@ namespace ConfigPresets
             }
             finally
             {
+                setting--;
                 file.SaveOnConfigSet = saveOnConfigSet;
             }
         }
@@ -159,6 +179,35 @@ namespace ConfigPresets
             if (entry.GetSerializedValue() != value)
             {
                 entry.SetSerializedValue(value);
+            }
+        }
+
+        // the player or a mod changed a setting
+        private static void ConfigFile_SettingChanged(object sender, SettingChangedEventArgs args)
+        {
+            var entry = args.ChangedSetting;
+            var file = entry?.ConfigFile;
+            if (setting > 0 || !Presets.Active || file == null || !files.TryGetValue(file, out var state) || !state.preset.TryGetValue(entry.Definition, out var value)
+                || !getEntries(file).TryGetValue(entry.Definition, out var registered) || registered != entry
+                // the mod binds it, and it gets the value of the file or the presets
+                || getOrphanedEntries(file).ContainsKey(entry.Definition)
+                || entry.GetSerializedValue() == Normalize(entry, value))
+            {
+                return;
+            }
+            Presets.Edit(state.fileName, entry, preset => Normalize(entry, preset));
+        }
+
+        // a value as the entry writes it, which a preset may write differently
+        private static string Normalize(ConfigEntryBase entry, string value)
+        {
+            try
+            {
+                return TomlTypeConverter.ConvertToString(TomlTypeConverter.ConvertToValue(value, entry.SettingType), entry.SettingType);
+            }
+            catch (Exception)
+            {
+                return value;
             }
         }
 
