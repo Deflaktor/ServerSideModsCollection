@@ -24,15 +24,15 @@ namespace ServerSideItems
         {
             var config = ServerSideItems.instance.Config;
 
-            Enabled = ModCompatibilityConfigPresets.Bind(config, "Main", "Enabled", true, "Enable Mod");
+            Enabled = config.Bind("Main", "Enabled", true, "Enable Mod");
             // --- ShatterspleenWorksOnBaseHealth ---
-            ShatterspleenWorksOnBaseHealth = ModCompatibilityConfigPresets.Bind(config, "Main", "Shatterspleen: Works on Base Health instead of Combined Health", true, new ConfigDescription("Shatterspleen normally applies dmg based on the combined max health of enemies. This makes it super strong if enemies have health increasing items."));
+            ShatterspleenWorksOnBaseHealth = config.Bind("Main", "Shatterspleen: Works on Base Health instead of Combined Health", true, new ConfigDescription("Shatterspleen normally applies dmg based on the combined max health of enemies. This makes it super strong if enemies have health increasing items."));
             // --- NewlyHatchedZoeaRework ---
-            NewlyHatchedZoeaRework = ModCompatibilityConfigPresets.Bind(config, "Main", "NewlyHatchedZoea: Instead of summoning void creature, you become a creature of the void.", true, new ConfigDescription("Every 5 (-25% per stack) seconds, fire 3 (+2 per stack) nullifying bombs which immobilize enemies and deal 300% damage. Auto-targets strongest grounded enemy. Corrupts all yellow items."));
+            NewlyHatchedZoeaRework = config.Bind("Main", "NewlyHatchedZoea: Instead of summoning void creature, you become a creature of the void.", true, new ConfigDescription("Every 5 (-25% per stack) seconds, fire 3 (+2 per stack) nullifying bombs which immobilize enemies and deal 300% damage. Auto-targets strongest grounded enemy. Corrupts all yellow items."));
             NewlyHatchedZoeaRework.SettingChanged += SetLanguageOverlay;
             SetLanguageOverlay();
             // --- Beyond The Limits ---
-            // ImplementBeyondTheLimits = ModCompatibilityConfigPresets.Bind(config, "Beyond The Limits", "SectionEnabled", false, new ConfigDescription("Makes it so that the wearer of the unused 'Beyond The Limits' aspect gains a passive 50% movement speed bonus and relaxes for the wearer the requirement for activation of certain items from 'when sprinting' to 'when moving'."));
+            // ImplementBeyondTheLimits = config.Bind("Beyond The Limits", "SectionEnabled", false, new ConfigDescription("Makes it so that the wearer of the unused 'Beyond The Limits' aspect gains a passive 50% movement speed bonus and relaxes for the wearer the requirement for activation of certain items from 'when sprinting' to 'when moving'."));
 
             if (ModCompatibilityInLobbyConfig.enabled)
             {

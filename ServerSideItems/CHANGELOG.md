@@ -5,7 +5,6 @@
 - Fix Newly Hatched Zoea firing 2 more bombs than its description says
 - Fix Newly Hatched Zoea stopping when losing a stack mid-volley
 - Fix the Newly Hatched Zoea rework sometimes removing a living body, e.g. after a revive
-- Works with the new ConfigPresets library, through which modpacks can set this mod's settings without changing your config file
 
 # 1.1.0
 

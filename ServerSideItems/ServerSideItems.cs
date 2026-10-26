@@ -16,7 +16,6 @@ using System.Collections;
 
 namespace ServerSideItems
 {
-    [BepInDependency(ConfigPresets.ConfigPresetsPlugin.PluginGUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [BepInDependency(R2API.R2API.PluginGUID)]
     [BepInDependency(R2API.LanguageAPI.PluginGUID)]
