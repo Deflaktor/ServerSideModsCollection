@@ -15,7 +15,6 @@
 - Remove the Access Nodes and Void Seeds, whose objectives don't belong in Simulacrum
 - New setting: places a Hallowed Shrine near the safe ward once each stage's last wave is beaten
 - No longer needs R2API
-- Works with the new ConfigPresets library, through which modpacks can set this mod's settings without changing your config file
 
 # 1.1.0
 
