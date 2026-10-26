@@ -25,7 +25,8 @@ namespace ItemStringParser
         public const string PluginVersion = "2.1.0";
 
         // a key with its blacklist, e.g. 3xdtChest1!Bear!Crowbar
-        private static readonly Regex tokenPattern = new Regex(@"^(?:(\d+)\s*x\s*)?(\w+(?:\s*!\s*\w+)*)$", RegexOptions.IgnoreCase);
+        private static readonly Regex tokenPattern = new Regex(@"^(?:(\d+)\s*x\s*)?(\w+(?:\s*(?:!\s*#?|#)\s*\w+)*)$", RegexOptions.IgnoreCase);
+        private static readonly Regex filterPattern = new Regex(@"(!\s*#|!|#)\s*(\w+)");
 
         private static ManualLogSource Log;
 
@@ -303,23 +304,41 @@ namespace ItemStringParser
         private static bool ResolveItemKey(string itemkey, int repeat, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log, bool availableOnly)
         {
             List<PickupIndex> itemBlackList = [];
-            var blacklistedItems = itemkey.Split("!");
-            itemkey = blacklistedItems[0].Trim();
-            for(var i = 1; i < blacklistedItems.Length; i++)
+            List<ItemTag> requiredTags = [];
+            List<ItemTag> bannedTags = [];
+            var filters = filterPattern.Matches(itemkey);
+            if (filters.Count > 0)
+                itemkey = itemkey.Substring(0, filters[0].Index);
+            itemkey = itemkey.Trim();
+            foreach (Match filter in filters)
             {
-                var blacklistedItem = blacklistedItems[i].Trim();
-                var pickupIndex = FindPickupByName(blacklistedItem);
-                if (pickupIndex != PickupIndex.none)
+                var name = filter.Groups[2].Value;
+                if (filter.Groups[1].Value == "!")
                 {
-                    itemBlackList.Add(pickupIndex);
+                    var pickupIndex = FindPickupByName(name);
+                    if (pickupIndex != PickupIndex.none)
+                    {
+                        itemBlackList.Add(pickupIndex);
+                    }
+                    else
+                    {
+                        HandleWarning(log, $"ResolveItemKey: Could not get pickup from blacklisted item: {name}");
+                    }
+                }
+                else if (TryFindTag(name, out var tag))
+                {
+                    (filter.Groups[1].Value == "#" ? requiredTags : bannedTags).Add(tag);
                 }
                 else
                 {
-                    HandleWarning(log, $"ResolveItemKey: Could not get pickup from blacklisted item: {blacklistedItem}");
+                    HandleWarning(log, $"ResolveItemKey: Could not find item tag: {name}");
+                    return false;
                 }
             }
+            bool Passes(PickupIndex pickupIndex) => !itemBlackList.Contains(pickupIndex) && HasTags(pickupIndex, requiredTags, bannedTags);
+
             var tierDropList = GetTierDropList(itemkey);
-            List<PickupIndex> candidates = tierDropList?.Except(itemBlackList).ToList();
+            List<PickupIndex> candidates = tierDropList?.Where(Passes).ToList();
             if (candidates != null) {
                 var tierSelection = new WeightedSelection<UniquePickup>();
                 foreach (var candidate in candidates)
@@ -352,8 +371,8 @@ namespace ItemStringParser
                 if (choices == null)
                 {
                     // special drop tables only generate their pickups
-                    if (itemBlackList.Count > 0)
-                        HandleWarning(log, $"ResolveItemKey: Droptable {itemkey} does not support blacklisting items.");
+                    if (itemBlackList.Count > 0 || requiredTags.Count > 0 || bannedTags.Count > 0)
+                        HandleWarning(log, $"ResolveItemKey: Droptable {itemkey} does not support blacklisting items or tags.");
                     while (repeat > 0)
                     {
                         var uniquePickup = dropTable.GeneratePickup(rng);
@@ -373,7 +392,7 @@ namespace ItemStringParser
                 {
                     var choice = choices.GetChoice(i);
                     var pickupIndex = choice.value.pickupIndex;
-                    if (!itemBlackList.Contains(pickupIndex) && Run.instance.IsPickupAvailable(pickupIndex))
+                    if (Passes(pickupIndex) && Run.instance.IsPickupAvailable(pickupIndex))
                     {
                         selection.AddChoice(choice);
                     }
@@ -435,6 +454,23 @@ namespace ItemStringParser
             if (pickupDef.keyItemIndex != KeyItemIndex.None)
                 return run.IsKeyItemExpansionLocked(pickupDef.keyItemIndex);
             return false;
+        }
+
+        private static bool TryFindTag(string name, out ItemTag tag)
+        {
+            var tagName = Enum.GetNames(typeof(ItemTag)).FirstOrDefault(tagName => tagName != nameof(ItemTag.Any) && tagName != nameof(ItemTag.Count) && string.Equals(tagName, name, StringComparison.OrdinalIgnoreCase));
+            tag = tagName != null ? (ItemTag)Enum.Parse(typeof(ItemTag), tagName) : default;
+            return tagName != null;
+        }
+
+        // equipment has no tags, so it only passes without required ones
+        private static bool HasTags(PickupIndex pickupIndex, List<ItemTag> requiredTags, List<ItemTag> bannedTags)
+        {
+            var pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
+            var itemDef = pickupDef != null ? ItemCatalog.GetItemDef(pickupDef.itemIndex) : null;
+            if (!itemDef)
+                return requiredTags.Count == 0;
+            return requiredTags.All(itemDef.ContainsTag) && !bannedTags.Any(itemDef.ContainsTag);
         }
 
         // Internal names. Equipment comes first: BurnNearby is also the name of an unused item.

@@ -12,7 +12,7 @@ ItemStrings are a way to describe a droptable using plain text. They let you des
 
 ItemString operators are symbols that help you decide which items to give, repeat, or exclude in a list. They make it easy to write rules like "give this item", "skip that one", or "choose one randomly" using short codes. Each entry in the ItemString roughly follows the format:
 
-`<repeat>x<itemkey>!<itemname>*<multiplier>: <weight>`
+`<repeat>x<itemkey>#<tag>!<itemname>*<multiplier>: <weight>`
 
 Entries can be separated by `&` or `|`. Entries can be grouped with `{` and `}`.
 
@@ -22,6 +22,15 @@ Entries can be separated by `&` or `|`. Entries can be grouped with `{` and `}`.
 - **Example:**
   - `Tier1!Hoof` - White item but not a Hoof
   - `dtChest1!Bear!Crowbar` - Content of a Small Chest but neither Tougher Times nor Crowbar.
+
+#### `#` (Tag-Operator)
+- **Purpose:** Only pick items of tiers or droptables that have an item tag, like the category chests do. With `!#`, only items without the tag.
+- **Placement:** Directly *after* the name of the droptable or tier, mixed with `!` as you like.
+- **Tags:** `Damage`, `Healing`, `Utility`, `OnKillEffect`, `SprintRelated`, `LowHealth`, `EquipmentRelated`, `MobilityRelated`, `FoodRelated` and the other tags of the game. Not case-sensitive.
+- **Example:**
+  - `Tier2#Healing` - Green healing item
+  - `Any#Damage#OnKillEffect` - Damage item of any tier that also has an on-kill effect
+  - `Tier1!#Damage!Bear` - White item that is no damage item and not a Tougher Times
 
 #### `&` (And-Operator)
 - **Purpose:** Every item separated by `&` will be selected.
@@ -163,7 +172,7 @@ You can use:
 - **Item Tier names**: `Tier1`, `Tier2`, `Tier3`, `Lunar`, `Boss`, `VoidTier1`, `VoidTier2`, `VoidTier3`, `VoidBoss`, `FoodTier`, `Cursed`, `Hex`, `Page`. `Lunar` contains lunar items and lunar equipment.
 - **Modded item tiers**: the name of the tier's `ItemTierDef`, or that name without `TierDef` or `Def` at the end, e.g. `Highlander` for `HighlanderTierDef`. Case and characters other than letters, digits and `_` don't count. If the short name fits several tiers, use the full name.
 - **Other drop lists of the run**: `Equipment`, `LunarEquipment`, `LunarItem`, `PowerShape`, `KeyItem`
-- **`Any`**: an item of any tier, without equipment and power shapes.
+- **`Any`**: an item of any tier, without equipment and power shapes. Mostly useful with tags, e.g. `Any#Healing`.
 - **Droptable names**: e.g. `dtChest1`, `dtLunarChest`, `dtVoidChest`. See below.
 
 ### Droptable Names
