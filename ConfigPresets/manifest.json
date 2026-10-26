@@ -2,6 +2,6 @@
 	"name": "ConfigPresets",
 	"version_number": "1.0.0",
 	"website_url": "https://github.com/Deflaktor/ServerSideModsCollection",
-	"description": "A library that lets modpacks set the settings of the mods that support it, without touching your own config files. Does nothing on its own.",
+	"description": "Lets modpacks and mods ship presets for any mods' settings, which you pick in-game, without touching your own config files. Does nothing on its own.",
 	"dependencies": []
 }

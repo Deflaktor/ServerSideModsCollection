@@ -31,6 +31,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerClientSync", "PerClientS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigPresets", "ConfigPresets\ConfigPresets.csproj", "{689FB391-58F6-405D-A383-3208158E2466}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ConfigPresets", "ConfigPresets", "{AA257B3E-B7C0-4B9C-9BA1-814545A6F877}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigPresets.Patcher", "ConfigPresets\Patcher\ConfigPresets.Patcher.csproj", "{891242B4-AAED-4699-8EF2-9FBD33D6072F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,11 +97,19 @@ Global
 		{689FB391-58F6-405D-A383-3208158E2466}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{689FB391-58F6-405D-A383-3208158E2466}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{689FB391-58F6-405D-A383-3208158E2466}.Release|Any CPU.Build.0 = Release|Any CPU
+		{891242B4-AAED-4699-8EF2-9FBD33D6072F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{891242B4-AAED-4699-8EF2-9FBD33D6072F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{891242B4-AAED-4699-8EF2-9FBD33D6072F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{891242B4-AAED-4699-8EF2-9FBD33D6072F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A449675B-BD19-49AE-BA37-E4EEAE30D772}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{689FB391-58F6-405D-A383-3208158E2466} = {AA257B3E-B7C0-4B9C-9BA1-814545A6F877}
+		{891242B4-AAED-4699-8EF2-9FBD33D6072F} = {AA257B3E-B7C0-4B9C-9BA1-814545A6F877}
 	EndGlobalSection
 EndGlobal

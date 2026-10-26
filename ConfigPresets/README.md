@@ -1,69 +1,48 @@
 # ConfigPresets
 
-A library that lets a modpack set the settings of its mods without overwriting your own config files.
+Switch between sets of mod settings while the game is running.
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/E1E71PHUJ2)
 
 ## Motivation
 
-Mod managers like Gale and r2modman install a modpack's config files by copying them over yours. Your own settings are gone, and the next update of the modpack overwrites your changes again.
+Mod managers like Gale and r2modman only deal with config files before the game starts. A modpack's configs get copied over yours, and if you want other settings, you have to edit files or switch profiles and restart the game.
 
-With ConfigPresets, a modpack ships its settings as a preset instead. While the preset is on, the mods use its settings. Your config files keep your own values, and in-game config menus like InLobbyConfig show and change those. Turn the preset off and the mods use your values again.
+With ConfigPresets, modpacks and mods come with presets: ready-made settings for any mods. You pick one in the lobby or in the settings menu and it applies right away. Your own config files stay as they are, so picking Off brings your own settings back.
 
-ConfigPresets does nothing on its own. Only mods that bind their settings through it take part; other mods keep reading your config files as usual.
+ConfigPresets does nothing on its own. It's for modpacks and mods that come with presets.
 
 ## For players
 
-Every installed preset has its own config file in `BepInEx/config`, named after its package, e.g. `Def-SimulacrumEscapeModpack.cfg`. It has one setting:
+You pick one preset for each package that has some, or Off to use your own settings. You can do that:
 
-- `Enabled`: whether the mods use the preset's settings. Needs a game restart.
+- in the lobby with InLobbyConfig, under Config Presets
+- in the game's settings menu with Risk of Options
+- in `BepInEx/config/Def.ConfigPresets.cfg`, which mod managers show in their config editor
 
-If two presets that are on set the same setting, the package that comes first alphabetically wins, and the log tells you.
+A new pick applies right away. Some mods only read a setting when the game starts, so restart the game if something doesn't change.
 
-## For modpack authors
+While a preset sets a setting, config menus show the preset's value. You can change it, but only until the game restarts or the mod reloads its config. Your own config files keep your own values.
 
-Put the config files in a `ConfigPreset` folder in your package, named like the mods' files in `BepInEx/config`, e.g. `ConfigPreset/Def.BazaarIsMyHaven.cfg`. Only put in the settings you want to set. Then add ConfigPresets as a dependency, since the mods themselves don't depend on it.
+Settings that no preset sets work as usual and are saved to your config files.
 
-Don't put them in a `config` folder. Mod managers copy that folder over the player's own configs.
+If two picked presets set the same setting, the package that comes first alphabetically wins, and the log tells you.
 
-## For mod authors
+## For modpack and mod authors
 
-Bind your settings with `PresetConfig.Bind` instead of `Config.Bind`, through a soft dependency (see below). It takes the same arguments plus the config file:
+Add a `ConfigPreset` folder to your package with one folder per preset. The folder name is the preset name players see. Inside go config files named like the ones in `BepInEx/config`, e.g. `ConfigPreset/Hard/Def.BazaarIsMyHaven.cfg`. Only put in the settings you want to set. Then add ConfigPresets as a dependency.
 
-```csharp
-// before
-Enabled = Config.Bind("General", "Enabled", true, "Enables the mod.");
-// after
-Enabled = PresetConfig.Bind(Config, "General", "Enabled", true, "Enables the mod.");
-```
+Preset names can't be `Off`, can't start with a digit, `+` or `-`, can't contain a comma, and can't start or end with a space.
 
-The setting is bound in your config file as usual. If a preset that is on sets it, you get your own entry with the preset's value instead:
+Players start with Off. To pick a preset by default, like a modpack would, write its name into `ConfigPreset/default.txt`.
 
-- Reloading the config file doesn't change it, and changing it isn't saved to the file.
-- Its `SettingChanged` event only fires when your mod changes it, not when the player does.
-- Looking the setting up in the config file, e.g. with `TryGetEntry`, gives you the player's entry.
+Don't put the config files in a `config` folder. Mod managers copy that folder over the player's own configs.
 
-`PresetConfig.IsPreset(entry)` tells you whether an entry has a preset's value, and `PresetConfig.IsPreset(config, definition)` whether a preset sets a setting at all, even one that isn't bound yet. `PresetConfig.PlayerEntry(entry)` gives you the player's entry in the config file, e.g. to update an old config file to new settings.
+Mods don't need any changes. If a mod changes a setting that a preset sets, the change only lasts until the config file is loaded again.
 
-Players don't need ConfigPresets for your mod, only modpacks with presets do. So make it a soft dependency, which loads it before your mod when it's installed:
+## How it works
 
-```csharp
-[BepInDependency(ConfigPresets.ConfigPresetsPlugin.PluginGUID, BepInDependency.DependencyFlags.SoftDependency)]
-```
+ConfigPresets comes in two parts:
 
-Then only call it when it's installed, from a method that isn't inlined, so your mod still loads without it:
-
-```csharp
-public static ConfigEntry<T> Bind<T>(ConfigFile config, string section, string key, T defaultValue, string description)
-{
-    return BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(ConfigPresets.ConfigPresetsPlugin.PluginGUID)
-        ? BindPreset(config, section, key, defaultValue, description)
-        : config.Bind(section, key, defaultValue, description);
-}
-
-[MethodImpl(MethodImplOptions.NoInlining)]
-private static ConfigEntry<T> BindPreset<T>(ConfigFile config, string section, string key, T defaultValue, string description)
-{
-    return PresetConfig.Bind(config, section, key, defaultValue, description);
-}
-```
+- A preloader patcher in `BepInEx/patchers`. It loads before any mod, so it can reach every mod's settings, and it applies the presets.
+- A plugin that adds the preset choice to InLobbyConfig and Risk of Options.
