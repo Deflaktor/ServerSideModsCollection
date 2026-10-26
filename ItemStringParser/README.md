@@ -163,6 +163,7 @@ You can use:
 - **Item Tier names**: `Tier1`, `Tier2`, `Tier3`, `Lunar`, `Boss`, `VoidTier1`, `VoidTier2`, `VoidTier3`, `VoidBoss`, `FoodTier`, `Cursed`, `Hex`, `Page`. `Lunar` contains lunar items and lunar equipment.
 - **Modded item tiers**: the name of the tier's `ItemTierDef`, or that name without `TierDef` or `Def` at the end, e.g. `Highlander` for `HighlanderTierDef`. Case and characters other than letters, digits and `_` don't count. If the short name fits several tiers, use the full name.
 - **Other drop lists of the run**: `Equipment`, `LunarEquipment`, `LunarItem`, `PowerShape`, `KeyItem`
+- **`Any`**: an item of any tier, without equipment and power shapes.
 - **Droptable names**: e.g. `dtChest1`, `dtLunarChest`, `dtVoidChest`. See below.
 
 ### Droptable Names

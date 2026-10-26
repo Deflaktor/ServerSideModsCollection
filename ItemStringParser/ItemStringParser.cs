@@ -197,6 +197,7 @@ namespace ItemStringParser
                 case "page": return run.availablePageTierDropList;
                 case "powershape": return run.availablePowerShapeItemsDropList;
                 case "keyitem": return run.availableKeyItemsDropList;
+                case "any": return GetAnyItems(run);
             }
             var tierDef = FindTierDef(tier);
             if (!tierDef)
@@ -209,6 +210,16 @@ namespace ItemStringParser
             }
             // like the run's other drop lists, without the items that never drop
             return run.allAvailableTierDroplists.TryGetValue(tierDef.tier, out var dropList) ? dropList : new List<PickupIndex>();
+        }
+
+        // the items of every tier, without power shapes, like the tier keywords
+        private static List<PickupIndex> GetAnyItems(Run run)
+        {
+            return run.allAvailableTierDroplists
+                .Where(pair => pair.Key != ItemTier.NoTier)
+                .SelectMany(pair => pair.Value)
+                .Where(pickup => !ItemCatalog.GetItemDef(pickup.pickupDef.itemIndex).ContainsTag(ItemTag.PowerShape))
+                .ToList();
         }
 
         private static readonly HashSet<string> warnedTierNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
