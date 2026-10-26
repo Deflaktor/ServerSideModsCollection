@@ -16,7 +16,6 @@
 - Without ProperSave installed, the game no longer searches for it while scanning this mod at its start
 - The enemy power bias now changes which monsters the director picks rather than when it spends, so the director no longer stops spawning while it saves up for monsters it can't get
 - No longer needs R2API
-- Works with the new ConfigPresets library, through which modpacks can set this mod's settings without changing your config file
 
 # 2.2.1
 
