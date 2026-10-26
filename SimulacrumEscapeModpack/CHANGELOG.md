@@ -1,8 +1,7 @@
 # 3.0.0
 
-- The modpack no longer overwrites your config files. Its settings now apply through the new ConfigPresets library, and only while its `Enabled` switch in `Def-SimulacrumEscapeModpack.cfg` is on. Your config files and in-game config menus keep your own values.
-- The settings for ShareSuite, BiggerBazaar, ItemBlacklist and ArtifactEvolutionPlusPlus can't apply this way. They are in the pack's `RecommendedConfig` folder, to copy into your config folder yourself.
-- Requires the latest versions of the Def mods, which can take their settings from the modpack.
+- The modpack no longer overwrites your config files. Its settings are now the preset Simulacrum Escape, which the new ConfigPresets mod applies while it is picked. Your config files keep your own values.
+- Pick the preset or Off in-game with InLobbyConfig or Risk of Options, or in `Def.ConfigPresets.cfg`.
 
 # 2.1.1
 
