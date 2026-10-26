@@ -33,11 +33,19 @@ namespace ConfigPresets
         private static readonly List<Package> packages = new List<Package>();
         // the settings of the presets that are picked, by config file name
         private static Dictionary<string, Dictionary<ConfigDefinition, string>> files = new Dictionary<string, Dictionary<ConfigDefinition, string>>(StringComparer.OrdinalIgnoreCase);
+        // Until the title screen is shown, the mods use the player's settings. So what they do with their settings while
+        // the game starts, like updating an old config, is saved.
+        private static bool active;
 
         /// <summary>
         /// ConfigPresets' own config file, with a setting for each package that ships presets. Null until the patcher ran.
         /// </summary>
         public static ConfigFile Config { get; private set; }
+
+        /// <summary>
+        /// Whether the presets that are picked apply. They do from when the title screen is shown.
+        /// </summary>
+        public static bool Active => active;
 
         /// <summary>
         /// The setting for each package that ships presets: an enum of Off and the package's presets.
@@ -80,17 +88,16 @@ namespace ConfigPresets
                 }
                 var type = builder.CreateTypeInfo().AsType();
                 var defaultChoice = DefaultChoice(package, directory);
-                var description = new ConfigDescription($"Which of {name}'s presets the mods use, or Off for your own settings. Your config files keep your own values; while a preset sets a setting, changing it in-game only lasts until the game restarts. Takes effect right away, except for settings that a mod only reads when the game starts.");
+                var description = new ConfigDescription($"Which of {name}'s presets the mods use, or Off for your own settings. Applies from the title screen on, and right away when picked there or later; settings that a mod only reads when the game starts keep your own values. Your config files keep your own values too; while a preset sets a setting, changing it in-game only lasts until the game restarts.");
                 var bind = typeof(ConfigFile).GetMethods()
                     .Single(method => method.Name == nameof(ConfigFile.Bind) && method.GetParameters().Select(parameter => parameter.ParameterType.Name).SequenceEqual(new[] { nameof(ConfigDefinition), "T", nameof(ConfigDescription) }))
                     .MakeGenericMethod(type);
                 package.choice = (ConfigEntryBase)bind.Invoke(Config, new object[] { new ConfigDefinition("Presets", KeyName(name)), Enum.ToObject(type, defaultChoice), description });
                 packages.Add(package);
             }
-            Pick();
             Config.SettingChanged += (sender, args) =>
             {
-                if (packages.Any(package => package.choice == args.ChangedSetting))
+                if (active && packages.Any(package => package.choice == args.ChangedSetting))
                 {
                     Pick();
                     Changed?.Invoke();
@@ -160,6 +167,20 @@ namespace ConfigPresets
                 return 0;
             }
             return index;
+        }
+
+        /// <summary>
+        /// Applies the presets that are picked, once the game has started. Called when the title screen is shown.
+        /// </summary>
+        public static void Activate()
+        {
+            if (active)
+            {
+                return;
+            }
+            active = true;
+            Pick();
+            Changed?.Invoke();
         }
 
         // gathers the settings of the presets that are picked

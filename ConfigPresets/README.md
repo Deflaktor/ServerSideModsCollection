@@ -12,6 +12,8 @@ With ConfigPresets, modpacks and mods come with presets: ready-made settings for
 
 ConfigPresets does nothing on its own. It's for modpacks and mods that come with presets.
 
+**It only works with mods that pick up setting changes while the game is running.** Presets are applied once the title screen shows up. If a mod reads a setting only while the game starts, that setting keeps your own value. Also it is not possible to add or remove mods (only enable/disable them if they support it).
+
 ## For players
 
 You pick one preset for each package that has some, or Off to use your own settings. You can do that:
@@ -20,7 +22,7 @@ You pick one preset for each package that has some, or Off to use your own setti
 - in the game's settings menu with Risk of Options
 - in `BepInEx/config/Def.ConfigPresets.cfg`, which mod managers show in their config editor
 
-A new pick applies right away. Some mods only read a setting when the game starts, so restart the game if something doesn't change.
+A new pick applies right away. Before the title screen, mods always use your own settings, so anything they change while starting up, like updating an old config, is saved as usual.
 
 While a preset sets a setting, config menus show the preset's value. You can change it, but only until the game restarts or the mod reloads its config. Your own config files keep your own values.
 
@@ -38,11 +40,13 @@ Players start with Off. To pick a preset by default, like a modpack would, write
 
 Don't put the config files in a `config` folder. Mod managers copy that folder over the player's own configs.
 
-Mods don't need any changes. If a mod changes a setting that a preset sets, the change only lasts until the config file is loaded again.
+Mods don't need any changes, as long as they pick up setting changes while the game runs, i.e. read the value when they need it or listen to `SettingChanged`. A setting that a mod only reads at startup, e.g. to register an item or decide which hooks to add, keeps the player's value. So check that every setting in your preset actually does something.
+
+If a mod changes a setting that a preset sets, the change only lasts until the config file is loaded again.
 
 ## How it works
 
 ConfigPresets comes in two parts:
 
-- A preloader patcher in `BepInEx/patchers`. It loads before any mod, so it can reach every mod's settings, and it applies the presets.
-- A plugin that adds the preset choice to InLobbyConfig and Risk of Options.
+- A preloader patcher in `BepInEx/patchers`. It loads before any mod, so it can reach every mod's settings, and it applies the presets once the title screen shows up.
+- A plugin that tells the patcher when the title screen is up, and adds the preset choice to InLobbyConfig and Risk of Options.

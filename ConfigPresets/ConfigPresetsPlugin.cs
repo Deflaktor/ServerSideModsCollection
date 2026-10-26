@@ -1,4 +1,5 @@
 using BepInEx;
+using RoR2.UI.MainMenu;
 using System.Linq;
 
 namespace ConfigPresets
@@ -25,6 +26,8 @@ namespace ConfigPresets
             {
                 return;
             }
+            // after the mods started with the player's settings
+            MainMenuController.OnMainMenuInitialised += Presets.Activate;
             if (ModCompatibilityInLobbyConfig.enabled)
             {
                 ModCompatibilityInLobbyConfig.CreateFromBepInExConfigFile(Presets.Config, "Config Presets");
