@@ -1,6 +1,6 @@
 <Project>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(IsTestProject)' != 'true'">
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(IsTestProject)' != 'true' And '$(SkipModPackaging)' != 'true'">
     <!-- Clean up deps.json and pdb files for Release builds -->
     <ItemGroup Condition="'$(Configuration)' == 'Release'">
       <FilesToDelete Include="$(TargetDir)*.deps.json" />
@@ -8,14 +8,20 @@
     </ItemGroup>
     <Delete Files="@(FilesToDelete)" Condition="'$(Configuration)' == 'Release'" />
 
-    <!-- Copy output to profile plugin folder; not ShareSuite, a third-party mod the profiles install from Thunderstore -->
+    <!-- Copy output to profile plugin folder, and its patchers folder to the profile's, as mod managers do; not ShareSuite,
+         a third-party mod the profiles install from Thunderstore -->
     <ItemGroup>
-      <OutputFiles Include="$(TargetDir)**\*" />
+      <OutputFiles Include="$(TargetDir)**\*" Exclude="$(TargetDir)patchers\**\*" />
+      <PatcherFiles Include="$(TargetDir)patchers\**\*" />
     </ItemGroup>
     <Copy SourceFiles="@(OutputFiles)"
           DestinationFiles="@(OutputFiles->'$(ProfilePath)/BepInEx/plugins/Def-$(ProjectName)/%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true"
           Condition="Exists('$(ProfilePath)') And '$(ProjectName)' != 'ShareSuite'" />
+    <Copy SourceFiles="@(PatcherFiles)"
+          DestinationFiles="@(PatcherFiles->'$(ProfilePath)/BepInEx/patchers/Def-$(ProjectName)/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(ProfilePath)')" />
 
     <!-- Remove old zip to avoid including it in the new zip -->
     <Delete Files="$(TargetDir)$(TargetName).zip" />
