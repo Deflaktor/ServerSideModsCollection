@@ -22,7 +22,6 @@ namespace SimulacrumBossStageMod
     [BepInDependency("Def.ServerSideTweaks", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("Def.SimulacrumNormalStages", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.KingEnderBrine.ProperSave", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency(ConfigPresets.ConfigPresetsPlugin.PluginGUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     public class SimulacrumBossStageMod : BaseUnityPlugin
     {
