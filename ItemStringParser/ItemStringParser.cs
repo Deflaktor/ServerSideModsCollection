@@ -154,12 +154,12 @@ namespace ItemStringParser
         }
 
         /// <summary>
-        /// This method resolves a single item key into an pickup index. It supports parsing item keys that represent item tiers, drop tables, concrete items, or concrete equipment. It also supports blacklisting certain items from selection.
+        /// This method resolves a single item key into a pickup index. It supports parsing item keys that represent item tiers, drop tables, concrete items, or concrete equipment. Tiers and drop tables can be narrowed down by blacklisting items and by item tags.
         /// </summary>
-        /// <param name="itemkey">A concrete item internal name or a drop table with possible not-operators or a tier with possible not-operators.</param>
+        /// <param name="itemkey">A concrete item internal name, or a tier or drop table with possible !Item, #Tag and !#Tag filters.</param>
         /// <param name="availableOnly">If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked. Names from a DLC that is not enabled for the run never resolve.</param>
         /// <returns>The resolved pickup index</returns>
-        /// <exception cref="ArgumentException">Thrown when itemkey can not be resolved to an concrete item name, droptable or tier or when any of the blacklisted item names could not be resolved.<exception>
+        /// <exception cref="ArgumentException">Thrown when itemkey can not be resolved to an concrete item name, droptable or tier or when any of the blacklisted item names or tags could not be resolved.<exception>
         public static PickupIndex ResolveItemKey(string itemkey, bool availableOnly = true)
         {
             var resolvedItems = new Dictionary<PickupIndex, int>();

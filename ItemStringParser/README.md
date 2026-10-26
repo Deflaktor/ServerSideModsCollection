@@ -338,21 +338,21 @@ if (ItemStringParser.ItemStringParser.ParseItemString("5xHoof & BFG & Tier1", re
 
 ### ResolveItemKey
 
-This method resolves a single item key string into a pickup index. It supports parsing item keys that represent item tiers, drop tables, concrete items, or concrete equipment. It also supports blacklisting certain items from selection. As such this method only supports the `!`-operator, but no other operator.
+This method resolves a single item key string into a pickup index. It supports parsing item keys that represent item tiers, drop tables, concrete items, or concrete equipment. Tiers and drop tables can be narrowed down with the `!`, `#` and `!#` operators. Other operators like `&`, `|` or `x` are not supported here, use `ParseItemString` for those.
 
 #### Signature
 
 ```c#
-bool ItemStringParser.ItemStringParser.ResolveItemKey(string itemkey, int repeat, Dictionary<PickupIndex, int> resolvedItems, ManualLogSource log)
+PickupIndex ItemStringParser.ItemStringParser.ResolveItemKey(string itemkey, bool availableOnly = true)
 ```
 
-`itemkey (string)`: The identifier string for the item or group of items to resolve. May exclude items from droptables or tiers with with `!`.
+`itemkey (string)`: The identifier string for the item or group of items to resolve. Tiers and droptables can exclude items with `!`, and only pick items with or without a tag with `#` and `!#`.
 
 `availableOnly (bool, optional)`: If true will prevent concrete item names from being resolved if they are disabled or not yet unlocked. Names from a DLC that is not enabled for the run never resolve.
 
 `Return Value`: The resolved pickupIndex.
 
-`ArgumentException`: Thrown when itemkey can not be resolved to an item name, droptable or tier or when any of the blacklisted item names could not be resolved.
+`ArgumentException`: Thrown when itemkey can not be resolved to an item name, droptable or tier or when any of the blacklisted item names or tags could not be resolved.
 
 #### Usage Example
 
@@ -360,6 +360,7 @@ bool ItemStringParser.ItemStringParser.ResolveItemKey(string itemkey, int repeat
 try
 {
     var pickupIndex = ItemStringParser.ResolveItemKey("Tier1!Crowbar"); // Tier1 items excluding Crowbar
+    var healingItem = ItemStringParser.ResolveItemKey("Tier2#Healing"); // green healing items
 }
 catch(ArgumentException e)
 {
